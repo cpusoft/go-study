@@ -1,0 +1,19 @@
+package: .
+import:
+- package: github.com/astaxie/beego
+  version: ~1.9.2
+  subpackages:
+  - config
+  - logs
+- package: github.com/go-sql-driver/mysql
+  version: ~1.3.0
+- package: github.com/golang/glog
+- package: github.com/julienschmidt/httprouter
+  version: ~1.1.0
+- package: github.com/zpatrick/go-config
+- package: golang.org/x/net
+  subpackages:
+  - websocket
+testImport:
+ignore:
+- main
