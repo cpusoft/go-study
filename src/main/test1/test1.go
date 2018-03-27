@@ -60,6 +60,15 @@ func main() {
 	fmt.Println("%v", sli)
 	fmt.Println("%v", sli2)
 
+	sli = make([]int, 10)
+	for i := 0; i < 10; i++ {
+		sli[i] = i
+	}
+	fmt.Println("111  %v", sli)
+	fmt.Println(":0  %v", sli[:0])
+	sli = append(sli[:0], sli[1:]...)
+	fmt.Println("222 %v", sli)
+
 	person := &Person{"aaa", 12}
 	fmt.Println("%+v", person)
 	person.ModifyAge(99)
