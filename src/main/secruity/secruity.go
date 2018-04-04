@@ -372,6 +372,7 @@ func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType 
 		for i := 0; i < 4-len(minValue); i++ {
 			minAddr += fmt.Sprintf("%d.", 0)
 		}
+		minAddr = minAddr[0 : len(minAddr)-1]
 
 		maxAddr := ""
 		for i := 0; i < len(maxValue); i++ {
@@ -380,9 +381,46 @@ func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType 
 		for i := 0; i < 4-len(maxValue); i++ {
 			maxAddr += fmt.Sprintf("%d.", 255)
 		}
+		maxAddr = maxAddr[0 : len(maxAddr)-1]
+
 		fmt.Println("minAddr:", minAddr, "maxAddr", maxAddr)
 
 	} else if ipType == ipv6 {
+		minAddr := ""
+		for i := 0; i < len(minValue); i++ {
+			minAddr += fmt.Sprintf("%d.", minValue[i])
+			if i%2 == 1 {
+				minAddr += ":"
+			}
+		}
+		for i := 0; i < 16-len(minValue); i++ {
+			minAddr += fmt.Sprintf("%d.", 0)
+			minAddr += fmt.Sprintf("%d.", minValue[i])
+			if i%2 == 1 {
+				minAddr += ":"
+			}
+		}
+		if minAddr[len(minAddr)-1] == ':' {
+			minAddr = minAddr[0 : len(minAddr)-1]
+		}
+
+		maxAddr := ""
+		for i := 0; i < len(maxValue); i++ {
+			maxAddr += fmt.Sprintf("%d.", maxValue[i])
+			if i%2 == 1 {
+				maxAddr += ":"
+			}
+		}
+		for i := 0; i < 4-len(maxValue); i++ {
+			maxAddr += fmt.Sprintf("%d.", 255)
+			if i%2 == 1 {
+				maxAddr += ":"
+			}
+		}
+		if maxAddr[len(maxAddr)-1] == ':' {
+			maxAddr = maxAddr[0 : len(maxAddr)-1]
+		}
+		fmt.Println("minAddr:", minAddr, "maxAddr", maxAddr)
 
 	}
 	return nil
