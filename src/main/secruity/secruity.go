@@ -297,7 +297,7 @@ func parseAddressesOrRange(addressesOrRange []byte, ipType int) error {
 }
 
 func parseAddressPrefix(addressPrefix []byte, addressesOrRangeOneLen byte, ipType int) error {
-
+	// 传入的第0位是unusedbit位
 	// 03 03 04 b010              addressPrefix    172.16/12
 	//第2位标明长度，-1后(unused bit占用了1位)，为ip地址应该的长度: 标明长度3，应该长度为2
 	// 第3位，固定的unused bit位： 为4
@@ -351,11 +351,45 @@ func parseAddressPrefix(addressPrefix []byte, addressesOrRangeOneLen byte, ipTyp
 	return nil
 }
 func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType int) error {
+	//传入的是两个sequence，第一个是min，第二个是max
+	// Value值，跳过了unused bit位，所以是从3开始，并且长度-1
+	minType := addressRange[0]
+	minLen := addressRange[1]
+	minValue := addressRange[3 : 3+minLen-1]
+	printAsn("min", minType, minLen, minValue)
+
+	tmp := addressRange[2+minLen:]
+	maxType := tmp[0]
+	maxLen := tmp[1]
+	maxValue := tmp[3 : 3+maxLen-1]
+	printAsn("max", maxType, maxLen, maxValue)
+
+	if ipType == ipv4 {
+		minAddr := ""
+		for i := 0; i < len(minValue); i++ {
+			minAddr += fmt.Sprintf("%d.", minValue[i])
+		}
+		for i := 0; i < 4-len(minValue); i++ {
+			minAddr += fmt.Sprintf("%d.", 0)
+		}
+
+		maxAddr := ""
+		for i := 0; i < len(maxValue); i++ {
+			maxAddr += fmt.Sprintf("%d.", maxValue[i])
+		}
+		for i := 0; i < 4-len(maxValue); i++ {
+			maxAddr += fmt.Sprintf("%d.", 255)
+		}
+		fmt.Println("minAddr:", minAddr, "maxAddr", maxAddr)
+
+	} else if ipType == ipv6 {
+
+	}
 	return nil
 }
 
 func main() {
-	err := parseCer(`E:\Go\go-study\src\main\secruity\1.cer`)
+	err := parseCer(`E:\Go\go-study\src\main\secruity\range.cer`)
 	if err != nil {
 		return
 	}
