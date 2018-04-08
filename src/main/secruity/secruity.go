@@ -232,7 +232,7 @@ func parseIpAddrBlock(ipAddrBlock []byte) error {
 	} else {
 		return errors.New("error iptype")
 	}
-	fmt.Println("get ipType from addressFamilyValue:", ipType)
+	fmt.Println("get ipType from addressFamilyValue (ipv4 = 0x01,   ipv6 = 0x02): ", ipType)
 
 	//读取ipAddressChoice，注意是从ipAddrBlock开始--即addressFamilyValue节尾--截取的
 	ipAddressChoice := ipAddrBlock[4+addressFamilyLen:]
@@ -303,6 +303,7 @@ func parseAddressPrefix(addressPrefix []byte, addressesOrRangeOneLen byte, ipTyp
 	// 第3位，固定的unused bit位： 为4
 	// unusedbit = 32- 应该的长度*8 - prefix  =32-2*8-prefix
 	// prefix = 32- 应该的长度*8 - unusedbit = 32 - 2*8 - 4 = 12
+	fmt.Println("parseAddressPrefix():  ipType:", ipType)
 	printBytes("addressPrefix:", addressPrefix)
 	addressShouldLen, _ := strconv.Atoi(fmt.Sprintf("%d", addressesOrRangeOneLen))
 	unusedBitLen, _ := strconv.Atoi(fmt.Sprintf("%d", addressPrefix[0]))
@@ -311,8 +312,8 @@ func parseAddressPrefix(addressPrefix []byte, addressesOrRangeOneLen byte, ipTyp
 	if ipType == ipv4 {
 		// ipv4 的CIDR 表示法
 		prefix := ipv4len - 8*(addressShouldLen-1) - unusedBitLen
-		fmt.Println(fmt.Sprintf("prefix := ipv6len - 8*(addressShouldLen-1) - unusedBitLen:  %d := %d - 8 *(%d-1)-  %d \r\n",
-			prefix, ipv6len, addressShouldLen, unusedBitLen))
+		fmt.Println(fmt.Sprintf("prefix := ipv4len - 8*(addressShouldLen-1) - unusedBitLen:  %d := %d - 8 *(%d-1)-  %d \r\n",
+			prefix, ipv4len, addressShouldLen, unusedBitLen))
 
 		printBytes("address:", address)
 
@@ -353,15 +354,16 @@ func parseAddressPrefix(addressPrefix []byte, addressesOrRangeOneLen byte, ipTyp
 func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType int) error {
 	//传入的是两个sequence，第一个是min，第二个是max
 	// Value值，跳过了unused bit位，所以是从3开始，并且长度-1
+	fmt.Println("parseAddressRange():  ipType:", ipType)
 	minType := addressRange[0]
 	minLen := addressRange[1]
-	minValue := addressRange[3 : 3+minLen-1]
+	minValue := addressRange[2 : 2+minLen]
 	printAsn("min", minType, minLen, minValue)
 
 	tmp := addressRange[2+minLen:]
 	maxType := tmp[0]
 	maxLen := tmp[1]
-	maxValue := tmp[3 : 3+maxLen-1]
+	maxValue := tmp[2 : 2+maxLen]
 	printAsn("max", maxType, maxLen, maxValue)
 
 	if ipType == ipv4 {
@@ -388,35 +390,39 @@ func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType 
 	} else if ipType == ipv6 {
 		minAddr := ""
 		for i := 0; i < len(minValue); i++ {
-			minAddr += fmt.Sprintf("%d.", minValue[i])
+			minAddr += fmt.Sprintf("%02x", minValue[i])
 			if i%2 == 1 {
 				minAddr += ":"
 			}
 		}
+		fmt.Println("len(minValue), minAddr:", len(minValue), minAddr)
 		for i := 0; i < 16-len(minValue); i++ {
-			minAddr += fmt.Sprintf("%d.", 0)
-			minAddr += fmt.Sprintf("%d.", minValue[i])
+			minAddr += fmt.Sprintf("%02x", 0)
 			if i%2 == 1 {
 				minAddr += ":"
 			}
 		}
+		fmt.Println("16- len(minValue)", 16-len(minValue))
 		if minAddr[len(minAddr)-1] == ':' {
 			minAddr = minAddr[0 : len(minAddr)-1]
 		}
+		fmt.Println("len(minAddr)-1", len(minAddr)-1)
 
 		maxAddr := ""
 		for i := 0; i < len(maxValue); i++ {
-			maxAddr += fmt.Sprintf("%d.", maxValue[i])
+			maxAddr += fmt.Sprintf("%02x", maxValue[i])
 			if i%2 == 1 {
 				maxAddr += ":"
 			}
 		}
-		for i := 0; i < 4-len(maxValue); i++ {
-			maxAddr += fmt.Sprintf("%d.", 255)
+		fmt.Println("len(maxValue),maxAddr:", len(maxValue), maxAddr)
+		for i := 0; i < 16-len(maxValue); i++ {
+			maxAddr += fmt.Sprintf("%02x", 255)
 			if i%2 == 1 {
 				maxAddr += ":"
 			}
 		}
+		fmt.Println("16-len(maxValue)", 16-len(maxValue))
 		if maxAddr[len(maxAddr)-1] == ':' {
 			maxAddr = maxAddr[0 : len(maxAddr)-1]
 		}
@@ -427,7 +433,7 @@ func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType 
 }
 
 func main() {
-	err := parseCer(`E:\Go\go-study\src\main\secruity\range.cer`)
+	err := parseCer(`E:\Go\go-study\src\main\secruity\range_ipv6.cer`)
 	if err != nil {
 		return
 	}
