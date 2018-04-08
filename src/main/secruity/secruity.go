@@ -388,44 +388,32 @@ func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType 
 		fmt.Println("minAddr:", minAddr, "maxAddr", maxAddr)
 
 	} else if ipType == ipv6 {
+		// 先拼出整个的ipv6地址，min的用0填充，max用255填充，最后再每4位加:
+		addrTmp := ""
 		minAddr := ""
 		for i := 0; i < len(minValue); i++ {
-			minAddr += fmt.Sprintf("%02x", minValue[i])
-			if i%2 == 1 {
-				minAddr += ":"
-			}
+			addrTmp += fmt.Sprintf("%02x", minValue[i])
 		}
-		fmt.Println("len(minValue), minAddr:", len(minValue), minAddr)
 		for i := 0; i < 16-len(minValue); i++ {
-			minAddr += fmt.Sprintf("%02x", 0)
-			if i%2 == 1 {
-				minAddr += ":"
-			}
+			addrTmp += fmt.Sprintf("%02x", 0)
 		}
-		fmt.Println("16- len(minValue)", 16-len(minValue))
-		if minAddr[len(minAddr)-1] == ':' {
-			minAddr = minAddr[0 : len(minAddr)-1]
+		for i := 0; i < len(addrTmp); i += 4 {
+			minAddr += (addrTmp[i:i+4] + ":")
 		}
-		fmt.Println("len(minAddr)-1", len(minAddr)-1)
+		minAddr = minAddr[0 : len(minAddr)-1]
 
+		addrTmp = ""
 		maxAddr := ""
 		for i := 0; i < len(maxValue); i++ {
-			maxAddr += fmt.Sprintf("%02x", maxValue[i])
-			if i%2 == 1 {
-				maxAddr += ":"
-			}
+			addrTmp += fmt.Sprintf("%02x", maxValue[i])
 		}
-		fmt.Println("len(maxValue),maxAddr:", len(maxValue), maxAddr)
 		for i := 0; i < 16-len(maxValue); i++ {
-			maxAddr += fmt.Sprintf("%02x", 255)
-			if i%2 == 1 {
-				maxAddr += ":"
-			}
+			addrTmp += fmt.Sprintf("%02x", 255)
 		}
-		fmt.Println("16-len(maxValue)", 16-len(maxValue))
-		if maxAddr[len(maxAddr)-1] == ':' {
-			maxAddr = maxAddr[0 : len(maxAddr)-1]
+		for i := 0; i < len(addrTmp); i += 4 {
+			maxAddr += (addrTmp[i:i+4] + ":")
 		}
+		maxAddr = maxAddr[0 : len(maxAddr)-1]
 		fmt.Println("minAddr:", minAddr, "maxAddr", maxAddr)
 
 	}
