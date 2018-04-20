@@ -1,0 +1,44 @@
+{
+    "slurmVersion": 1, 
+    "validationOutputFilters": {
+        "prefixFilters": [
+            {
+                "prefix": "1.10.10.0/24", 
+                "comment": "test prefix filters"
+            }, 
+            {
+                "asn": 999996, 
+                "prefix": "1.9.6.0/24", 
+                "comment": "test prefix and asn filters"
+            }
+        ], 
+        "bgpsecFilters": [
+            {
+                "asn": 65535, 
+                "comment": "test bgpsec filters"
+            }, 
+            {
+                "asn": 65536, 
+                "SKI": "47F23BF1AB2F8A9D26864EBBD8DF2711C74406EC", 
+                "comment": "from https://www.rfc-editor.org/rfc/rfc8208.txt, section A.2.Keys"
+            }
+        ]
+    }, 
+    "locallyAddedAssertions": {
+        "prefixAssertions": [
+            {
+                "asn": 999995, 
+                "prefix": "1.9.5.0/24", 
+                "comment": "test assertions"
+            }
+        ], 
+        "bgpsecAssertions": [
+            {
+                "asn": 64496, 
+                "comment": "from https://www.rfc-editor.org/rfc/rfc8208.txt, section A.2.Keys", 
+                "SKI": "AB4D910F55CAE71A215EF3CAFE3ACC45B5EEC154", 
+                "publicKey": "7391BABB92A0CB3BE10E59B19EBFFB214E04A91E0CBA1B139A7D38D90F77E55AA05B8E695678E0FA16904B55D9D4F5C0DFC58895EE50BC4F75D205A25BD36FF5"
+            }
+        ]
+    }
+}

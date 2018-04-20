@@ -139,12 +139,26 @@ func parseCer(file string) error {
 		return err
 	}
 
-	fmt.Println(*cert.SerialNumber)
-	fmt.Println(cert.NotBefore.Format("2006-01-02 15:04:05"))
-	fmt.Println(cert.NotAfter.Format("2006-01-02 15:04:05"))
-	fmt.Printf("subject: %+v\r\n", cert.Subject)
+	fmt.Println("valfrom:", cert.NotBefore.Format("2006-01-02 15:04:05"))
+	fmt.Println("valto:", cert.NotAfter.Format("2006-01-02 15:04:05"))
+	fmt.Printf("subject: /CN=%s/serialNumber=%s\r\n", cert.Subject.CommonName, cert.Subject.SerialNumber)
+	fmt.Printf("issuer: /CN=%s/serialNumber=%s\r\n", cert.Issuer.CommonName, cert.Issuer.SerialNumber)
+	sn := cert.SerialNumber.Uint64()
+	fmt.Printf("sn: %d\r\n", sn)
+	// flags ??
+	ski := cert.SubjectKeyId
+	printBytes("ski", ski)
+	aki := cert.AuthorityKeyId
+	printBytes("aki", aki)
+	fmt.Println("len(ExtKeyUsage):", len(cert.ExtKeyUsage))
+	for _, eku := range cert.ExtKeyUsage {
+		fmt.Println("%v\r\n", eku)
+	}
+	//颁发机构信息访问
+	fmt.Println("aia:", cert.IssuingCertificateURL)
 
-	fmt.Printf("issuer: %+v\r\n", cert.Issuer)
+	crldp := cert.CRLDistributionPoints
+	fmt.Printf("crldp:%+v\r\n", crldp)
 
 	fmt.Printf("Extensions: %+v\r\n", cert.Extensions)
 	fmt.Printf("ExtraExtensions: %+v\r\n", cert.ExtraExtensions)
@@ -152,6 +166,8 @@ func parseCer(file string) error {
 
 	for _, extension := range cert.Extensions {
 		oid := extension.Id
+		fmt.Println("oid", oid)
+
 		if oidKey == oid.String() {
 			err := parseExtension(extension)
 			if err != nil {
