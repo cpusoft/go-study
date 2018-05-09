@@ -4,6 +4,7 @@ import (
 	_ "crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	_ "encoding/pem"
 	"errors"
 	"fmt"
@@ -37,6 +38,11 @@ import (
    IPAddress           ::= BIT STRING
 
 */
+type CertInfo struct {
+	Asn      uint64 `json:"asn,omitempty"`
+	Hostname string `json:"hostname,omitempty"`
+	Comment  string `json:"comment,omitempty"`
+}
 
 type IPAddress string
 type IPAddressRange struct {
@@ -150,6 +156,7 @@ func parseCer(file string) error {
 	printBytes("ski", ski)
 	aki := cert.AuthorityKeyId
 	printBytes("aki", aki)
+
 	fmt.Println("len(ExtKeyUsage):", len(cert.ExtKeyUsage))
 	for _, eku := range cert.ExtKeyUsage {
 		fmt.Println("%v\r\n", eku)
@@ -162,6 +169,10 @@ func parseCer(file string) error {
 
 	fmt.Printf("Extensions: %+v\r\n", cert.Extensions)
 	fmt.Printf("ExtraExtensions: %+v\r\n", cert.ExtraExtensions)
+
+	jsonCert, _ := json.Marshal(cert)
+	fmt.Printf("jsonCert: %+v\r\n", string(jsonCert))
+
 	oidKey := "1.3.6.1.5.5.7.1.7"
 
 	for _, extension := range cert.Extensions {
@@ -236,6 +247,7 @@ func parseIpAddrBlock(ipAddrBlock []byte) error {
 	printAsn("ipAddressFamily", ipAddressFamilyType, ipAddressFamilyLen, ipAddressFamilyValue)
 
 	//读取addressFamily，注意是从ipAddrBlock开始截取的
+	// 这里好像有些问题，shaodebug ???
 	addressFamilyType := ipAddrBlock[2]
 	addressFamilyLen := ipAddrBlock[3]
 	addressFamilyValue := ipAddrBlock[4 : 4+addressFamilyLen]
@@ -437,7 +449,7 @@ func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType 
 }
 
 func main() {
-	err := parseCer(`E:\Go\go-study\src\main\secruity\range_ipv6.cer`)
+	err := parseCer(`E:\Go\go-study\src\main\secruity\1.cer`)
 	if err != nil {
 		return
 	}
