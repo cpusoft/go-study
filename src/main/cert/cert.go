@@ -11,11 +11,13 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
-//slurm head , 这里特殊处理，相当于每组只会有一个
-type CertInfo struct {
+// cer 文件
+type CerInfo struct {
 	Version               int      `json:"version"`
 	SN                    string   `json:"sn"`
 	NotBefore             string   `json:"notBefore"`
@@ -29,6 +31,20 @@ type CertInfo struct {
 	SubjectAll            string   `json:"subjectAll"`
 	Issuer                string   `json:"issuer"`
 	IssuerAll             string   `json:"issuerAll"`
+}
+
+type CrlRevokedCert struct {
+	SN             string `jsong:"sn"`
+	RevocationTime string `json:"revocationTime"`
+}
+
+type CrlInfo struct {
+	Version         int              `json:"version"`
+	Issuer          string           `json:"issuer"`
+	ThisUpdate      string           `json:"thisUpdate"`
+	NextUpdate      string           `json:"nextUpdate"`
+	HasExpired      string           `json:"hasExpired"`
+	CrlRevokedCerts []CrlRevokedCert `json:"CrlRevokedCerts"`
 }
 
 var oid = map[string]string{
@@ -51,11 +67,16 @@ var oid = map[string]string{
 	"0.9.2342.19200300.100.1.25": "DC",
 	"1.2.840.113549.1.9.1":       "emailAddress",
 	"0.9.2342.19200300.100.1.1":  "userid",
+	"2.5.29.20":                  "CRL Number",
 }
 
-func getDNFromCert(namespace pkix.Name, sep string) (string, error) {
+func getDNFromName(namespace pkix.Name, sep string) (string, error) {
+	return getDNFromRDNSeq(namespace.ToRDNSequence(), sep)
+}
+
+func getDNFromRDNSeq(rdns pkix.RDNSequence, sep string) (string, error) {
 	subject := []string{}
-	for _, s := range namespace.ToRDNSequence() {
+	for _, s := range rdns {
 		for _, i := range s {
 			if v, ok := i.Value.(string); ok {
 				if name, ok := oid[i.Type.String()]; ok {
@@ -73,6 +94,7 @@ func getDNFromCert(namespace pkix.Name, sep string) (string, error) {
 	}
 	return sep + strings.Join(subject, sep), nil
 }
+
 func parseCer(file string) error {
 	//300E300C040200013006030402B9A6FC     16
 	/*  ` 0x0c 0x04 0x02 0x00 0x01 0x30 0x06 0x03 0x04 0x02 0xb9 0xa6 0xfc
@@ -106,22 +128,22 @@ func parseCer(file string) error {
 		return err
 	}
 
-	certInfo := CertInfo{}
-	certInfo.SN = fmt.Sprintf("%x", cert.SerialNumber)
-	certInfo.Version = cert.Version
-	certInfo.DNSNames = cert.DNSNames
-	certInfo.EmailAddresses = cert.EmailAddresses
-	certInfo.IPAddresses = cert.IPAddresses
-	certInfo.BasicConstraintsValid = cert.BasicConstraintsValid
-	certInfo.IsRoot = cert.IsCA
-	certInfo.NotBefore = cert.NotBefore.Format("2006-01-02 15:04:05")
-	certInfo.NotAfter = cert.NotAfter.Format("2006-01-02 15:04:05")
-	certInfo.Subject = cert.Subject.CommonName
-	certInfo.SubjectAll, _ = getDNFromCert(cert.Subject, "/")
-	certInfo.Issuer = cert.Issuer.CommonName
-	certInfo.IssuerAll, _ = getDNFromCert(cert.Issuer, "/")
-	jsonCert, _ := json.Marshal(certInfo)
-	fmt.Printf("%+v", string(jsonCert))
+	cerInfo := CerInfo{}
+	cerInfo.SN = fmt.Sprintf("%x", cert.SerialNumber)
+	cerInfo.Version = cert.Version
+	cerInfo.DNSNames = cert.DNSNames
+	cerInfo.EmailAddresses = cert.EmailAddresses
+	cerInfo.IPAddresses = cert.IPAddresses
+	cerInfo.BasicConstraintsValid = cert.BasicConstraintsValid
+	cerInfo.IsRoot = cert.IsCA
+	cerInfo.NotBefore = cert.NotBefore.Format("2006-01-02 15:04:05")
+	cerInfo.NotAfter = cert.NotAfter.Format("2006-01-02 15:04:05")
+	cerInfo.Subject = cert.Subject.CommonName
+	cerInfo.SubjectAll, _ = getDNFromName(cert.Subject, "/")
+	cerInfo.Issuer = cert.Issuer.CommonName
+	cerInfo.IssuerAll, _ = getDNFromName(cert.Issuer, "/")
+	jsonCer, _ := json.Marshal(cerInfo)
+	fmt.Printf("%+v", string(jsonCer))
 	/*
 		fmt.Println("valfrom:", cert.NotBefore.Format("2006-01-02 15:04:05"))
 		fmt.Println("valto:", cert.NotAfter.Format("2006-01-02 15:04:05"))
@@ -166,15 +188,56 @@ func parseCer(file string) error {
 	*/
 	return nil
 }
+
+func parseCrl(file string) error {
+	crl := file
+	crlBlock, err := ioutil.ReadFile(crl)
+	if err != nil {
+		fmt.Println("ReadFile err:", err)
+		return err
+	}
+	certList, err := x509.ParseCRL(crlBlock)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	tbsCertList := certList.TBSCertList
+	crlInfo := CrlInfo{}
+	crlInfo.Version = tbsCertList.Version
+	crlInfo.Issuer, _ = getDNFromRDNSeq(tbsCertList.Issuer, "/")
+	crlInfo.ThisUpdate = tbsCertList.ThisUpdate.Local().Format("2006-01-02 15:04:05") //LoadLocation("Local")
+	crlInfo.NextUpdate = tbsCertList.NextUpdate.Local().Format("2006-01-02 15:04:05")
+	crlInfo.HasExpired = strconv.FormatBool(certList.HasExpired(time.Now()))
+	//exts := tbsCertList.Extensions
+	crlInfo.CrlRevokedCerts = make([]CrlRevokedCert, 0)
+	revokedCerts := tbsCertList.RevokedCertificates
+	for _, revokedCert := range revokedCerts {
+		crlRevokedCert := CrlRevokedCert{}
+		crlRevokedCert.SN = fmt.Sprintf("%x", revokedCert.SerialNumber)
+		crlRevokedCert.RevocationTime = revokedCert.RevocationTime.Local().Format("2006-01-02 15:04:05")
+		crlInfo.CrlRevokedCerts = append(crlInfo.CrlRevokedCerts, crlRevokedCert)
+	}
+
+	jsonCrl, _ := json.Marshal(crlInfo)
+	fmt.Printf("%+v", string(jsonCrl))
+
+	return nil
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Println("usage: ./cert 1.cer")
 		return
 	}
 	//`E:\Go\go-study\src\main\cert\root.cer`
-	certFile := os.Args[1]
-	//fmt.Println("certFile is ", certFile)
-	err := parseCer(certFile)
+	var err error
+	certFile := strings.ToLower(os.Args[1])
+	if strings.HasSuffix(certFile, ".cer") {
+		err = parseCer(certFile)
+	} else if strings.HasSuffix(certFile, ".crl") {
+		err = parseCrl(certFile)
+	}
 	if err != nil {
 		fmt.Println(err)
 	}
