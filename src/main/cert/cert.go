@@ -225,6 +225,47 @@ func parseCrl(file string) error {
 	return nil
 }
 
+/*
+
+manifest.asn
+https://datatracker.ietf.org/doc/rfc6486/
+
+-- Declaration for c->asn compatibility
+--
+--
+
+DEFINITIONS IMPLICIT TAGS ::=
+-- imports
+IMPORTS AlgorithmIdentifier FROM Algorithms IN Algorithms.asn,
+        Extensions IPAddressOrRangeA Attribute FROM extensions IN extensions.asn,
+        Certificate Version FROM certificate IN certificate.asn,
+        Name FROM name IN name.asn;
+
+-- Manifest Specification
+
+   Manifest ::= SEQUENCE
+    {
+    version         [0] Manifestversion DEFAULT v1,
+    manifestNumber  INTEGER,
+    thisUpdate      GeneralizedTime,
+    nextUpdate      GeneralizedTime,
+    fileHashAlg     OBJECT IDENTIFIER,
+    fileList        SEQUENCE SIZE (0..MAX) OF FileAndHash
+    }
+
+    Manifestversion ::= INTEGER { v1(0) } (v1)
+
+FileAndHash ::= SEQUENCE
+    {
+    file        IA5String,
+    hash        BIT STRING
+    }
+
+*/
+func parseMft(file string) error {
+
+	return nil
+}
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Println("usage: ./cert 1.cer")
@@ -237,6 +278,8 @@ func main() {
 		err = parseCer(certFile)
 	} else if strings.HasSuffix(certFile, ".crl") {
 		err = parseCrl(certFile)
+	} else if strings.HasSuffix(certFile, ".mft") {
+		err = parseMft(certFile)
 	}
 	if err != nil {
 		fmt.Println(err)
