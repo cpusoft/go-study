@@ -449,7 +449,7 @@ func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType 
 }
 
 func main() {
-	err := parseCer(`E:\Go\go-study\src\main\secruity\1.cer`)
+	err := parseCer(`E:\Go\go-study\src\main\secruity\range_ipv4.cer`)
 	if err != nil {
 		return
 	}
