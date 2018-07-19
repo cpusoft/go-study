@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
 	_ "encoding/pem"
 	"errors"
@@ -18,6 +19,7 @@ import (
 )
 
 // cer 文件
+// IPAddress
 type IPAddressRange struct {
 	Min string `json:"min"`
 	Max string `json:"max"`
@@ -27,6 +29,15 @@ type IPAddressOrRange struct {
 	AddressRange  IPAddressRange `json:"addressRange"`
 }
 
+// ASN
+type ASRange struct {
+	Min uint64 `json:"min"`
+	Max uint64 `json:"max"`
+}
+type ASIdOrRange struct {
+	ASId    uint64  `json:"asId"`
+	ASRange ASRange `json:"asRange"`
+}
 type CerInfo struct {
 	Version               int                `json:"version"`
 	SN                    string             `json:"sn"`
@@ -42,6 +53,8 @@ type CerInfo struct {
 	Issuer                string             `json:"issuer"`
 	IssuerAll             string             `json:"issuerAll"`
 	IPAddressOrRange      []IPAddressOrRange `json:"ipAddressOrRange"`
+	AsNum                 []ASIdOrRange      `json:"asNum"`
+	Rdi                   []ASIdOrRange      `json:"rdi"`
 }
 
 type CrlRevokedCert struct {
@@ -154,19 +167,25 @@ func parseCer(file string) error {
 	cerInfo.Issuer = cert.Issuer.CommonName
 	cerInfo.IssuerAll, _ = getDNFromName(cert.Issuer, "/")
 	cerInfo.IPAddressOrRange = make([]IPAddressOrRange, 0)
+	cerInfo.AsNum = make([]ASIdOrRange, 0)
+	cerInfo.Rdi = make([]ASIdOrRange, 0)
 
-	oidKey := "1.3.6.1.5.5.7.1.7"
+	oidIpAddressKey := "1.3.6.1.5.5.7.1.7"
+	oidASKey := "1.3.6.1.5.5.7.1.8"
 	for _, extension := range cert.Extensions {
 		oid := extension.Id
-		fmt.Println("oid", oid)
-
-		if oidKey == oid.String() {
-			err := parseExtension(extension, &cerInfo.IPAddressOrRange)
+		if oidIpAddressKey == oid.String() {
+			err := parseIpAddressExtension(extension, &cerInfo.IPAddressOrRange)
 			if err != nil {
 				fmt.Println(err)
 				return err
 			}
-			fmt.Println("new extension~~~~~~~~~~~~~~~~~~~~~~~~")
+		} else if oidASKey == oid.String() {
+			err := parseAsnExtension(extension, &cerInfo.AsNum, &cerInfo.Rdi)
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
 		}
 	}
 
@@ -316,33 +335,30 @@ func main() {
 
 }
 
-func parseExtension(extension pkix.Extension, ipAddressOrRanges *[]IPAddressOrRange) error {
+func parseIpAddressExtension(extension pkix.Extension, ipAddressOrRanges *[]IPAddressOrRange) error {
 	extensionValue := extension.Value
-	critical := extension.Critical
+	//critical := extension.Critical
 	if len(extensionValue) == 0 {
 		fmt.Println("not found oid:", extensionValue)
 		return errors.New("not found oid")
 	}
-	fmt.Println("critical:", critical)
-	printBytes("extensionValue:", extensionValue)
-	return parseExtensionValue(extensionValue, ipAddressOrRanges)
+	return parseIpAddressExtensionValue(extensionValue, ipAddressOrRanges)
 }
 
-func parseExtensionValue(extensionValue []byte, ipAddressOrRanges *[]IPAddressOrRange) error {
+func parseIpAddressExtensionValue(extensionValue []byte, ipAddressOrRanges *[]IPAddressOrRange) error {
 	// sequences 整个的数组
-	ipAddrBlocksType := extensionValue[0]
-	ipAddrBlocksLen := extensionValue[1]
+	//ipAddrBlocksType := extensionValue[0]
+	//ipAddrBlocksLen := extensionValue[1]
 	ipAddrBlocksValue := extensionValue[2:]
-	printAsn("ipAddrBlocks", ipAddrBlocksType, ipAddrBlocksLen, ipAddrBlocksValue)
+	//printAsn("ipAddrBlocks", ipAddrBlocksType, ipAddrBlocksLen, ipAddrBlocksValue)
 
 	tmpBlock := ipAddrBlocksValue
 	//循环数组，
 	for {
-		fmt.Println("new block==========================")
-		ipAddrBlockType := tmpBlock[0]
+		//ipAddrBlockType := tmpBlock[0]
 		ipAddrBlockLen := tmpBlock[1]
-		ipAddrBlockValue := tmpBlock[2 : 2+ipAddrBlockLen]
-		printAsn("ipAddrBlock", ipAddrBlockType, ipAddrBlockLen, ipAddrBlockValue)
+		//ipAddrBlockValue := tmpBlock[2 : 2+ipAddrBlockLen]
+		//printAsn("ipAddrBlock", ipAddrBlockType, ipAddrBlockLen, ipAddrBlockValue)
 		err := parseIpAddrBlock(tmpBlock, ipAddressOrRanges)
 		if err != nil {
 			fmt.Println(err)
@@ -353,7 +369,6 @@ func parseExtensionValue(extensionValue []byte, ipAddressOrRanges *[]IPAddressOr
 			break
 		}
 	}
-	fmt.Println("end ==========================")
 	return nil
 }
 
@@ -371,17 +386,17 @@ const (
 
 func parseIpAddrBlock(ipAddrBlock []byte, ipAddressOrRanges *[]IPAddressOrRange) error {
 	//ipaddressFamily: 包括addressFamily+ipAddressChoice
-	ipAddressFamilyType := ipAddrBlock[0]
-	ipAddressFamilyLen := ipAddrBlock[1]
-	ipAddressFamilyValue := ipAddrBlock[2 : 2+ipAddressFamilyLen]
-	printAsn("ipAddressFamily", ipAddressFamilyType, ipAddressFamilyLen, ipAddressFamilyValue)
+	//ipAddressFamilyType := ipAddrBlock[0]
+	//ipAddressFamilyLen := ipAddrBlock[1]
+	//ipAddressFamilyValue := ipAddrBlock[2 : 2+ipAddressFamilyLen]
+	//printAsn("ipAddressFamily", ipAddressFamilyType, ipAddressFamilyLen, ipAddressFamilyValue)
 
 	//读取addressFamily，注意是从ipAddrBlock开始截取的
 	// 这里好像有些问题，shaodebug ???
-	addressFamilyType := ipAddrBlock[2]
+	//addressFamilyType := ipAddrBlock[2]
 	addressFamilyLen := ipAddrBlock[3]
 	addressFamilyValue := ipAddrBlock[4 : 4+addressFamilyLen]
-	printAsn("addressFamily", addressFamilyType, addressFamilyLen, addressFamilyValue)
+	//printAsn("addressFamily", addressFamilyType, addressFamilyLen, addressFamilyValue)
 	var ipType int
 	if addressFamilyValue[addressFamilyLen-1] == ipv4 {
 		ipType = ipv4
@@ -390,14 +405,13 @@ func parseIpAddrBlock(ipAddrBlock []byte, ipAddressOrRanges *[]IPAddressOrRange)
 	} else {
 		return errors.New("error iptype")
 	}
-	fmt.Println("get ipType from addressFamilyValue (ipv4 = 0x01,   ipv6 = 0x02): ", ipType)
 
 	//读取ipAddressChoice，注意是从ipAddrBlock开始--即addressFamilyValue节尾--截取的
 	ipAddressChoice := ipAddrBlock[4+addressFamilyLen:]
 	ipAddressChoiceType := ipAddressChoice[0]
 	ipAddressChoiceLen := ipAddressChoice[1]
 	ipAddressChoiceValue := ipAddressChoice[2 : 2+ipAddressChoiceLen]
-	printAsn("ipAddressChoice", ipAddressChoiceType, ipAddressChoiceLen, ipAddressChoiceValue)
+	//printAsn("ipAddressChoice", ipAddressChoiceType, ipAddressChoiceLen, ipAddressChoiceValue)
 
 	if ipAddressChoiceType == nul {
 		return nil
@@ -411,11 +425,10 @@ func parseIpAddrBlock(ipAddrBlock []byte, ipAddressOrRanges *[]IPAddressOrRange)
 	// 循环读取数组
 	tmpAddressOrRange := ipAddressChoiceValue
 	for {
-		fmt.Println("new addressesOrRange--------------")
-		addressesOrRangeType := tmpAddressOrRange[0]
+		//addressesOrRangeType := tmpAddressOrRange[0]
 		addressesOrRangeLen := tmpAddressOrRange[1]
-		addressesOrRangeValue := tmpAddressOrRange[2 : 2+addressesOrRangeLen]
-		printAsn("addressesOrRange", addressesOrRangeType, addressesOrRangeLen, addressesOrRangeValue)
+		//addressesOrRangeValue := tmpAddressOrRange[2 : 2+addressesOrRangeLen]
+		//printAsn("addressesOrRange", addressesOrRangeType, addressesOrRangeLen, addressesOrRangeValue)
 		err := parseAddressesOrRange(tmpAddressOrRange, ipType, ipAddressOrRanges)
 		if err != nil {
 			fmt.Println(err)
@@ -442,7 +455,7 @@ func parseAddressesOrRange(addressesOrRange []byte, ipType int, ipAddressOrRange
 	addressesOrRangeOneType := addressesOrRange[0]
 	addressesOrRangeOneLen := addressesOrRange[1]
 	addressesOrRangeOneValue := addressesOrRange[2 : 2+addressesOrRangeOneLen]
-	printAsn("addressesOrRangeOne", addressesOrRangeOneType, addressesOrRangeOneLen, addressesOrRangeOneValue)
+	//printAsn("addressesOrRangeOne", addressesOrRangeOneType, addressesOrRangeOneLen, addressesOrRangeOneValue)
 	// 注意这里传入的是addressesOrRangeOneValue
 	if addressesOrRangeOneType == bitstring {
 		parseAddressPrefix(addressesOrRangeOneValue, addressesOrRangeOneLen, ipType, ipAddressOrRanges)
@@ -455,14 +468,13 @@ func parseAddressesOrRange(addressesOrRange []byte, ipType int, ipAddressOrRange
 }
 
 func parseAddressPrefix(addressPrefix []byte, addressesOrRangeOneLen byte, ipType int, ipAddressOrRanges *[]IPAddressOrRange) error {
-	// 传入的第0位是unusedbit位
-	// 03 03 04 b010              addressPrefix    172.16/12
+	//  03 03 04 b010              addressPrefix    172.16/12
+	//传入的第0位是unusedbit位
 	//第2位标明长度，-1后(unused bit占用了1位)，为ip地址应该的长度: 标明长度3，应该长度为2
 	// 第3位，固定的unused bit位： 为4
 	// unusedbit = 32- 应该的长度*8 - prefix  =32-2*8-prefix
 	// prefix = 32- 应该的长度*8 - unusedbit = 32 - 2*8 - 4 = 12
-	fmt.Println("parseAddressPrefix():  ipType:", ipType)
-	printBytes("addressPrefix:", addressPrefix)
+	//printBytes("addressPrefix:", addressPrefix)
 	addressShouldLen, _ := strconv.Atoi(fmt.Sprintf("%d", addressesOrRangeOneLen))
 	unusedBitLen, _ := strconv.Atoi(fmt.Sprintf("%d", addressPrefix[0]))
 
@@ -472,10 +484,10 @@ func parseAddressPrefix(addressPrefix []byte, addressesOrRangeOneLen byte, ipTyp
 	if ipType == ipv4 {
 		// ipv4 的CIDR 表示法
 		prefix := ipv4len - 8*(addressShouldLen-1) - unusedBitLen
-		fmt.Println(fmt.Sprintf("prefix := ipv4len - 8*(addressShouldLen-1) - unusedBitLen:  %d := %d - 8 *(%d-1)-  %d \r\n",
-			prefix, ipv4len, addressShouldLen, unusedBitLen))
+		//fmt.Println(fmt.Sprintf("prefix := ipv4len - 8*(addressShouldLen-1) - unusedBitLen:  %d := %d - 8 *(%d-1)-  %d \r\n",
+		//	prefix, ipv4len, addressShouldLen, unusedBitLen))
 
-		printBytes("address:", address)
+		//printBytes("address:", address)
 
 		ipv4Address := ""
 		for i := 0; i < len(address); i++ {
@@ -486,14 +498,14 @@ func parseAddressPrefix(addressPrefix []byte, addressesOrRangeOneLen byte, ipTyp
 		}
 		ipv4Address += "/" + fmt.Sprintf("%d", prefix)
 		ipAddress = ipv4Address
-		fmt.Println(ipv4Address)
+		//fmt.Println(ipv4Address)
 	} else if ipType == ipv6 {
 		// ipv6的前缀表示法，和ipv4不一样
 		prefix := 8*(addressShouldLen-1) - unusedBitLen
-		fmt.Println(fmt.Sprintf("prefix :=  8*(addressShouldLen-1) - unusedBitLen:  %d := 8 *(%d-1)-  %d \r\n",
-			prefix, addressShouldLen, unusedBitLen))
+		//		fmt.Println(fmt.Sprintf("prefix :=  8*(addressShouldLen-1) - unusedBitLen:  %d := 8 *(%d-1)-  %d \r\n",
+		//			prefix, addressShouldLen, unusedBitLen))
 
-		printBytes("address:", address)
+		//printBytes("address:", address)
 
 		ipv6Address := ""
 		for i := 0; i < len(address); i++ {
@@ -508,30 +520,30 @@ func parseAddressPrefix(addressPrefix []byte, addressesOrRangeOneLen byte, ipTyp
 		}
 		ipv6Address += "/" + fmt.Sprintf("%d", prefix)
 		ipAddress = ipv6Address
-		fmt.Println(ipv6Address)
+		//fmt.Println(ipv6Address)
 	}
 	ipAddressOrRange := IPAddressOrRange{}
 	ipAddressOrRange.AddressPrefix = ipAddress
 	*ipAddressOrRanges = append(*ipAddressOrRanges, ipAddressOrRange)
-	jsonCer, _ := json.Marshal(ipAddressOrRanges)
-	fmt.Printf("in parseAddressPrefix(): %+v", string(jsonCer))
+	//jsonCer, _ := json.Marshal(ipAddressOrRanges)
+	//fmt.Printf("in parseAddressPrefix(): %+v", string(jsonCer))
 
 	return nil
 }
 func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType int, ipAddressOrRanges *[]IPAddressOrRange) error {
 	//传入的是两个sequence，第一个是min，第二个是max
 	// Value值，跳过了unused bit位，所以是从3开始，并且长度-1
-	fmt.Println("parseAddressRange():  ipType:", ipType)
-	minType := addressRange[0]
+	//fmt.Println("parseAddressRange():  ipType:", ipType)
+	//minType := addressRange[0]
 	minLen := addressRange[1]
 	minValue := addressRange[2 : 2+minLen]
-	printAsn("min", minType, minLen, minValue)
+	//printAsn("min", minType, minLen, minValue)
 
 	tmp := addressRange[2+minLen:]
-	maxType := tmp[0]
+	//maxType := tmp[0]
 	maxLen := tmp[1]
 	maxValue := tmp[2 : 2+maxLen]
-	printAsn("max", maxType, maxLen, maxValue)
+	//printAsn("max", maxType, maxLen, maxValue)
 
 	ipAddressRange := IPAddressRange{}
 
@@ -557,7 +569,7 @@ func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType 
 		ipAddressRange.Max = maxAddr
 		ipAddressRange.Min = minAddr
 
-		fmt.Println("minAddr:", minAddr, "maxAddr", maxAddr)
+		//fmt.Println("minAddr:", minAddr, "maxAddr", maxAddr)
 
 	} else if ipType == ipv6 {
 		// 先拼出整个的ipv6地址，min的用0填充，max用255填充，最后再每4位加:
@@ -586,7 +598,7 @@ func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType 
 			maxAddr += (addrTmp[i:i+4] + ":")
 		}
 		maxAddr = maxAddr[0 : len(maxAddr)-1]
-		fmt.Println("minAddr:", minAddr, "maxAddr", maxAddr)
+		//fmt.Println("minAddr:", minAddr, "maxAddr", maxAddr)
 
 		ipAddressRange.Max = maxAddr
 		ipAddressRange.Min = minAddr
@@ -596,11 +608,139 @@ func parseAddressRange(addressRange []byte, addressesOrRangeOneLen byte, ipType 
 	ipAddressOrRange.AddressRange = ipAddressRange
 	*ipAddressOrRanges = append(*ipAddressOrRanges, ipAddressOrRange)
 
-	jsonCer, _ := json.Marshal(ipAddressOrRanges)
-	fmt.Printf("in parseAddressRange(): %+v", string(jsonCer))
+	//jsonCer, _ := json.Marshal(ipAddressOrRanges)
+	//fmt.Printf("in parseAddressRange(): %+v", string(jsonCer))
 
 	return nil
 }
+
+func parseAsnExtension(extension pkix.Extension, asNum *[]ASIdOrRange, rdi *[]ASIdOrRange) error {
+	extensionValue := extension.Value
+	//critical := extension.Critical
+	if len(extensionValue) == 0 {
+		fmt.Println("not found oid:", extensionValue)
+		return errors.New("not found oid")
+	}
+	return parseAsnExtensionValue(extensionValue, asNum, rdi)
+}
+
+func parseAsnExtensionValue(extensionValue []byte, asNum *[]ASIdOrRange, rdi *[]ASIdOrRange) error {
+	asIdentifiersType := extensionValue[0]
+	asIdentifiersLen := extensionValue[1]
+	asIdentifiersValue := extensionValue[2:]
+
+	printAsn("AsnExtensionValue", asIdentifiersType, asIdentifiersLen, asIdentifiersValue)
+	tmpBlock := asIdentifiersValue
+	//循环数组，其实就两组：asnum 和rdi
+	for i := 0; i <= 1; i++ {
+		//asIdentifierType := tmpBlock[0]
+		asIdentifierLen := tmpBlock[1]
+		asIdentifierValue := tmpBlock[2 : 2+asIdentifierLen]
+		var err error
+		if i == 0 {
+			err = parseASIdentifier(asIdentifierValue, asNum)
+		} else if i == 1 {
+			err = parseASIdentifier(asIdentifierValue, rdi)
+		}
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		tmpBlock = tmpBlock[2+asIdentifierLen:]
+		if len(tmpBlock) == 0 {
+			break
+		}
+	}
+
+	return nil
+}
+
+const (
+	asid = iota
+	asrange
+)
+
+func parseASIdentifier(asIdentifier []byte, asIdOrRanges *[]ASIdOrRange) error {
+	//ASIdOrRange: 包括ASId+ASRange
+	asIdsOrRangesType := asIdentifier[0]
+	asIdsOrRangesLen := asIdentifier[1]
+	asIdsOrRangesValue := asIdentifier[2 : 2+asIdsOrRangesLen]
+	printAsn("asIdsOrRanges", asIdsOrRangesType, asIdsOrRangesLen, asIdsOrRangesValue)
+
+	asIdOrRange := ASIdOrRange{}
+	//0x30是数组， 0x02是整数
+	if asIdsOrRangesType == 0x30 {
+		asRange := ASRange{}
+		//注意，这里max和min前面还有个sequence类型
+		//asIdOrRangesType := asIdsOrRangesValue[0]
+		asIdOrRangesLen := asIdsOrRangesValue[1]
+		asIdOrRangesValue := asIdsOrRangesValue[2 : 2+asIdOrRangesLen]
+		fmt.Println("asIdOrRangesValue", asIdOrRangesValue)
+
+		asnMinLen := asIdOrRangesValue[1]
+		asnMinValue := asIdOrRangesValue[2 : 2+asnMinLen]
+		fmt.Println("asnMinValue", asnMinValue)
+		asRange.Min = bytesConvertToUint64(asnMinValue)
+
+		fmt.Println(asIdOrRangesLen, asnMinLen)
+		if asIdOrRangesLen > 2+asnMinLen {
+			//asnMaxLen := asIdsOrRangesValue[2+asnMinLen+1]
+			asnMaxValue := asIdOrRangesValue[2+asnMinLen+2:]
+			asRange.Max = bytesConvertToUint64(asnMaxValue)
+		}
+
+		asIdOrRange.ASRange = asRange
+
+	} else if asIdsOrRangesType == 0x02 {
+		asIdOrRange.ASId = binary.BigEndian.Uint64(asIdsOrRangesValue)
+	} else {
+		return errors.New("error iptype")
+	}
+	*asIdOrRanges = append(*asIdOrRanges, asIdOrRange)
+	/*
+		asIdOrRangeType := asIdsOrRangesValue[2]
+		asIdOrRangeLen := asIdsOrRangesValue[3]
+		asIdOrRangeValue := asIdsOrRangesValue[4 : 4+addressFamilyLen]
+			//printAsn("addressFamily", addressFamilyType, addressFamilyLen, addressFamilyValue)
+
+
+			//读取ipAddressChoice，注意是从ipAddrBlock开始--即addressFamilyValue节尾--截取的
+			ipAddressChoice := ipAddrBlock[4+addressFamilyLen:]
+			ipAddressChoiceType := ipAddressChoice[0]
+			ipAddressChoiceLen := ipAddressChoice[1]
+			ipAddressChoiceValue := ipAddressChoice[2 : 2+ipAddressChoiceLen]
+			//printAsn("ipAddressChoice", ipAddressChoiceType, ipAddressChoiceLen, ipAddressChoiceValue)
+
+			if ipAddressChoiceType == nul {
+				return nil
+			} else if ipAddressChoiceType == sequence {
+				// ok, continue
+			} else {
+				return errors.New("error IPAddressChoic")
+			}
+
+			// ipAddressChoice包括addressesOrRanges的数组，每个addressesOrRange有可能是addressPrefix(0x03开头)，也有可能是addressRange(0x30开头)
+			// 循环读取数组
+			tmpAddressOrRange := ipAddressChoiceValue
+			for {
+				//addressesOrRangeType := tmpAddressOrRange[0]
+				addressesOrRangeLen := tmpAddressOrRange[1]
+				//addressesOrRangeValue := tmpAddressOrRange[2 : 2+addressesOrRangeLen]
+				//printAsn("addressesOrRange", addressesOrRangeType, addressesOrRangeLen, addressesOrRangeValue)
+				err := parseAddressesOrRange(tmpAddressOrRange, ipType, ipAddressOrRanges)
+				if err != nil {
+					fmt.Println(err)
+					return err
+				}
+				tmpAddressOrRange = tmpAddressOrRange[2+addressesOrRangeLen:]
+				if len(tmpAddressOrRange) == 0 {
+					break
+				}
+			}
+	*/
+	return nil
+}
+
 func printBase64(src []byte) string {
 	return base64.StdEncoding.EncodeToString(src)
 }
@@ -617,4 +757,16 @@ func printBytes(name string, byt []byte) {
 		fmt.Print(fmt.Sprintf("0x%02x ", i))
 	}
 	fmt.Println("")
+}
+
+func bytesConvertToUint64(bytes []byte) uint64 {
+	fmt.Println("bytesConvertToUint64()")
+	fmt.Println(bytes)
+	lens := 8 - len(bytes)
+	fmt.Println(lens)
+	bb := make([]byte, lens)
+	fmt.Println(bb)
+	bb = append(bb, bytes...)
+	fmt.Println(bb)
+	return binary.BigEndian.Uint64(bb)
 }
