@@ -315,13 +315,17 @@ func parseMft(file string) error {
 	return nil
 }
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("usage: ./cert 1.cer")
-		return
+	var file string
+	if len(os.Args) == 2 {
+		file = os.Args[1]
+	} else {
+		//file = `E:\Go\go-study\src\main\cert\ROUTER-0000FBF0_new.cer`
+		file = `E:\Go\go-study\src\main\cert\ROUTER-00010000_new.cer`
+		//file = `E:\Go\go-study\src\main\cert\err2.cer`
 	}
 	//`E:\Go\go-study\src\main\cert\root.cer`
 	var err error
-	certFile := strings.ToLower(os.Args[1])
+	certFile := strings.ToLower(file)
 	if strings.HasSuffix(certFile, ".cer") {
 		err = parseCer(certFile)
 	} else if strings.HasSuffix(certFile, ".crl") {
@@ -624,6 +628,11 @@ func parseAsnExtension(extension pkix.Extension, asNum *[]ASIdOrRange, rdi *[]AS
 	return parseAsnExtensionValue(extensionValue, asNum, rdi)
 }
 
+const (
+	ASNUM = byte(0xa0)
+	RDI   = byte(0xa1)
+)
+
 func parseAsnExtensionValue(extensionValue []byte, asNum *[]ASIdOrRange, rdi *[]ASIdOrRange) error {
 	asIdentifiersType := extensionValue[0]
 	asIdentifiersLen := extensionValue[1]
@@ -633,14 +642,15 @@ func parseAsnExtensionValue(extensionValue []byte, asNum *[]ASIdOrRange, rdi *[]
 	tmpBlock := asIdentifiersValue
 	//循环数组，其实就两组：asnum 和rdi
 	for i := 0; i <= 1; i++ {
-		//asIdentifierType := tmpBlock[0]
+		asIdentifierType := tmpBlock[0]
 		asIdentifierLen := tmpBlock[1]
 		asIdentifierValue := tmpBlock[2 : 2+asIdentifierLen]
+		printAsn("asIdentifier", asIdentifierType, asIdentifierLen, asIdentifierValue)
 		var err error
-		if i == 0 {
-			err = parseASIdentifier(asIdentifierValue, asNum)
-		} else if i == 1 {
-			err = parseASIdentifier(asIdentifierValue, rdi)
+		if asIdentifierType == ASNUM {
+			err = parseASNum(asIdentifierValue, asNum)
+		} else if asIdentifierType == RDI {
+			err = parseRdi(asIdentifierValue, rdi)
 		}
 		if err != nil {
 			fmt.Println(err)
@@ -655,12 +665,7 @@ func parseAsnExtensionValue(extensionValue []byte, asNum *[]ASIdOrRange, rdi *[]
 	return nil
 }
 
-const (
-	asid = iota
-	asrange
-)
-
-func parseASIdentifier(asIdentifier []byte, asIdOrRanges *[]ASIdOrRange) error {
+func parseASNum(asIdentifier []byte, asIdOrRanges *[]ASIdOrRange) error {
 	//ASIdOrRange: 包括ASId+ASRange
 	asIdsOrRangesType := asIdentifier[0]
 	asIdsOrRangesLen := asIdentifier[1]
@@ -668,14 +673,14 @@ func parseASIdentifier(asIdentifier []byte, asIdOrRanges *[]ASIdOrRange) error {
 	printAsn("asIdsOrRanges", asIdsOrRangesType, asIdsOrRangesLen, asIdsOrRangesValue)
 
 	asIdOrRange := ASIdOrRange{}
-	//0x30是数组， 0x02是整数
-	if asIdsOrRangesType == 0x30 {
+
+	//注意，这里max和min前面还有个sequence类型
+	asIdOrRangesType := asIdsOrRangesValue[0]
+	asIdOrRangesLen := asIdsOrRangesValue[1]
+	asIdOrRangesValue := asIdsOrRangesValue[2 : 2+asIdOrRangesLen]
+	printAsn("asIdOrRanges", asIdOrRangesType, asIdOrRangesLen, asIdOrRangesValue)
+	if asIdOrRangesType == 0x30 {
 		asRange := ASRange{}
-		//注意，这里max和min前面还有个sequence类型
-		//asIdOrRangesType := asIdsOrRangesValue[0]
-		asIdOrRangesLen := asIdsOrRangesValue[1]
-		asIdOrRangesValue := asIdsOrRangesValue[2 : 2+asIdOrRangesLen]
-		fmt.Println("asIdOrRangesValue", asIdOrRangesValue)
 
 		asnMinLen := asIdOrRangesValue[1]
 		asnMinValue := asIdOrRangesValue[2 : 2+asnMinLen]
@@ -691,52 +696,36 @@ func parseASIdentifier(asIdentifier []byte, asIdOrRanges *[]ASIdOrRange) error {
 
 		asIdOrRange.ASRange = asRange
 
-	} else if asIdsOrRangesType == 0x02 {
-		asIdOrRange.ASId = binary.BigEndian.Uint64(asIdsOrRangesValue)
+	} else if asIdOrRangesType == 0x02 {
+		asIdOrRange.ASId = bytesConvertToUint64(asIdOrRangesValue)
+		fmt.Println(asIdOrRange.ASId)
 	} else {
 		return errors.New("error iptype")
 	}
 	*asIdOrRanges = append(*asIdOrRanges, asIdOrRange)
+
+	return nil
+}
+
+// 当前好还没有实际值  routing domain identifiers (in the rdi element)  RFC1142
+func parseRdi(asIdentifier []byte, asIdOrRanges *[]ASIdOrRange) error {
+	//ASIdOrRange: 包括ASId+ASRange
+	//rdiType := asIdentifier[0]
+	//rdiLen := asIdentifier[1]
+	//rdiValue := asIdentifier[2 : 2+rdiLen]
+	//printAsn("rdi", rdiType, rdiLen, rdiValue)
 	/*
-		asIdOrRangeType := asIdsOrRangesValue[2]
-		asIdOrRangeLen := asIdsOrRangesValue[3]
-		asIdOrRangeValue := asIdsOrRangesValue[4 : 4+addressFamilyLen]
-			//printAsn("addressFamily", addressFamilyType, addressFamilyLen, addressFamilyValue)
+		asIdOrRange := ASIdOrRange{}
 
+		//注意，这里max和min前面还有个sequence类型
+		asIdOrRangesType := asIdsOrRangesValue[0]
+		asIdOrRangesLen := asIdsOrRangesValue[1]
+		asIdOrRangesValue := asIdsOrRangesValue[2 : 2+asIdOrRangesLen]
+		printAsn("asIdOrRanges", asIdOrRangesType, asIdOrRangesLen, asIdOrRangesValue)
 
-			//读取ipAddressChoice，注意是从ipAddrBlock开始--即addressFamilyValue节尾--截取的
-			ipAddressChoice := ipAddrBlock[4+addressFamilyLen:]
-			ipAddressChoiceType := ipAddressChoice[0]
-			ipAddressChoiceLen := ipAddressChoice[1]
-			ipAddressChoiceValue := ipAddressChoice[2 : 2+ipAddressChoiceLen]
-			//printAsn("ipAddressChoice", ipAddressChoiceType, ipAddressChoiceLen, ipAddressChoiceValue)
-
-			if ipAddressChoiceType == nul {
-				return nil
-			} else if ipAddressChoiceType == sequence {
-				// ok, continue
-			} else {
-				return errors.New("error IPAddressChoic")
-			}
-
-			// ipAddressChoice包括addressesOrRanges的数组，每个addressesOrRange有可能是addressPrefix(0x03开头)，也有可能是addressRange(0x30开头)
-			// 循环读取数组
-			tmpAddressOrRange := ipAddressChoiceValue
-			for {
-				//addressesOrRangeType := tmpAddressOrRange[0]
-				addressesOrRangeLen := tmpAddressOrRange[1]
-				//addressesOrRangeValue := tmpAddressOrRange[2 : 2+addressesOrRangeLen]
-				//printAsn("addressesOrRange", addressesOrRangeType, addressesOrRangeLen, addressesOrRangeValue)
-				err := parseAddressesOrRange(tmpAddressOrRange, ipType, ipAddressOrRanges)
-				if err != nil {
-					fmt.Println(err)
-					return err
-				}
-				tmpAddressOrRange = tmpAddressOrRange[2+addressesOrRangeLen:]
-				if len(tmpAddressOrRange) == 0 {
-					break
-				}
-			}
+		asIdOrRange.ASId = bytesConvertToUint64(asIdOrRangesValue)
+		fmt.Println(asIdOrRange.ASId)
+		*asIdOrRanges = append(*asIdOrRanges, asIdOrRange)
 	*/
 	return nil
 }
@@ -760,13 +749,13 @@ func printBytes(name string, byt []byte) {
 }
 
 func bytesConvertToUint64(bytes []byte) uint64 {
-	fmt.Println("bytesConvertToUint64()")
-	fmt.Println(bytes)
+	//fmt.Println("bytesConvertToUint64()")
+	//fmt.Println(bytes)
 	lens := 8 - len(bytes)
-	fmt.Println(lens)
+	//fmt.Println(lens)
 	bb := make([]byte, lens)
-	fmt.Println(bb)
+	//fmt.Println(bb)
 	bb = append(bb, bytes...)
-	fmt.Println(bb)
+	//fmt.Println(bb)
 	return binary.BigEndian.Uint64(bb)
 }
