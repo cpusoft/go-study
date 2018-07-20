@@ -52,6 +52,10 @@ type CerInfo struct {
 	SubjectAll            string             `json:"subjectAll"`
 	Issuer                string             `json:"issuer"`
 	IssuerAll             string             `json:"issuerAll"`
+	Ski                   []byte             `json:"ski"`
+	Aki                   []byte             `json:"aki"`
+	CRLdp                 []string           `json:"crldp"`
+	Aia                   []string           `json:"aia"`
 	IPAddressOrRange      []IPAddressOrRange `json:"ipAddressOrRange"`
 	AsNum                 []ASIdOrRange      `json:"asNum"`
 	Rdi                   []ASIdOrRange      `json:"rdi"`
@@ -170,6 +174,19 @@ func parseCer(file string) error {
 	cerInfo.AsNum = make([]ASIdOrRange, 0)
 	cerInfo.Rdi = make([]ASIdOrRange, 0)
 
+	//	fmt.Printf("serialNumber=%s\r\n", cert.Subject.SerialNumber)
+	//	fmt.Printf("serialNumber=%s\r\n", cert.Issuer.SerialNumber)
+	//	fmt.Printf("SN=%v\r\n", cert.SerialNumber.Uint64())
+
+	//使用者密钥标识符
+	cerInfo.Ski = cert.SubjectKeyId
+	//颁发机构密钥标识符
+	cerInfo.Aki = cert.AuthorityKeyId
+	//CRL分发点
+	cerInfo.CRLdp = cert.CRLDistributionPoints
+	//颁发机构信息访问
+	cerInfo.Aia = cert.IssuingCertificateURL
+
 	oidIpAddressKey := "1.3.6.1.5.5.7.1.7"
 	oidASKey := "1.3.6.1.5.5.7.1.8"
 	for _, extension := range cert.Extensions {
@@ -193,16 +210,9 @@ func parseCer(file string) error {
 
 	fmt.Printf("%+v", string(jsonCer))
 	/*
-		fmt.Println("valfrom:", cert.NotBefore.Format("2006-01-02 15:04:05"))
-		fmt.Println("valto:", cert.NotAfter.Format("2006-01-02 15:04:05"))
 		fmt.Printf("subject: /CN=%s/serialNumber=%s\r\n", cert.Subject.CommonName, cert.Subject.SerialNumber)
 		fmt.Printf("issuer: /CN=%s/serialNumber=%s\r\n", cert.Issuer.CommonName, cert.Issuer.SerialNumber)
-		sn := cert.SerialNumber.Uint64()
-		fmt.Printf("sn: %d\r\n", sn)
-		// flags ??
-		ski := cert.SubjectKeyId
-		printBytes("ski", ski)
-		fmt.Println(printBase64(ski))
+
 
 		publicInfo := cert.RawSubjectPublicKeyInfo
 		printBytes("publicInfo", publicInfo)
@@ -219,20 +229,11 @@ func parseCer(file string) error {
 		//颁发机构信息访问
 		fmt.Println("aia:", cert.IssuingCertificateURL)
 
-		crldp := cert.CRLDistributionPoints
-		fmt.Printf("crldp:%+v\r\n", crldp)
 
-		fmt.Printf("Extensions: %+v\r\n", cert.Extensions)
-		fmt.Printf("ExtraExtensions: %+v\r\n", cert.ExtraExtensions)
 
-		for _, extension := range cert.Extensions {
-			oid := extension.Id
-			value := extension.Value
-			fmt.Println("oid", oid)
-			printBytes("value", value)
-			fmt.Println(printBase64(value))
 
-		}
+
+
 	*/
 	return nil
 }
@@ -320,8 +321,11 @@ func main() {
 		file = os.Args[1]
 	} else {
 		//file = `E:\Go\go-study\src\main\cert\ROUTER-0000FBF0_new.cer`
-		file = `E:\Go\go-study\src\main\cert\ROUTER-00010000_new.cer`
-		//file = `E:\Go\go-study\src\main\cert\err2.cer`
+		//file = `E:\Go\go-study\src\main\cert\ROUTER-00010000_new.cer`
+		//file = `E:\Go\go-study\src\main\cert\err1.cer`
+		//file = `E:\Go\go-study\src\main\cert\H.cer`
+		file = `E:\Go\go-study\src\main\secruity\1.cer`
+		//file = `E:\Go\go-study\src\main\secruity\range_ipv6.cer`
 	}
 	//`E:\Go\go-study\src\main\cert\root.cer`
 	var err error
@@ -351,18 +355,18 @@ func parseIpAddressExtension(extension pkix.Extension, ipAddressOrRanges *[]IPAd
 
 func parseIpAddressExtensionValue(extensionValue []byte, ipAddressOrRanges *[]IPAddressOrRange) error {
 	// sequences 整个的数组
-	//ipAddrBlocksType := extensionValue[0]
-	//ipAddrBlocksLen := extensionValue[1]
+	ipAddrBlocksType := extensionValue[0]
+	ipAddrBlocksLen := extensionValue[1]
 	ipAddrBlocksValue := extensionValue[2:]
-	//printAsn("ipAddrBlocks", ipAddrBlocksType, ipAddrBlocksLen, ipAddrBlocksValue)
+	printAsn("ipAddrBlocks", ipAddrBlocksType, ipAddrBlocksLen, ipAddrBlocksValue)
 
 	tmpBlock := ipAddrBlocksValue
 	//循环数组，
 	for {
-		//ipAddrBlockType := tmpBlock[0]
+		ipAddrBlockType := tmpBlock[0]
 		ipAddrBlockLen := tmpBlock[1]
-		//ipAddrBlockValue := tmpBlock[2 : 2+ipAddrBlockLen]
-		//printAsn("ipAddrBlock", ipAddrBlockType, ipAddrBlockLen, ipAddrBlockValue)
+		ipAddrBlockValue := tmpBlock[2 : 2+ipAddrBlockLen]
+		printAsn("ipAddrBlock", ipAddrBlockType, ipAddrBlockLen, ipAddrBlockValue)
 		err := parseIpAddrBlock(tmpBlock, ipAddressOrRanges)
 		if err != nil {
 			fmt.Println(err)
@@ -390,32 +394,43 @@ const (
 
 func parseIpAddrBlock(ipAddrBlock []byte, ipAddressOrRanges *[]IPAddressOrRange) error {
 	//ipaddressFamily: 包括addressFamily+ipAddressChoice
-	//ipAddressFamilyType := ipAddrBlock[0]
-	//ipAddressFamilyLen := ipAddrBlock[1]
-	//ipAddressFamilyValue := ipAddrBlock[2 : 2+ipAddressFamilyLen]
-	//printAsn("ipAddressFamily", ipAddressFamilyType, ipAddressFamilyLen, ipAddressFamilyValue)
+	ipAddressFamilyType := ipAddrBlock[0]
+	ipAddressFamilyLen := ipAddrBlock[1]
+	ipAddressFamilyValue := ipAddrBlock[2 : 2+ipAddressFamilyLen]
+	printAsn("ipAddressFamily", ipAddressFamilyType, ipAddressFamilyLen, ipAddressFamilyValue)
 
-	//读取addressFamily，注意是从ipAddrBlock开始截取的
-	// 这里好像有些问题，shaodebug ???
-	//addressFamilyType := ipAddrBlock[2]
-	addressFamilyLen := ipAddrBlock[3]
-	addressFamilyValue := ipAddrBlock[4 : 4+addressFamilyLen]
-	//printAsn("addressFamily", addressFamilyType, addressFamilyLen, addressFamilyValue)
-	var ipType int
-	if addressFamilyValue[addressFamilyLen-1] == ipv4 {
+	//读取addressFamily，类型
+	/*
+		//
+		// 04 03 0001  01 addressFamily: ：  IPv4 Unicast:
+		//		前两位是，必有，a two-octet Address Family Identifier (AFI) https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml
+					 0001是 ipv4；
+		//      后一位是 ，可选， a one-octet Subsequent Address Family Identifier (SAFI) https://www.iana.org/assignments/safi-namespace/safi-namespace.xhtml
+					01是 unicast
+		 前面是必有，后面是可选
+	*/
+	addressFamilyType := ipAddressFamilyValue[0]
+	addressFamilyLen := ipAddressFamilyValue[1]
+	addressFamilyValue := ipAddressFamilyValue[2 : 2+addressFamilyLen]
+	printAsn("addressFamily", addressFamilyType, addressFamilyLen, addressFamilyValue)
+	//fmt.Println("addressFamilyValue[addressFamilyLen-1]", addressFamilyValue[addressFamilyLen-1])
+
+	ipType := -1
+	if addressFamilyValue[1] == ipv4 {
 		ipType = ipv4
-	} else if addressFamilyValue[addressFamilyLen-1] == ipv6 {
+	} else if addressFamilyValue[1] == ipv6 {
 		ipType = ipv6
-	} else {
+	}
+	if ipType == -1 {
 		return errors.New("error iptype")
 	}
-
-	//读取ipAddressChoice，注意是从ipAddrBlock开始--即addressFamilyValue节尾--截取的
+	//读取ipAddressChoice，注意是从ipAddrBlock开始--
+	//即addressFamilyValue节尾--截取的。 2是ipAddressFamily的头，2是addressFamily的头，然后再加上addressFamilyLen
 	ipAddressChoice := ipAddrBlock[4+addressFamilyLen:]
 	ipAddressChoiceType := ipAddressChoice[0]
 	ipAddressChoiceLen := ipAddressChoice[1]
 	ipAddressChoiceValue := ipAddressChoice[2 : 2+ipAddressChoiceLen]
-	//printAsn("ipAddressChoice", ipAddressChoiceType, ipAddressChoiceLen, ipAddressChoiceValue)
+	printAsn("ipAddressChoice", ipAddressChoiceType, ipAddressChoiceLen, ipAddressChoiceValue)
 
 	if ipAddressChoiceType == nul {
 		return nil
@@ -634,18 +649,18 @@ const (
 )
 
 func parseAsnExtensionValue(extensionValue []byte, asNum *[]ASIdOrRange, rdi *[]ASIdOrRange) error {
-	asIdentifiersType := extensionValue[0]
-	asIdentifiersLen := extensionValue[1]
+	//asIdentifiersType := extensionValue[0]
+	//asIdentifiersLen := extensionValue[1]
 	asIdentifiersValue := extensionValue[2:]
 
-	printAsn("AsnExtensionValue", asIdentifiersType, asIdentifiersLen, asIdentifiersValue)
+	//printAsn("AsnExtensionValue", asIdentifiersType, asIdentifiersLen, asIdentifiersValue)
 	tmpBlock := asIdentifiersValue
 	//循环数组，其实就两组：asnum 和rdi
 	for i := 0; i <= 1; i++ {
 		asIdentifierType := tmpBlock[0]
 		asIdentifierLen := tmpBlock[1]
 		asIdentifierValue := tmpBlock[2 : 2+asIdentifierLen]
-		printAsn("asIdentifier", asIdentifierType, asIdentifierLen, asIdentifierValue)
+		//printAsn("asIdentifier", asIdentifierType, asIdentifierLen, asIdentifierValue)
 		var err error
 		if asIdentifierType == ASNUM {
 			err = parseASNum(asIdentifierValue, asNum)
@@ -667,10 +682,10 @@ func parseAsnExtensionValue(extensionValue []byte, asNum *[]ASIdOrRange, rdi *[]
 
 func parseASNum(asIdentifier []byte, asIdOrRanges *[]ASIdOrRange) error {
 	//ASIdOrRange: 包括ASId+ASRange
-	asIdsOrRangesType := asIdentifier[0]
+	//asIdsOrRangesType := asIdentifier[0]
 	asIdsOrRangesLen := asIdentifier[1]
 	asIdsOrRangesValue := asIdentifier[2 : 2+asIdsOrRangesLen]
-	printAsn("asIdsOrRanges", asIdsOrRangesType, asIdsOrRangesLen, asIdsOrRangesValue)
+	//printAsn("asIdsOrRanges", asIdsOrRangesType, asIdsOrRangesLen, asIdsOrRangesValue)
 
 	asIdOrRange := ASIdOrRange{}
 
@@ -678,16 +693,16 @@ func parseASNum(asIdentifier []byte, asIdOrRanges *[]ASIdOrRange) error {
 	asIdOrRangesType := asIdsOrRangesValue[0]
 	asIdOrRangesLen := asIdsOrRangesValue[1]
 	asIdOrRangesValue := asIdsOrRangesValue[2 : 2+asIdOrRangesLen]
-	printAsn("asIdOrRanges", asIdOrRangesType, asIdOrRangesLen, asIdOrRangesValue)
+	//printAsn("asIdOrRanges", asIdOrRangesType, asIdOrRangesLen, asIdOrRangesValue)
 	if asIdOrRangesType == 0x30 {
 		asRange := ASRange{}
 
 		asnMinLen := asIdOrRangesValue[1]
 		asnMinValue := asIdOrRangesValue[2 : 2+asnMinLen]
-		fmt.Println("asnMinValue", asnMinValue)
+		//fmt.Println("asnMinValue", asnMinValue)
 		asRange.Min = bytesConvertToUint64(asnMinValue)
 
-		fmt.Println(asIdOrRangesLen, asnMinLen)
+		//fmt.Println(asIdOrRangesLen, asnMinLen)
 		if asIdOrRangesLen > 2+asnMinLen {
 			//asnMaxLen := asIdsOrRangesValue[2+asnMinLen+1]
 			asnMaxValue := asIdOrRangesValue[2+asnMinLen+2:]
@@ -698,7 +713,7 @@ func parseASNum(asIdentifier []byte, asIdOrRanges *[]ASIdOrRange) error {
 
 	} else if asIdOrRangesType == 0x02 {
 		asIdOrRange.ASId = bytesConvertToUint64(asIdOrRangesValue)
-		fmt.Println(asIdOrRange.ASId)
+		//fmt.Println(asIdOrRange.ASId)
 	} else {
 		return errors.New("error iptype")
 	}
@@ -735,9 +750,9 @@ func printBase64(src []byte) string {
 }
 
 func printAsn(name string, typ byte, ln byte, byt []byte) {
-	fmt.Println(fmt.Sprintf(name+"Type:0x%02x (%d)", typ, typ))
-	fmt.Println(fmt.Sprintf(name+"Len:0x%02x (%d)", ln, ln))
-	printBytes(name+"Value:", byt)
+	//fmt.Println(fmt.Sprintf(name+"Type:0x%02x (%d)", typ, typ))
+	//fmt.Println(fmt.Sprintf(name+"Len:0x%02x (%d)", ln, ln))
+	//printBytes(name+"Value:", byt)
 }
 
 func printBytes(name string, byt []byte) {
