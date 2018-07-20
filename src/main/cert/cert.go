@@ -320,12 +320,15 @@ func main() {
 	if len(os.Args) == 2 {
 		file = os.Args[1]
 	} else {
+
 		//file = `E:\Go\go-study\src\main\cert\ROUTER-0000FBF0_new.cer`
 		//file = `E:\Go\go-study\src\main\cert\ROUTER-00010000_new.cer`
 		//file = `E:\Go\go-study\src\main\cert\err1.cer`
 		//file = `E:\Go\go-study\src\main\cert\H.cer`
-		file = `E:\Go\go-study\src\main\secruity\1.cer`
+		//file = `E:\Go\go-study\src\main\secruity\1.cer`
 		//file = `E:\Go\go-study\src\main\secruity\range_ipv6.cer`
+		fmt.Println("usage: ./cert 1.cer")
+		return
 	}
 	//`E:\Go\go-study\src\main\cert\root.cer`
 	var err error
