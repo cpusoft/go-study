@@ -9,6 +9,11 @@ import (
 	"reflect"
 )
 
+type OidPacket struct {
+	Oid    string
+	Parent *Packet
+}
+
 type Packet struct {
 	ClassType   uint8
 	TagType     uint8
@@ -17,6 +22,7 @@ type Packet struct {
 	Data        *bytes.Buffer
 	Children    []*Packet
 	Description string
+	Parent      *Packet
 }
 
 const (
@@ -182,7 +188,7 @@ func readBytes(reader io.Reader, buf []byte) error {
 	return nil
 }
 
-func ReadPacket(reader io.Reader) (*Packet, error) {
+func ReadPacket(reader io.Reader, oidPackets *[]OidPacket) (*Packet, error) {
 	buf := make([]byte, 2)
 	err := readBytes(reader, buf)
 	if err != nil {
@@ -248,7 +254,7 @@ func DecodeInteger(data []byte) (ret uint64) {
 }
 
 func DecodeOid(data []byte) (ret string) {
-	printBytes("oid", data)
+	//printBytes("oid", data)
 	oids := make([]uint32, len(data)+2)
 	//第一个八位组采用公式：first_arc* 40+second_arc
 	//后面的，当高位为1， 则表示需要加入下一位，合起来算的
@@ -282,7 +288,7 @@ func DecodeOid(data []byte) (ret string) {
 		}
 		buffer.WriteString(fmt.Sprint(oids[i]) + ".")
 	}
-	//	fmt.Println(buffer.String()[0 : len(buffer.String())-1])
+	//fmt.Println(buffer.String()[0 : len(buffer.String())-1])
 	return buffer.String()[0 : len(buffer.String())-1]
 }
 func EncodeInteger(val uint64) []byte {
@@ -352,6 +358,7 @@ func decodePacket(data []byte) (*Packet, []byte) {
 		case TagNULL:
 		case TagObjectIdentifier:
 			p.Value = DecodeOid(value_data)
+			//fmt.Println(p.Value.(string))
 		case TagObjectDescriptor:
 		case TagExternal:
 		case TagRealFloat:
@@ -470,26 +477,54 @@ func NewString(ClassType, TagType, Tag uint8, Value, Description string) *Packet
 	return p
 }
 func parseMft(file string) error {
+
 	f, _ := os.Open(file)
 	b, _ := ioutil.ReadAll(f)
 	pack := DecodePacket(b)
+	/*
+		//children := pack.Children
+		classType := pack.ClassType
+		description := pack.Description
+		tag := pack.Tag
+		tagType := pack.TagType
+		value := fmt.Sprint(pack.Value)
+		fmt.Printf("classType:%v\r\n", classType)
+		fmt.Printf("description:%v\r\n", description)
+		fmt.Printf("tag:%v\r\n", tag)
+		fmt.Printf("tagType:%v\r\n", tagType)
+		fmt.Printf("value:%v\r\n", value)
+		//fmt.Printf("classType:%v\r\n", children)
+		printPacket(pack, 4, true)
+	*/
+	oidPackets := make(map[string]Packet, 20)
+	addParent(pack, oidPackets)
+	for oid, packet := range oidPackets {
+		fmt.Println(oid)
+		PrintBytes(packet.Bytes(), "    ")
 
-	//children := pack.Children
-	classType := pack.ClassType
-	description := pack.Description
-	tag := pack.Tag
-	tagType := pack.TagType
-	value := fmt.Sprint(pack.Value)
-	fmt.Printf("classType:%v\r\n", classType)
-	fmt.Printf("description:%v\r\n", description)
-	fmt.Printf("tag:%v\r\n", tag)
-	fmt.Printf("tagType:%v\r\n", tagType)
-	fmt.Printf("value:%v\r\n", value)
-	//fmt.Printf("classType:%v\r\n", children)
+	}
 
-	printPacket(pack, 4, true)
 	return nil
 }
+func addParent(p *Packet, oidPackets map[string]Packet) {
+
+	for i, _ := range p.Children {
+
+		p.Children[i].Parent = p
+		//fmt.Println(p.Children[i].Tag, TagObjectIdentifier)
+		if p.Children[i].Tag == TagObjectIdentifier {
+
+			//fmt.Printf("%s%s(%s, %s, %s) Len=%d %q\n", indent_str, description, class_str, tagtype_str, tag_str, p.Data.Len(), value)
+			//fmt.Println(p.Children[i].Value.(string))
+			oid := fmt.Sprint(p.Children[i].Value)
+			//fmt.Println("addParent():oid:", oid)
+			oidPackets[oid] = *p
+			//fmt.Println(oidPackets)
+		}
+		addParent(p.Children[i], oidPackets)
+	}
+}
+
 func printAsn(name string, typ byte, ln byte, byt []byte) {
 	fmt.Println(fmt.Sprintf(name+"Type:0x%02x (%d)", typ, typ))
 	fmt.Println(fmt.Sprintf(name+"Len:0x%02x (%d)", ln, ln))
