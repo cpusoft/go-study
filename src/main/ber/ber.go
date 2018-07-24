@@ -10,8 +10,9 @@ import (
 )
 
 type OidPacket struct {
-	Oid    string
-	Parent *Packet
+	Oid          string
+	OidPacket    *Packet
+	ParentPacket *Packet
 }
 
 type Packet struct {
@@ -188,7 +189,7 @@ func readBytes(reader io.Reader, buf []byte) error {
 	return nil
 }
 
-func ReadPacket(reader io.Reader, oidPackets *[]OidPacket) (*Packet, error) {
+func ReadPacket(reader io.Reader) (*Packet, error) {
 	buf := make([]byte, 2)
 	err := readBytes(reader, buf)
 	if err != nil {
@@ -496,16 +497,51 @@ func parseMft(file string) error {
 		//fmt.Printf("classType:%v\r\n", children)
 		printPacket(pack, 4, true)
 	*/
-	oidPackets := make(map[string]Packet, 20)
-	addParent(pack, oidPackets)
-	for oid, packet := range oidPackets {
-		fmt.Println(oid)
-		PrintBytes(packet.Bytes(), "    ")
+	/*
+		oidPackets := make(map[string]Packet, 20)
+		addParent(pack, oidPackets)
+		fmt.Println(len(oidPackets))
+		for oid, packet := range oidPackets {
+			fmt.Println(oid)
+			PrintBytes(packet.Bytes(), "    ")
 
+		}
+	*/
+	//oidPacketss := make([]OidPacket, 10)
+	var oidPacketss = &[]OidPacket{}
+	transformPacket(pack, oidPacketss)
+	fmt.Println(len(*oidPacketss))
+	for _, oidPacket := range *oidPacketss {
+		fmt.Println(oidPacket.Oid)
+		printBytes("oid parent bytes:", oidPacket.ParentPacket.Bytes())
+		printBytes("oid self bytes:", oidPacket.OidPacket.Bytes())
+		fmt.Println("")
 	}
 
 	return nil
 }
+
+func transformPacket(p *Packet, oidPackets *[]OidPacket) {
+
+	for i, _ := range p.Children {
+
+		p.Children[i].Parent = p
+		//fmt.Println(p.Children[i].Tag, TagObjectIdentifier)
+		if p.Children[i].Tag == TagObjectIdentifier {
+			oidPacket := OidPacket{}
+			//fmt.Printf("%s%s(%s, %s, %s) Len=%d %q\n", indent_str, description, class_str, tagtype_str, tag_str, p.Data.Len(), value)
+			//fmt.Println(p.Children[i].Value.(string))
+			oid := fmt.Sprint(p.Children[i].Value)
+			oidPacket.Oid = oid
+			//fmt.Println("addParent():oid:", oid)
+			oidPacket.ParentPacket = p
+			oidPacket.OidPacket = p.Children[i]
+			(*oidPackets) = append((*oidPackets), oidPacket)
+		}
+		transformPacket(p.Children[i], oidPackets)
+	}
+}
+
 func addParent(p *Packet, oidPackets map[string]Packet) {
 
 	for i, _ := range p.Children {
@@ -518,8 +554,17 @@ func addParent(p *Packet, oidPackets map[string]Packet) {
 			//fmt.Println(p.Children[i].Value.(string))
 			oid := fmt.Sprint(p.Children[i].Value)
 			//fmt.Println("addParent():oid:", oid)
-			oidPackets[oid] = *p
-			//fmt.Println(oidPackets)
+			if _, ok := oidPackets[oid]; ok {
+				printBytes("double oid:"+oid, (*p).Bytes())
+			} else {
+				oidPackets[oid] = *p
+			}
+
+			if oid == "2.16.840.1.101.3.4.2.1" {
+				printBytes("double 2.16.840.1.101.3.4.2.1 parent bytes:"+oid, (*p).Bytes())
+				printBytes("double 2.16.840.1.101.3.4.2.1 slef bytes:"+oid, p.Children[i].Bytes())
+			}
+
 		}
 		addParent(p.Children[i], oidPackets)
 	}

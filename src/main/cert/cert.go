@@ -327,8 +327,9 @@ func main() {
 		//file = `E:\Go\go-study\src\main\cert\H.cer`
 		//file = `E:\Go\go-study\src\main\secruity\1.cer`
 		//file = `E:\Go\go-study\src\main\secruity\range_ipv6.cer`
-		fmt.Println("usage: ./cert 1.cer")
-		return
+		file = `E:\Go\go-study\src\main\cert\41870XBX5RmmOBSWl-AwgOrYdys_test.cer`
+		//fmt.Println("usage: ./cert 1.cer")
+		//return
 	}
 	//`E:\Go\go-study\src\main\cert\root.cer`
 	var err error
