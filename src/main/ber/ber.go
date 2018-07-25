@@ -117,7 +117,7 @@ var TypeMap = map[uint8]string{
 	TypeConstructed: "Constructed",
 }
 
-var Debug bool = false
+var Debug bool = true
 
 func PrintBytes(buf []byte, indent string) {
 	data_lines := make([]string, (len(buf)/30)+1)
@@ -167,6 +167,32 @@ func printPacket(p *Packet, indent int, printBytes bool) {
 	for _, child := range p.Children {
 		fmt.Println("[children]-->")
 		printPacket(child, indent+1, printBytes)
+	}
+}
+
+func printPacketString(p *Packet, printBytes bool) {
+	class_str := ClassMap[p.ClassType]
+	tagtype_str := TypeMap[p.TagType]
+	tag_str := fmt.Sprintf("0x%02X", p.Tag)
+
+	if p.ClassType == ClassUniversal {
+		tag_str = TagMap[p.Tag]
+	}
+
+	value := fmt.Sprint(p.Value)
+	description := ""
+	if p.Description != "" {
+		description = p.Description + ": "
+	}
+
+	fmt.Printf("\t%s(%s, %s, %s) Len=%d %q\n", description, class_str, tagtype_str, tag_str, p.Data.Len(), value)
+
+	if printBytes {
+		PrintBytes(p.Bytes(), "    ")
+	}
+	for _, child := range p.Children {
+		fmt.Println("[children]-->")
+		printPacketString(child, printBytes)
 	}
 }
 
@@ -245,6 +271,14 @@ func DecodeString(data []byte) (ret string) {
 	}
 	return
 }
+func DecodeUTF8String(data []byte) (ret string) {
+
+	return string(data)
+}
+
+func DecodeIA5String(data []byte) (ret string) {
+	return string(data)
+}
 
 func DecodeInteger(data []byte) (ret uint64) {
 	for _, i := range data {
@@ -252,6 +286,26 @@ func DecodeInteger(data []byte) (ret uint64) {
 		ret = ret + uint64(i)
 	}
 	return
+}
+func DecodeUTCTime(data []byte) (ret string) {
+	year := "20" + string(data[0:2])
+	month := string(data[2:4])
+	day := string(data[4:6])
+	hour := string(data[6:8])
+	minute := string(data[8:10])
+	second := string(data[10:12])
+	z := string(data[12])
+	return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second + z
+}
+func DecodeGeneralizedTime(data []byte) (ret string) {
+	year := string(data[0:4])
+	month := string(data[4:6])
+	day := string(data[6:8])
+	hour := string(data[8:10])
+	minute := string(data[10:12])
+	second := string(data[12:14])
+	z := string(data[14])
+	return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second + z
 }
 
 func DecodeOid(data []byte) (ret string) {
@@ -318,6 +372,7 @@ func DecodePacket(data []byte) *Packet {
 func decodePacket(data []byte) (*Packet, []byte) {
 	if Debug {
 		fmt.Printf("decodePacket: enter %d\n", len(data))
+		printBytes("decodePacket: enter", data)
 	}
 	p := new(Packet)
 	p.ClassType = data[0] & ClassBitmask
@@ -335,9 +390,22 @@ func decodePacket(data []byte) (*Packet, []byte) {
 	p.Data = new(bytes.Buffer)
 	p.Children = make([]*Packet, 0, 2)
 	p.Value = nil
-
 	value_data := data[datapos : datapos+datalen]
-
+	if Debug {
+		fmt.Printf("decodePacket: p.ClassType=%d, p.TagType=%d, p.Tag=%d \n",
+			p.ClassType, p.TagType, p.Tag)
+		fmt.Println(datapos, datapos+datalen)
+		printBytes("decodePacket:value_data ", value_data)
+	}
+	/*
+				https://blog.csdn.net/liaowenfeng/article/details/8777595
+				ASN.1字头，左边第0、1位，表示类型
+		左边位0	位1	类别
+			0	0	通用(Universal)
+			0	1	应用(Application)
+			1	0	上下文特定(Context Specific)
+			1	1	专用(Private)
+	*/
 	if p.TagType == TypeConstructed {
 		for len(value_data) != 0 {
 			var child *Packet
@@ -355,8 +423,26 @@ func decodePacket(data []byte) (*Packet, []byte) {
 			p.Value = DecodeInteger(value_data)
 		case TagBitString:
 		case TagOctetString:
-			p.Value = DecodeString(value_data)
+			//p.Value = DecodeString(value_data)
+			// OctetString特殊，可能有子child，需要提取子child的第一位验证
+			if len(value_data) > 0 {
+				childTagType := value_data[0] & TypeBitmask
+				if Debug {
+					fmt.Printf("decodePacket: childTagType %d, (%d);   value_date[0]=%d, (%d)\n", childTagType, TypeConstructed, value_data[0], TagBitmask)
+					printBytes("before childTagType is TypeConstructed:", value_data)
+				}
+				if int(childTagType) == TypeConstructed {
+					//var child *Packet
+					printBytes("TagOctetString before:", value_data)
+					child, value_data2 := decodePacket(value_data)
+					printBytes("TagOctetString after decodePacket :", value_data2)
+					p.AppendChild(child)
+				}
+
+			}
+			break
 		case TagNULL:
+			p.Value = nil
 		case TagObjectIdentifier:
 			p.Value = DecodeOid(value_data)
 			//fmt.Println(p.Value.(string))
@@ -367,6 +453,7 @@ func decodePacket(data []byte) (*Packet, []byte) {
 			p.Value = DecodeInteger(value_data)
 		case TagEmbeddedPDV:
 		case TagUTF8String:
+			p.Value = DecodeUTF8String(value_data)
 		case TagRelativeOID:
 		case TagSequence:
 		case TagSet:
@@ -376,8 +463,11 @@ func decodePacket(data []byte) (*Packet, []byte) {
 		case TagT61String:
 		case TagVideotexString:
 		case TagIA5String:
+			p.Value = DecodeIA5String(value_data)
 		case TagUTCTime:
+			p.Value = DecodeUTCTime(value_data)
 		case TagGeneralizedTime:
+			p.Value = DecodeGeneralizedTime(value_data)
 		case TagGraphicString:
 		case TagVisibleString:
 		case TagGeneralString:
@@ -388,7 +478,9 @@ func decodePacket(data []byte) (*Packet, []byte) {
 	} else {
 		p.Data.Write(data[datapos : datapos+datalen])
 	}
-
+	if Debug {
+		printBytes("decodePacket: end switch", data[datapos+datalen:])
+	}
 	return p, data[datapos+datalen:]
 }
 
@@ -517,6 +609,8 @@ func parseMft(file string) error {
 		printBytes("oid self bytes:", oidPacket.OidPacket.Bytes())
 		fmt.Println("")
 	}
+
+	printPacketString(pack, true)
 
 	return nil
 }
