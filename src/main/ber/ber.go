@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -365,15 +366,20 @@ func EncodeInteger(val uint64) []byte {
 }
 
 func DecodePacket(data []byte) *Packet {
-	p, _ := decodePacket(data)
+	p, _, _ := decodePacket(data)
 	return p
 }
 
-func decodePacket(data []byte) (*Packet, []byte) {
+func decodePacket(data []byte) (*Packet, []byte, error) {
 	if Debug {
 		fmt.Printf("decodePacket: enter %d\n", len(data))
 		printBytes("decodePacket: enter", data)
 	}
+
+	if len(data) < 2 {
+		return nil, nil, errors.New("data is empty")
+	}
+
 	p := new(Packet)
 	p.ClassType = data[0] & ClassBitmask
 	p.TagType = data[0] & TypeBitmask
@@ -384,12 +390,21 @@ func decodePacket(data []byte) (*Packet, []byte) {
 	if datalen&128 != 0 {
 		datalen -= 128
 		datapos += datalen
+		if 2+datalen > uint64(len(data)) {
+			fmt.Println("data is less than 2+datalen")
+			return nil, nil, errors.New("data is less than datalen")
+		}
 		datalen = DecodeInteger(data[2 : 2+datalen])
 	}
 
 	p.Data = new(bytes.Buffer)
 	p.Children = make([]*Packet, 0, 2)
 	p.Value = nil
+	if datapos+datalen > uint64(len(data)) {
+		fmt.Println(datapos, datalen, len(data))
+		printBytes("data is less than datapos+datalen", data)
+		return nil, nil, errors.New("data is less than datapos+datalen")
+	}
 	value_data := data[datapos : datapos+datalen]
 	if Debug {
 		fmt.Printf("decodePacket: p.ClassType=%d, p.TagType=%d, p.Tag=%d \n",
@@ -409,7 +424,11 @@ func decodePacket(data []byte) (*Packet, []byte) {
 	if p.TagType == TypeConstructed {
 		for len(value_data) != 0 {
 			var child *Packet
-			child, value_data = decodePacket(value_data)
+			var err error
+			child, value_data, err = decodePacket(value_data)
+			if err != nil {
+				return nil, nil, err
+			}
 			p.AppendChild(child)
 		}
 	} else if p.ClassType == ClassUniversal {
@@ -434,9 +453,15 @@ func decodePacket(data []byte) (*Packet, []byte) {
 				if int(childTagType) == TypeConstructed {
 					//var child *Packet
 					printBytes("TagOctetString before:", value_data)
-					child, value_data2 := decodePacket(value_data)
-					printBytes("TagOctetString after decodePacket :", value_data2)
-					p.AppendChild(child)
+					child, value_data2, err := decodePacket(value_data)
+					fmt.Println("decodePacket: ", err)
+					// 这里如果解析错误，说明不是child，而就是字符串，因此这里err不返回，仅仅表示是原始字符串
+					if err == nil {
+						//return nil, nil, err
+						printBytes("TagOctetString after decodePacket :", value_data2)
+						p.AppendChild(child)
+					}
+
 				}
 
 			}
@@ -481,7 +506,7 @@ func decodePacket(data []byte) (*Packet, []byte) {
 	if Debug {
 		printBytes("decodePacket: end switch", data[datapos+datalen:])
 	}
-	return p, data[datapos+datalen:]
+	return p, data[datapos+datalen:], nil
 }
 
 func (p *Packet) DataLength() uint64 {
