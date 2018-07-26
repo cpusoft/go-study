@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	//. "main/cert"
 	"os"
 	"reflect"
 )
@@ -171,7 +172,7 @@ func printPacket(p *Packet, indent int, printBytes bool) {
 	}
 }
 
-func printPacketString(p *Packet, printBytes bool) {
+func printPacketString(p *Packet, printBytes bool, printChild bool) {
 	class_str := ClassMap[p.ClassType]
 	tagtype_str := TypeMap[p.TagType]
 	tag_str := fmt.Sprintf("0x%02X", p.Tag)
@@ -191,9 +192,11 @@ func printPacketString(p *Packet, printBytes bool) {
 	if printBytes {
 		PrintBytes(p.Bytes(), "    ")
 	}
-	for _, child := range p.Children {
-		fmt.Println("[children]-->")
-		printPacketString(child, printBytes)
+	if printChild {
+		for _, child := range p.Children {
+			fmt.Println("[children]-->")
+			printPacketString(child, printBytes, printChild)
+		}
 	}
 }
 
@@ -422,6 +425,7 @@ func decodePacket(data []byte) (*Packet, []byte, error) {
 			1	1	专用(Private)
 	*/
 	if p.TagType == TypeConstructed {
+		fmt.Println("after p.TagType == TypeConstructed ")
 		for len(value_data) != 0 {
 			var child *Packet
 			var err error
@@ -432,7 +436,11 @@ func decodePacket(data []byte) (*Packet, []byte, error) {
 			p.AppendChild(child)
 		}
 	} else if p.ClassType == ClassUniversal {
+		printBytes("after p.ClassType == ClassUniversal:", data[datapos:datapos+datalen])
+
 		p.Data.Write(data[datapos : datapos+datalen])
+		printBytes("after p.Data.Write(data[datapos : datapos+datalen]) :", p.Bytes())
+
 		switch p.Tag {
 		case TagEOC:
 		case TagBoolean:
@@ -445,6 +453,7 @@ func decodePacket(data []byte) (*Packet, []byte, error) {
 			//p.Value = DecodeString(value_data)
 			// OctetString特殊，可能有子child，需要提取子child的第一位验证
 			if len(value_data) > 0 {
+				value_data_saved := data[datapos : datapos+datalen]
 				childTagType := value_data[0] & TypeBitmask
 				if Debug {
 					fmt.Printf("decodePacket: childTagType %d, (%d);   value_date[0]=%d, (%d)\n", childTagType, TypeConstructed, value_data[0], TagBitmask)
@@ -453,13 +462,18 @@ func decodePacket(data []byte) (*Packet, []byte, error) {
 				if int(childTagType) == TypeConstructed {
 					//var child *Packet
 					printBytes("TagOctetString before:", value_data)
-					child, value_data2, err := decodePacket(value_data)
-					fmt.Println("decodePacket: ", err)
-					// 这里如果解析错误，说明不是child，而就是字符串，因此这里err不返回，仅仅表示是原始字符串
+					child, _, err := decodePacket(value_data)
+
+					printBytes("TagOctetString before err==nil :", value_data_saved)
+					// 这里如果解析错误，说明不是child，而就是字符串，因此这里err不再往上返回，仅仅表示是原始字符串
 					if err == nil {
 						//return nil, nil, err
-						printBytes("TagOctetString after decodePacket :", value_data2)
+						printBytes("TagOctetString after decodePacket :", p.Bytes())
+						// 这里要清空原来是bytes，设置新child的bytes
+						p.Data.Reset()
 						p.AppendChild(child)
+					} else {
+
 					}
 
 				}
@@ -594,7 +608,7 @@ func NewString(ClassType, TagType, Tag uint8, Value, Description string) *Packet
 	p.Data.Write([]byte(Value))
 	return p
 }
-func parseMft(file string) error {
+func parseMft(file string) ([]OidPacket, error) {
 
 	f, _ := os.Open(file)
 	b, _ := ioutil.ReadAll(f)
@@ -635,9 +649,9 @@ func parseMft(file string) error {
 		fmt.Println("")
 	}
 
-	printPacketString(pack, true)
-
-	return nil
+	printPacketString(pack, true, true)
+	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++")
+	return *oidPacketss, nil
 }
 
 func transformPacket(p *Packet, oidPackets *[]OidPacket) {
@@ -705,6 +719,75 @@ func printBytes(name string, byt []byte) {
 func main() {
 
 	file := `E:\Go\go-study\src\main\cert\41870XBX5RmmOBSWl-AwgOrYdys.mft`
-	parseMft(file)
+	oidPackets, err := parseMft(file)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	//var oidIpAddressStr string
+	//var oidASStr string
 
+	//oidIpAddressKey := "1.3.6.1.5.5.7.1.7"
+	//oidASKey := "1.3.6.1.5.5.7.1.8"
+	manifestKey := "1.2.840.113549.1.9.16.1.26"
+	for _, oidPacket := range oidPackets {
+		/*
+			if oidPacket.Oid == oidIpAddressKey {
+				children := oidPacket.ParentPacket.Children
+				for cIndex, _ := range children {
+					printBytes(fmt.Sprintf("ipaddress cIndex:%d", cIndex), children[cIndex].Bytes())
+					printPacketString(children[cIndex], true, false)
+				}
+			}
+			if oidPacket.Oid == oidASKey {
+				children := oidPacket.ParentPacket.Children
+				for cIndex, _ := range children {
+					printBytes(fmt.Sprintf("asn cIndex:%d", cIndex), children[cIndex].Bytes())
+					printPacketString(children[cIndex], true, false)
+				}
+			}
+		*/
+		if oidPacket.Oid == manifestKey {
+
+			if len(oidPacket.ParentPacket.Children) > 1 {
+				seq0 := oidPacket.ParentPacket.Children[1]
+				if len(seq0.Children) > 0 {
+					octPacket := seq0.Children[0]
+					if len(octPacket.Children) > 0 {
+						secPacket := octPacket.Children[0]
+						if len(secPacket.Children) > 0 {
+							manifestNumber := secPacket.Children[0]
+							printPacketString(manifestNumber, true, false)
+
+							thisUpdate := secPacket.Children[1]
+							printPacketString(thisUpdate, true, false)
+
+							nextUpdate := secPacket.Children[2]
+							printPacketString(nextUpdate, true, false)
+
+							fileHashAlg := secPacket.Children[3]
+							printPacketString(fileHashAlg, true, false)
+
+							fileList := secPacket.Children[4]
+							printPacketString(fileList, true, false)
+							if len(fileList.Children) > 0 {
+								for _, fileAndHash := range fileList.Children {
+									printPacketString(fileAndHash, true, false)
+									if len(fileAndHash.Children) > 1 {
+										file := fileAndHash.Children[0]
+										printPacketString(file, true, false)
+
+										hash := fileAndHash.Children[1]
+										printPacketString(hash, true, false)
+									}
+								}
+							}
+
+						}
+					}
+
+				}
+			}
+		}
+	}
 }
