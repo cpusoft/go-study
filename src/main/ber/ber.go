@@ -322,7 +322,7 @@ func DecodeGeneralizedTime(data []byte) (ret string) {
 }
 
 func DecodeOid(data []byte) (ret string) {
-	//printBytes("oid", data)
+
 	oids := make([]uint32, len(data)+2)
 	//第一个八位组采用公式：first_arc* 40+second_arc
 	//后面的，当高位为1， 则表示需要加入下一位，合起来算的
@@ -894,8 +894,10 @@ func main() {
 											}
 										}
 									} else {
-										inherit := IPAddressChoice.Value.([]byte)
-										printBytes("inherit from issuer is NULL 2 ", inherit)
+
+										if TagNULL == IPAddressChoice.Tag {
+											fmt.Println("IPAddressChoice.Tag is NULL  ", IPAddressChoice.Tag)
+										}
 									}
 								}
 							}
@@ -910,14 +912,24 @@ func main() {
 				printPacketString("critical", critical, true, false)
 
 				extnValue := oidPacket.ParentPacket.Children[2]
+				//if Debug {
+				printPacketString("extnValue", extnValue, true, false)
+				//}
 				if len(extnValue.Children) > 0 {
 					for _, ASIdentifiers := range extnValue.Children {
-
+						if Debug {
+							printPacketString("ASIdentifiers", ASIdentifiers, true, false)
+						}
 						if len(ASIdentifiers.Children) > 0 {
-							for _, ASIdentifier := range ASIdentifiers.Children {
-
-								if len(ASIdentifier.Children) > 0 {
-									for _, asIdsOrRanges := range ASIdentifier.Children {
+							for _, ASIdentifierChoice := range ASIdentifiers.Children {
+								if Debug {
+									printPacketString("ASIdentifierChoice", ASIdentifierChoice, true, false)
+								}
+								if len(ASIdentifierChoice.Children) > 0 {
+									for _, asIdsOrRanges := range ASIdentifierChoice.Children {
+										if Debug {
+											printPacketString("asIdsOrRanges", asIdsOrRanges, true, false)
+										}
 										if len(asIdsOrRanges.Children) > 0 {
 											for _, ASIdOrRange := range asIdsOrRanges.Children {
 
@@ -931,6 +943,11 @@ func main() {
 												} else {
 													printPacketString("ASId", ASIdOrRange, true, false)
 												}
+											}
+										} else {
+
+											if TagNULL == asIdsOrRanges.Tag {
+												fmt.Println("asIdsOrRanges.Tag is NULL  ", asIdsOrRanges.Tag)
 											}
 										}
 									}
