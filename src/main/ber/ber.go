@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 	//. "main/cert"
 	"os"
 	"reflect"
+	"strconv"
 )
 
 type OidPacket struct {
@@ -119,7 +121,7 @@ var TypeMap = map[uint8]string{
 	TypeConstructed: "Constructed",
 }
 
-var Debug bool = true
+var Debug bool = false
 
 func PrintBytes(buf []byte, indent string) {
 	data_lines := make([]string, (len(buf)/30)+1)
@@ -172,7 +174,7 @@ func printPacket(p *Packet, indent int, printBytes bool) {
 	}
 }
 
-func printPacketString(p *Packet, printBytes bool, printChild bool) {
+func printPacketString(name string, p *Packet, printBytes bool, printChild bool) {
 	class_str := ClassMap[p.ClassType]
 	tagtype_str := TypeMap[p.TagType]
 	tag_str := fmt.Sprintf("0x%02X", p.Tag)
@@ -187,7 +189,7 @@ func printPacketString(p *Packet, printBytes bool, printChild bool) {
 		description = p.Description + ": "
 	}
 
-	fmt.Printf("\t%s(%s, %s, %s) Len=%d %q\n", description, class_str, tagtype_str, tag_str, p.Data.Len(), value)
+	fmt.Printf("\t%s  %s(%s, %s, %s) Len=%d %q\n", name, description, class_str, tagtype_str, tag_str, p.Data.Len(), value)
 
 	if printBytes {
 		PrintBytes(p.Bytes(), "    ")
@@ -195,7 +197,7 @@ func printPacketString(p *Packet, printBytes bool, printChild bool) {
 	if printChild {
 		for _, child := range p.Children {
 			fmt.Println("[children]-->")
-			printPacketString(child, printBytes, printChild)
+			printPacketString(name+" --> children ", child, printBytes, printChild)
 		}
 	}
 }
@@ -425,7 +427,9 @@ func decodePacket(data []byte) (*Packet, []byte, error) {
 			1	1	专用(Private)
 	*/
 	if p.TagType == TypeConstructed {
-		fmt.Println("after p.TagType == TypeConstructed ")
+		if Debug {
+			fmt.Println("after p.TagType == TypeConstructed ")
+		}
 		for len(value_data) != 0 {
 			var child *Packet
 			var err error
@@ -436,11 +440,13 @@ func decodePacket(data []byte) (*Packet, []byte, error) {
 			p.AppendChild(child)
 		}
 	} else if p.ClassType == ClassUniversal {
-		printBytes("after p.ClassType == ClassUniversal:", data[datapos:datapos+datalen])
-
+		if Debug {
+			printBytes("after p.ClassType == ClassUniversal:", data[datapos:datapos+datalen])
+		}
 		p.Data.Write(data[datapos : datapos+datalen])
-		printBytes("after p.Data.Write(data[datapos : datapos+datalen]) :", p.Bytes())
-
+		if Debug {
+			printBytes("after p.Data.Write(data[datapos : datapos+datalen]) :", p.Bytes())
+		}
 		switch p.Tag {
 		case TagEOC:
 		case TagBoolean:
@@ -452,6 +458,7 @@ func decodePacket(data []byte) (*Packet, []byte, error) {
 		case TagOctetString:
 			//p.Value = DecodeString(value_data)
 			// OctetString特殊，可能有子child，需要提取子child的第一位验证
+			haveChild := false
 			if len(value_data) > 0 {
 				value_data_saved := data[datapos : datapos+datalen]
 				childTagType := value_data[0] & TypeBitmask
@@ -461,23 +468,38 @@ func decodePacket(data []byte) (*Packet, []byte, error) {
 				}
 				if int(childTagType) == TypeConstructed {
 					//var child *Packet
-					printBytes("TagOctetString before:", value_data)
+					if Debug {
+						printBytes("TagOctetString before:", value_data)
+					}
 					child, _, err := decodePacket(value_data)
-
-					printBytes("TagOctetString before err==nil :", value_data_saved)
+					if Debug {
+						printBytes("TagOctetString before err==nil :", value_data_saved)
+					}
 					// 这里如果解析错误，说明不是child，而就是字符串，因此这里err不再往上返回，仅仅表示是原始字符串
 					if err == nil {
 						//return nil, nil, err
-						printBytes("TagOctetString after decodePacket :", p.Bytes())
+						if Debug {
+							printBytes("TagOctetString after decodePacket :", p.Bytes())
+						}
 						// 这里要清空原来是bytes，设置新child的bytes
 						p.Data.Reset()
 						p.AppendChild(child)
+						haveChild = true
 					} else {
 
 					}
 
 				}
 
+			}
+			//如果没有children，则需要赋值bytes
+			if !haveChild {
+				p.Value = value_data
+				/*
+					var buf bytes.Buffer
+					enc := gob.NewEncoder(&buf)
+					err := enc.Encode(key)
+				*/
 			}
 			break
 		case TagNULL:
@@ -641,15 +663,18 @@ func parseMft(file string) ([]OidPacket, error) {
 	//oidPacketss := make([]OidPacket, 10)
 	var oidPacketss = &[]OidPacket{}
 	transformPacket(pack, oidPacketss)
-	fmt.Println(len(*oidPacketss))
+	fmt.Println("all oidPacket size:", len(*oidPacketss))
 	for _, oidPacket := range *oidPacketss {
-		fmt.Println(oidPacket.Oid)
-		printBytes("oid parent bytes:", oidPacket.ParentPacket.Bytes())
-		printBytes("oid self bytes:", oidPacket.OidPacket.Bytes())
-		fmt.Println("")
+
+		if Debug {
+			fmt.Println(oidPacket.Oid)
+			printBytes("oid parent bytes:", oidPacket.ParentPacket.Bytes())
+			printBytes("oid self bytes:", oidPacket.OidPacket.Bytes())
+			fmt.Println("")
+		}
 	}
 
-	printPacketString(pack, true, true)
+	printPacketString("all packet", pack, true, true)
 	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++")
 	return *oidPacketss, nil
 }
@@ -703,6 +728,69 @@ func addParent(p *Packet, oidPackets map[string]Packet) {
 	}
 }
 
+const (
+	ipv4    = 0x01
+	ipv6    = 0x02
+	ipv4len = 32
+	ipv6len = 128
+)
+
+func decodeAddressPrefix(addressPrefixPacket *Packet, ipType int) error {
+	addressPrefix := addressPrefixPacket.Bytes()
+	addressShouldLen, _ := strconv.Atoi(fmt.Sprintf("%d", addressPrefix[1]))
+	unusedBitLen, _ := strconv.Atoi(fmt.Sprintf("%d", addressPrefix[2]))
+
+	address := addressPrefix[3:]
+	ipAddress := ""
+
+	if ipType == ipv4 {
+		// ipv4 的CIDR 表示法
+		prefix := ipv4len - 8*(addressShouldLen-1) - unusedBitLen
+		if Debug {
+			fmt.Println(fmt.Sprintf("prefix := ipv4len - 8*(addressShouldLen-1) - unusedBitLen:  %d := %d - 8 *(%d-1)-  %d \r\n",
+				prefix, ipv4len, addressShouldLen, unusedBitLen))
+		}
+		//printBytes("address:", address)
+
+		ipv4Address := ""
+		for i := 0; i < len(address); i++ {
+			ipv4Address += fmt.Sprintf("%d", address[i])
+			if i < len(address)-1 {
+				ipv4Address += "."
+			}
+		}
+		ipv4Address += "/" + fmt.Sprintf("%d", prefix)
+		ipAddress = ipv4Address
+
+	} else if ipType == ipv6 {
+		// ipv6的前缀表示法，和ipv4不一样
+		prefix := 8*(addressShouldLen-1) - unusedBitLen
+		if Debug {
+			fmt.Println(fmt.Sprintf("prefix :=  8*(addressShouldLen-1) - unusedBitLen:  %d := 8 *(%d-1)-  %d \r\n",
+				prefix, addressShouldLen, unusedBitLen))
+		}
+
+		//printBytes("address:", address)
+
+		ipv6Address := ""
+		for i := 0; i < len(address); i++ {
+			ipv6Address += fmt.Sprintf("%02x", address[i])
+			if i%2 == 1 && i < len(address)-1 {
+				ipv6Address += ":"
+			}
+		}
+		//补齐位数
+		if len(address)%2 == 1 {
+			ipv6Address += "00"
+		}
+		ipv6Address += "/" + fmt.Sprintf("%d", prefix)
+		ipAddress = ipv6Address
+
+	}
+	addressPrefixPacket.Value = ipAddress
+	return nil
+}
+
 func printAsn(name string, typ byte, ln byte, byt []byte) {
 	fmt.Println(fmt.Sprintf(name+"Type:0x%02x (%d)", typ, typ))
 	fmt.Println(fmt.Sprintf(name+"Len:0x%02x (%d)", ln, ln))
@@ -716,9 +804,19 @@ func printBytes(name string, byt []byte) {
 	}
 	fmt.Println("")
 }
+func GetBytes(key interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err := enc.Encode(key)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
 func main() {
 
-	file := `E:\Go\go-study\src\main\cert\41870XBX5RmmOBSWl-AwgOrYdys.mft`
+	//file := `E:\Go\go-study\src\main\cert\41870XBX5RmmOBSWl-AwgOrYdys.mft`
+	file := `E:\Go\go-study\src\main\cert\H.cer`
 	oidPackets, err := parseMft(file)
 	if err != nil {
 		fmt.Println(err)
@@ -727,67 +825,123 @@ func main() {
 	//var oidIpAddressStr string
 	//var oidASStr string
 
-	//oidIpAddressKey := "1.3.6.1.5.5.7.1.7"
+	oidIpAddressKey := "1.3.6.1.5.5.7.1.7"
 	//oidASKey := "1.3.6.1.5.5.7.1.8"
-	manifestKey := "1.2.840.113549.1.9.16.1.26"
+	//manifestKey := "1.2.840.113549.1.9.16.1.26"
+
+	var ipType int
 	for _, oidPacket := range oidPackets {
 		/*
 			if oidPacket.Oid == oidIpAddressKey {
-				children := oidPacket.ParentPacket.Children
-				for cIndex, _ := range children {
-					printBytes(fmt.Sprintf("ipaddress cIndex:%d", cIndex), children[cIndex].Bytes())
-					printPacketString(children[cIndex], true, false)
-				}
-			}
-			if oidPacket.Oid == oidASKey {
-				children := oidPacket.ParentPacket.Children
-				for cIndex, _ := range children {
-					printBytes(fmt.Sprintf("asn cIndex:%d", cIndex), children[cIndex].Bytes())
-					printPacketString(children[cIndex], true, false)
-				}
-			}
-		*/
-		if oidPacket.Oid == manifestKey {
+				if len(oidPacket.ParentPacket.Children) > 1 {
+					critical := oidPacket.ParentPacket.Children[1]
+					printPacketString("critical", critical, true, false)
 
-			if len(oidPacket.ParentPacket.Children) > 1 {
-				seq0 := oidPacket.ParentPacket.Children[1]
-				if len(seq0.Children) > 0 {
-					octPacket := seq0.Children[0]
-					if len(octPacket.Children) > 0 {
-						secPacket := octPacket.Children[0]
-						if len(secPacket.Children) > 0 {
-							manifestNumber := secPacket.Children[0]
-							printPacketString(manifestNumber, true, false)
+					extnValue := oidPacket.ParentPacket.Children[2]
+					if len(extnValue.Children) > 0 {
+						for _, IpAddressBlocks := range extnValue.Children {
+							if len(IpAddressBlocks.Children) > 0 {
+								for _, IPAddressFamily := range IpAddressBlocks.Children {
+									if len(IPAddressFamily.Children) > 0 {
+										addressFamily := IPAddressFamily.Children[0]
+										printPacketString("addressFamily", addressFamily, true, false)
 
-							thisUpdate := secPacket.Children[1]
-							printPacketString(thisUpdate, true, false)
+										addressFamilyBytes := addressFamily.Value.([]byte)
+										if addressFamilyBytes[1] == ipv4 {
+											ipType = ipv4
+										} else if addressFamilyBytes[1] == ipv6 {
+											ipType = ipv6
+										} else {
+											fmt.Println("error iptype")
+											return
+										}
+										if Debug {
+											printBytes(fmt.Sprintf("addressFamilyBytes: iptype: %d ", ipType), addressFamilyBytes)
+										}
+										IPAddressChoice := IPAddressFamily.Children[1]
+										printPacketString("IPAddressChoice", IPAddressChoice, true, false)
+										if len(IPAddressChoice.Children) > 0 {
+											for _, addressesOrRanges := range IPAddressChoice.Children {
+												if Debug {
+													printPacketString("addressesOrRanges", addressesOrRanges, true, false)
+													fmt.Println("addressesOrRanges: len: ", len(addressesOrRanges.Children))
+												}
+												if len(addressesOrRanges.Children) > 0 {
 
-							nextUpdate := secPacket.Children[2]
-							printPacketString(nextUpdate, true, false)
+													min := addressesOrRanges.Children[0]
+													max := addressesOrRanges.Children[1]
+													decodeAddressPrefix(min, ipType)
+													decodeAddressPrefix(max, ipType)
+													printPacketString("Range min", min, true, false)
+													printPacketString("Range max", max, true, false)
 
-							fileHashAlg := secPacket.Children[3]
-							printPacketString(fileHashAlg, true, false)
-
-							fileList := secPacket.Children[4]
-							printPacketString(fileList, true, false)
-							if len(fileList.Children) > 0 {
-								for _, fileAndHash := range fileList.Children {
-									printPacketString(fileAndHash, true, false)
-									if len(fileAndHash.Children) > 1 {
-										file := fileAndHash.Children[0]
-										printPacketString(file, true, false)
-
-										hash := fileAndHash.Children[1]
-										printPacketString(hash, true, false)
+												} else {
+													decodeAddressPrefix(addressesOrRanges, ipType)
+													printPacketString("addresses", addressesOrRanges, true, false)
+												}
+											}
+										} else {
+											inherit := IPAddressChoice.Value.([]byte)
+											printBytes("inherit from issuer is NULL 2 ", inherit)
+										}
 									}
 								}
 							}
-
 						}
 					}
-
 				}
 			}
+		*/
+		if oidPacket.Oid == oidASKey {
+			children := oidPacket.ParentPacket.Children
+			for cIndex, _ := range children {
+				printBytes(fmt.Sprintf("asn cIndex:%d", cIndex), children[cIndex].Bytes())
+				printPacketString(children[cIndex], true, false)
+			}
 		}
+		/*
+			if oidPacket.Oid == manifestKey {
+
+				if len(oidPacket.ParentPacket.Children) > 1 {
+					seq0 := oidPacket.ParentPacket.Children[1]
+					if len(seq0.Children) > 0 {
+						octPacket := seq0.Children[0]
+						if len(octPacket.Children) > 0 {
+							secPacket := octPacket.Children[0]
+							if len(secPacket.Children) > 0 {
+								manifestNumber := secPacket.Children[0]
+								printPacketString(manifestNumber, true, false)
+
+								thisUpdate := secPacket.Children[1]
+								printPacketString(thisUpdate, true, false)
+
+								nextUpdate := secPacket.Children[2]
+								printPacketString(nextUpdate, true, false)
+
+								fileHashAlg := secPacket.Children[3]
+								printPacketString(fileHashAlg, true, false)
+
+								fileList := secPacket.Children[4]
+								printPacketString(fileList, true, false)
+								if len(fileList.Children) > 0 {
+									for _, fileAndHash := range fileList.Children {
+										printPacketString(fileAndHash, true, false)
+										if len(fileAndHash.Children) > 1 {
+											file := fileAndHash.Children[0]
+											printPacketString(file, true, false)
+
+											hash := fileAndHash.Children[1]
+											printPacketString(hash, true, false)
+										}
+									}
+								}
+
+							}
+						}
+
+					}
+				}
+			}
+		*/
 	}
 }
