@@ -61,6 +61,10 @@ const (
 	TagCharacterString  = 0x1d
 	TagBMPString        = 0x1e
 	TagBitmask          = 0x1f // xxx11111b
+
+	//private
+	TagAsNum = 0xa0
+	TagRdi   = 0xa1
 )
 
 var TagMap = map[uint8]string{
@@ -93,6 +97,9 @@ var TagMap = map[uint8]string{
 	TagUniversalString:  "Universal String",
 	TagCharacterString:  "Character String",
 	TagBMPString:        "BMP String",
+	//private
+	TagAsNum: "ASNum",
+	TagRdi:   "Rdi",
 }
 
 const (
@@ -535,6 +542,11 @@ func decodePacket(data []byte) (*Packet, []byte, error) {
 		case TagUniversalString:
 		case TagCharacterString:
 		case TagBMPString:
+		//private
+		case TagAsNum:
+			p.Value = value_data
+		case TagRdi:
+			p.Value = value_data
 		}
 	} else {
 		p.Data.Write(data[datapos : datapos+datalen])
@@ -815,8 +827,8 @@ func GetBytes(key interface{}) ([]byte, error) {
 }
 func main() {
 
-	//file := `E:\Go\go-study\src\main\cert\41870XBX5RmmOBSWl-AwgOrYdys.mft`
-	file := `E:\Go\go-study\src\main\cert\H.cer`
+	file := `E:\Go\go-study\src\main\cert\41870XBX5RmmOBSWl-AwgOrYdys.mft`
+	//file := `E:\Go\go-study\src\main\cert\H.cer`
 	oidPackets, err := parseMft(file)
 	if err != nil {
 		fmt.Println(err)
@@ -826,122 +838,149 @@ func main() {
 	//var oidASStr string
 
 	oidIpAddressKey := "1.3.6.1.5.5.7.1.7"
-	//oidASKey := "1.3.6.1.5.5.7.1.8"
-	//manifestKey := "1.2.840.113549.1.9.16.1.26"
-
 	var ipType int
+	oidASKey := "1.3.6.1.5.5.7.1.8"
+	manifestKey := "1.2.840.113549.1.9.16.1.26"
+
 	for _, oidPacket := range oidPackets {
-		/*
-			if oidPacket.Oid == oidIpAddressKey {
-				if len(oidPacket.ParentPacket.Children) > 1 {
-					critical := oidPacket.ParentPacket.Children[1]
-					printPacketString("critical", critical, true, false)
+		if oidPacket.Oid == oidIpAddressKey {
+			if len(oidPacket.ParentPacket.Children) > 1 {
+				critical := oidPacket.ParentPacket.Children[1]
+				printPacketString("critical", critical, true, false)
 
-					extnValue := oidPacket.ParentPacket.Children[2]
-					if len(extnValue.Children) > 0 {
-						for _, IpAddressBlocks := range extnValue.Children {
-							if len(IpAddressBlocks.Children) > 0 {
-								for _, IPAddressFamily := range IpAddressBlocks.Children {
-									if len(IPAddressFamily.Children) > 0 {
-										addressFamily := IPAddressFamily.Children[0]
-										printPacketString("addressFamily", addressFamily, true, false)
+				extnValue := oidPacket.ParentPacket.Children[2]
+				if len(extnValue.Children) > 0 {
+					for _, IpAddressBlocks := range extnValue.Children {
+						if len(IpAddressBlocks.Children) > 0 {
+							for _, IPAddressFamily := range IpAddressBlocks.Children {
+								if len(IPAddressFamily.Children) > 0 {
+									addressFamily := IPAddressFamily.Children[0]
+									printPacketString("addressFamily", addressFamily, true, false)
 
-										addressFamilyBytes := addressFamily.Value.([]byte)
-										if addressFamilyBytes[1] == ipv4 {
-											ipType = ipv4
-										} else if addressFamilyBytes[1] == ipv6 {
-											ipType = ipv6
-										} else {
-											fmt.Println("error iptype")
-											return
-										}
-										if Debug {
-											printBytes(fmt.Sprintf("addressFamilyBytes: iptype: %d ", ipType), addressFamilyBytes)
-										}
-										IPAddressChoice := IPAddressFamily.Children[1]
+									addressFamilyBytes := addressFamily.Value.([]byte)
+									if addressFamilyBytes[1] == ipv4 {
+										ipType = ipv4
+									} else if addressFamilyBytes[1] == ipv6 {
+										ipType = ipv6
+									} else {
+										fmt.Println("error iptype")
+										return
+									}
+									if Debug {
+										printBytes(fmt.Sprintf("addressFamilyBytes: iptype: %d ", ipType), addressFamilyBytes)
+									}
+									IPAddressChoice := IPAddressFamily.Children[1]
+									if Debug {
 										printPacketString("IPAddressChoice", IPAddressChoice, true, false)
-										if len(IPAddressChoice.Children) > 0 {
-											for _, addressesOrRanges := range IPAddressChoice.Children {
-												if Debug {
-													printPacketString("addressesOrRanges", addressesOrRanges, true, false)
-													fmt.Println("addressesOrRanges: len: ", len(addressesOrRanges.Children))
-												}
-												if len(addressesOrRanges.Children) > 0 {
-
-													min := addressesOrRanges.Children[0]
-													max := addressesOrRanges.Children[1]
-													decodeAddressPrefix(min, ipType)
-													decodeAddressPrefix(max, ipType)
-													printPacketString("Range min", min, true, false)
-													printPacketString("Range max", max, true, false)
-
-												} else {
-													decodeAddressPrefix(addressesOrRanges, ipType)
-													printPacketString("addresses", addressesOrRanges, true, false)
-												}
+									}
+									if len(IPAddressChoice.Children) > 0 {
+										for _, addressesOrRanges := range IPAddressChoice.Children {
+											if Debug {
+												printPacketString("addressesOrRanges", addressesOrRanges, true, false)
+												fmt.Println("addressesOrRanges: len: ", len(addressesOrRanges.Children))
 											}
-										} else {
-											inherit := IPAddressChoice.Value.([]byte)
-											printBytes("inherit from issuer is NULL 2 ", inherit)
+											if len(addressesOrRanges.Children) > 0 {
+
+												min := addressesOrRanges.Children[0]
+												max := addressesOrRanges.Children[1]
+												decodeAddressPrefix(min, ipType)
+												decodeAddressPrefix(max, ipType)
+												printPacketString("Range min", min, true, false)
+												printPacketString("Range max", max, true, false)
+
+											} else {
+												decodeAddressPrefix(addressesOrRanges, ipType)
+												printPacketString("addresses", addressesOrRanges, true, false)
+											}
 										}
+									} else {
+										inherit := IPAddressChoice.Value.([]byte)
+										printBytes("inherit from issuer is NULL 2 ", inherit)
 									}
 								}
 							}
 						}
 					}
 				}
-			}
-		*/
-		if oidPacket.Oid == oidASKey {
-			children := oidPacket.ParentPacket.Children
-			for cIndex, _ := range children {
-				printBytes(fmt.Sprintf("asn cIndex:%d", cIndex), children[cIndex].Bytes())
-				printPacketString(children[cIndex], true, false)
 			}
 		}
-		/*
-			if oidPacket.Oid == manifestKey {
+		if oidPacket.Oid == oidASKey {
+			if len(oidPacket.ParentPacket.Children) > 1 {
+				critical := oidPacket.ParentPacket.Children[1]
+				printPacketString("critical", critical, true, false)
 
-				if len(oidPacket.ParentPacket.Children) > 1 {
-					seq0 := oidPacket.ParentPacket.Children[1]
-					if len(seq0.Children) > 0 {
-						octPacket := seq0.Children[0]
-						if len(octPacket.Children) > 0 {
-							secPacket := octPacket.Children[0]
-							if len(secPacket.Children) > 0 {
-								manifestNumber := secPacket.Children[0]
-								printPacketString(manifestNumber, true, false)
+				extnValue := oidPacket.ParentPacket.Children[2]
+				if len(extnValue.Children) > 0 {
+					for _, ASIdentifiers := range extnValue.Children {
 
-								thisUpdate := secPacket.Children[1]
-								printPacketString(thisUpdate, true, false)
+						if len(ASIdentifiers.Children) > 0 {
+							for _, ASIdentifier := range ASIdentifiers.Children {
 
-								nextUpdate := secPacket.Children[2]
-								printPacketString(nextUpdate, true, false)
+								if len(ASIdentifier.Children) > 0 {
+									for _, asIdsOrRanges := range ASIdentifier.Children {
+										if len(asIdsOrRanges.Children) > 0 {
+											for _, ASIdOrRange := range asIdsOrRanges.Children {
 
-								fileHashAlg := secPacket.Children[3]
-								printPacketString(fileHashAlg, true, false)
+												//区分两种：一种children是ASRange，一种是ASId
+												if len(ASIdOrRange.Children) > 1 {
+													min := ASIdOrRange.Children[0]
+													max := ASIdOrRange.Children[1]
 
-								fileList := secPacket.Children[4]
-								printPacketString(fileList, true, false)
-								if len(fileList.Children) > 0 {
-									for _, fileAndHash := range fileList.Children {
-										printPacketString(fileAndHash, true, false)
-										if len(fileAndHash.Children) > 1 {
-											file := fileAndHash.Children[0]
-											printPacketString(file, true, false)
-
-											hash := fileAndHash.Children[1]
-											printPacketString(hash, true, false)
+													printPacketString("ASNum min", min, true, false)
+													printPacketString("ASNum max", max, true, false)
+												} else {
+													printPacketString("ASId", ASIdOrRange, true, false)
+												}
+											}
 										}
 									}
 								}
-
 							}
 						}
-
 					}
 				}
 			}
-		*/
+		}
+		if oidPacket.Oid == manifestKey {
+
+			if len(oidPacket.ParentPacket.Children) > 1 {
+				seq0 := oidPacket.ParentPacket.Children[1]
+				if len(seq0.Children) > 0 {
+					octPacket := seq0.Children[0]
+					if len(octPacket.Children) > 0 {
+						secPacket := octPacket.Children[0]
+						if len(secPacket.Children) > 0 {
+							manifestNumber := secPacket.Children[0]
+							printPacketString("manifestNumber", manifestNumber, true, false)
+
+							thisUpdate := secPacket.Children[1]
+							printPacketString("thisUpdate", thisUpdate, true, false)
+
+							nextUpdate := secPacket.Children[2]
+							printPacketString("nextUpdate", nextUpdate, true, false)
+
+							fileHashAlg := secPacket.Children[3]
+							printPacketString("fileHashAlg", fileHashAlg, true, false)
+
+							fileList := secPacket.Children[4]
+							if len(fileList.Children) > 0 {
+								for _, fileAndHash := range fileList.Children {
+									if len(fileAndHash.Children) > 1 {
+										file := fileAndHash.Children[0]
+										printPacketString("file", file, true, false)
+
+										hash := fileAndHash.Children[1]
+										printPacketString("hash", hash, true, false)
+									}
+								}
+							}
+
+						}
+					}
+
+				}
+			}
+		}
+
 	}
 }
