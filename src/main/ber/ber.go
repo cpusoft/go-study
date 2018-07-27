@@ -403,7 +403,9 @@ func decodePacket(data []byte) (*Packet, []byte, error) {
 		datalen -= 128
 		datapos += datalen
 		if 2+datalen > uint64(len(data)) {
-			fmt.Println("data is less than 2+datalen")
+			if Debug {
+				fmt.Println("data is less than 2+datalen")
+			}
 			return nil, nil, errors.New("data is less than datalen")
 		}
 		datalen = DecodeInteger(data[2 : 2+datalen])
@@ -413,8 +415,10 @@ func decodePacket(data []byte) (*Packet, []byte, error) {
 	p.Children = make([]*Packet, 0, 2)
 	p.Value = nil
 	if datapos+datalen > uint64(len(data)) {
-		fmt.Println(datapos, datalen, len(data))
-		printBytes("data is less than datapos+datalen", data)
+		if Debug {
+			fmt.Println(datapos, datalen, len(data))
+			printBytes("data is less than datapos+datalen", data)
+		}
 		return nil, nil, errors.New("data is less than datapos+datalen")
 	}
 	value_data := data[datapos : datapos+datalen]
@@ -644,9 +648,19 @@ func NewString(ClassType, TagType, Tag uint8, Value, Description string) *Packet
 }
 func parseMft(file string) ([]OidPacket, error) {
 
-	f, _ := os.Open(file)
-	b, _ := ioutil.ReadAll(f)
+	f, err := os.Open(file)
+	if err != nil {
+		return nil, err
+	}
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
 	pack := DecodePacket(b)
+	//if Debug {
+	printPacketString("all packet", pack, true, true)
+	//}
+
 	/*
 		//children := pack.Children
 		classType := pack.ClassType
@@ -686,8 +700,6 @@ func parseMft(file string) ([]OidPacket, error) {
 		}
 	}
 
-	printPacketString("all packet", pack, true, true)
-	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++")
 	return *oidPacketss, nil
 }
 
@@ -803,46 +815,16 @@ func decodeAddressPrefix(addressPrefixPacket *Packet, ipType int) error {
 	return nil
 }
 
-func printAsn(name string, typ byte, ln byte, byt []byte) {
-	fmt.Println(fmt.Sprintf(name+"Type:0x%02x (%d)", typ, typ))
-	fmt.Println(fmt.Sprintf(name+"Len:0x%02x (%d)", ln, ln))
-	printBytes(name+"Value:", byt)
-}
+const (
+	oidIpAddressKey = "1.3.6.1.5.5.7.1.7"
 
-func printBytes(name string, byt []byte) {
-	fmt.Println(name)
-	for _, i := range byt {
-		fmt.Print(fmt.Sprintf("0x%02x ", i))
-	}
-	fmt.Println("")
-}
-func GetBytes(key interface{}) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(key)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-func main() {
+	oidASKey    = "1.3.6.1.5.5.7.1.8"
+	manifestKey = "1.2.840.113549.1.9.16.1.26"
+)
 
-	file := `E:\Go\go-study\src\main\cert\41870XBX5RmmOBSWl-AwgOrYdys.mft`
-	//file := `E:\Go\go-study\src\main\cert\H.cer`
-	oidPackets, err := parseMft(file)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	//var oidIpAddressStr string
-	//var oidASStr string
-
-	oidIpAddressKey := "1.3.6.1.5.5.7.1.7"
+func extractOid(oidPackets *[]OidPacket) string {
 	var ipType int
-	oidASKey := "1.3.6.1.5.5.7.1.8"
-	manifestKey := "1.2.840.113549.1.9.16.1.26"
-
-	for _, oidPacket := range oidPackets {
+	for _, oidPacket := range *oidPackets {
 		if oidPacket.Oid == oidIpAddressKey {
 			if len(oidPacket.ParentPacket.Children) > 1 {
 				critical := oidPacket.ParentPacket.Children[1]
@@ -864,7 +846,7 @@ func main() {
 										ipType = ipv6
 									} else {
 										fmt.Println("error iptype")
-										return
+										return ""
 									}
 									if Debug {
 										printBytes(fmt.Sprintf("addressFamilyBytes: iptype: %d ", ipType), addressFamilyBytes)
@@ -912,9 +894,9 @@ func main() {
 				printPacketString("critical", critical, true, false)
 
 				extnValue := oidPacket.ParentPacket.Children[2]
-				//if Debug {
-				printPacketString("extnValue", extnValue, true, false)
-				//}
+				if Debug {
+					printPacketString("extnValue", extnValue, true, false)
+				}
 				if len(extnValue.Children) > 0 {
 					for _, ASIdentifiers := range extnValue.Children {
 						if Debug {
@@ -1000,4 +982,53 @@ func main() {
 		}
 
 	}
+	return ""
+}
+
+func printAsn(name string, typ byte, ln byte, byt []byte) {
+	fmt.Println(fmt.Sprintf(name+"Type:0x%02x (%d)", typ, typ))
+	fmt.Println(fmt.Sprintf(name+"Len:0x%02x (%d)", ln, ln))
+	printBytes(name+"Value:", byt)
+}
+
+func printBytes(name string, byt []byte) {
+	fmt.Println(name)
+	for _, i := range byt {
+		fmt.Print(fmt.Sprintf("0x%02x ", i))
+	}
+	fmt.Println("")
+}
+func GetBytes(key interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err := enc.Encode(key)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+func main() {
+	path := `E:\Go\go-study\data\`
+	files := make([]string, 20)
+	pathFiles, _ := ioutil.ReadDir(path)
+	for _, fi := range pathFiles {
+		if !fi.IsDir() {
+			//listAll(path + "/" + fi.Name())
+			files = append(files, path+fi.Name())
+		}
+	}
+	fmt.Println(files)
+	//files := []string{src\main\cert\41870XBX5RmmOBSWl-AwgOrYdys.mft`,
+	//	`E:\Go\go-study\src\main\cert\H.cer`}
+	for _, file := range files {
+		fmt.Println(file)
+		oidPackets, err := parseMft(file)
+		if err != nil {
+			fmt.Println(file, err)
+			continue
+		}
+		extractOid(&oidPackets)
+		fmt.Println("+++++++++++++++++++++++++++++++++++++++++++")
+	}
+
 }
