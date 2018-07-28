@@ -8,9 +8,11 @@ import (
 	"io"
 	"io/ioutil"
 	//. "main/cert"
+	"encoding/base64"
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 type OidPacket struct {
@@ -378,7 +380,11 @@ func EncodeInteger(val uint64) []byte {
 }
 
 func DecodePacket(data []byte) *Packet {
-	p, _, _ := decodePacket(data)
+	p, _, err := decodePacket(data)
+	if err != nil {
+		fmt.Println("DecodePacket", err)
+		return nil
+	}
 	return p
 }
 
@@ -646,6 +652,39 @@ func NewString(ClassType, TagType, Tag uint8, Value, Description string) *Packet
 	p.Data.Write([]byte(Value))
 	return p
 }
+
+func transBase64(oldBytes []byte) ([]byte, error) {
+	isBinary := false
+
+	for _, b := range oldBytes {
+		t := int(b)
+
+		if t < 32 && t != 9 && t != 10 && t != 13 {
+			isBinary = true
+			break
+		}
+	}
+	if Debug {
+		fmt.Println("isBinary", isBinary)
+	}
+	if isBinary {
+		return oldBytes, nil
+	}
+	txt := string(oldBytes)
+	txt = strings.Replace(txt, "-----BEGIN CERTIFICATE-----", "", -1)
+	txt = strings.Replace(txt, "-----END CERTIFICATE-----", "", -1)
+	txt = strings.Replace(txt, "-", "", -1)
+	txt = strings.Replace(txt, " ", "", -1)
+	txt = strings.Replace(txt, "\r", "", -1)
+	txt = strings.Replace(txt, "\n", "", -1)
+	if Debug {
+		fmt.Println("txt after Replace", txt)
+	}
+	newBytes, err := base64.StdEncoding.DecodeString(txt)
+	return newBytes, err
+
+}
+
 func parseMft(file string) ([]OidPacket, error) {
 
 	f, err := os.Open(file)
@@ -656,6 +695,7 @@ func parseMft(file string) ([]OidPacket, error) {
 	if err != nil {
 		return nil, err
 	}
+	b, err = transBase64(b)
 	pack := DecodePacket(b)
 	//if Debug {
 	printPacketString("all packet", pack, true, true)
@@ -1014,12 +1054,12 @@ func main() {
 	for _, fi := range pathFiles {
 		if !fi.IsDir() {
 			//listAll(path + "/" + fi.Name())
+
 			files = append(files, path+fi.Name())
 		}
 	}
 	fmt.Println(files)
-	//files := []string{src\main\cert\41870XBX5RmmOBSWl-AwgOrYdys.mft`,
-	//	`E:\Go\go-study\src\main\cert\H.cer`}
+	//files = []string{`E:\Go\go-study\data\ROUTER-0000FBF0.cer`}
 	for _, file := range files {
 		fmt.Println(file)
 		oidPackets, err := parseMft(file)
