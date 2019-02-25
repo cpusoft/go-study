@@ -24,7 +24,7 @@ func main() {
 
 	go func() {
 		api1 := rest.NewApi()
-		api1.Use(rest.DefaultDevStack...)
+		api1.Use(rest.DefaultCommonStack...)
 		router1, err := rest.MakeRouter(
 			rest.Get("/lookup/#host", Lookup),
 		)
@@ -71,11 +71,13 @@ func main() {
 
 func Lookup(w rest.ResponseWriter, req *rest.Request) {
 	log.Print(req.PathParam("host"))
+	log.Println("Content-Type", req.Header.Get("Content-Type"))
 	ip, err := net.LookupIP(req.PathParam("host"))
 	if err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/rpki-slurm")
 	w.WriteJson(&ip)
 }
 func FetchAllRoa(w rest.ResponseWriter, req *rest.Request) {
