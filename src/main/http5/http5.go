@@ -24,9 +24,10 @@ func main() {
 
 	go func() {
 		api1 := rest.NewApi()
-		api1.Use(rest.DefaultCommonStack...)
+		api1.Use(rest.DefaultProdStack...)
 		router1, err := rest.MakeRouter(
 			rest.Get("/lookup/#host", Lookup),
+			rest.Post("/countries", PostCountry),
 		)
 		if err != nil {
 			log.Fatal(err)
@@ -71,12 +72,17 @@ func main() {
 
 func Lookup(w rest.ResponseWriter, req *rest.Request) {
 	log.Print(req.PathParam("host"))
+
+	log.Print(req.FormValue("key1"))
+	log.Print(req.FormValue("key2"))
+
 	log.Println("Content-Type", req.Header.Get("Content-Type"))
 	ip, err := net.LookupIP(req.PathParam("host"))
 	if err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/rpki-slurm")
 	w.WriteJson(&ip)
 }
@@ -88,4 +94,22 @@ var statusMw = &rest.StatusMiddleware{}
 
 func Status(w rest.ResponseWriter, req *rest.Request) {
 	w.WriteJson(statusMw.GetStatus())
+}
+
+type Country struct {
+	Code string
+	Name string
+}
+
+func PostCountry(w rest.ResponseWriter, r *rest.Request) {
+	//country := Country{}
+	country := make([]Country, 0)
+	err := r.DecodeJsonPayload(&country)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Print(country)
+	w.WriteJson(&country)
 }
