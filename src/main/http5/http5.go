@@ -2,14 +2,16 @@ package main
 
 import (
 	_ "encoding/json"
-	_ "fmt"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
 	_ "strings"
 	_ "sync"
+	"time"
 
 	"github.com/ant0ine/go-json-rest/rest"
+	"gopkg.in/tylerb/graceful.v1"
 )
 
 func main() {
@@ -35,7 +37,41 @@ func main() {
 		api1.SetApp(router1)
 		http.ListenAndServe(":8080", api1.MakeHandler())
 	}()
+	go func() {
+		api := rest.NewApi()
+		api.Use(rest.DefaultDevStack...)
+		router, err := rest.MakeRouter(
+			rest.Get("/message", func(w rest.ResponseWriter, req *rest.Request) {
+				for cpt := 1; cpt <= 10; cpt++ {
 
+					// wait 1 second
+					time.Sleep(time.Duration(1) * time.Second)
+
+					w.WriteJson(map[string]string{
+						"Message": fmt.Sprintf("%d seconds", cpt),
+					})
+					w.(http.ResponseWriter).Write([]byte("\n"))
+
+					// Flush the buffer to client
+					w.(http.Flusher).Flush()
+				}
+			}),
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		api.SetApp(router)
+
+		server := &graceful.Server{
+			Timeout: 10 * time.Second,
+			Server: &http.Server{
+				Addr:    ":8082",
+				Handler: api.MakeHandler(),
+			},
+		}
+
+		log.Fatal(server.ListenAndServe())
+	}()
 	go func() {
 		api2 := rest.NewApi()
 		api2.Use(rest.DefaultDevStack...)
@@ -66,6 +102,7 @@ func main() {
 		api3.SetApp(router3)
 		http.ListenAndServeTLS(":8443", certFile, keyFile, api3.MakeHandler())
 	}()
+
 	select {}
 
 }
@@ -97,12 +134,22 @@ func Status(w rest.ResponseWriter, req *rest.Request) {
 }
 
 type Country struct {
-	Code string
-	Name string
+	Code    string `json:"code"`
+	Name    string `json:"name"`
+	Address string `json:"address"`
 }
 
 func PostCountry(w rest.ResponseWriter, r *rest.Request) {
 	//country := Country{}
+	/*
+		e := r.ParseForm()
+		log.Println(e)
+		log.Println(r.Form)
+		log.Println(r.Form["code"])
+		log.Println(r.Form["name"])
+		log.Println(r.Form["address"])
+		w.WriteJson("ok")
+	*/
 	country := make([]Country, 0)
 	err := r.DecodeJsonPayload(&country)
 	if err != nil {
@@ -112,4 +159,5 @@ func PostCountry(w rest.ResponseWriter, r *rest.Request) {
 
 	log.Print(country)
 	w.WriteJson(&country)
+
 }

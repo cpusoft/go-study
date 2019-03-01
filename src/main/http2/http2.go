@@ -47,6 +47,27 @@ func loginSubmit(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(string(bb))
 	w.Write(bb)
 }
+func postCountry(w http.ResponseWriter, r *http.Request) {
+	//country := Country{}
+	e := r.ParseForm()
+	fmt.Println(e)
+	fmt.Println(r.Form)
+	fmt.Println(r.Form["code"])
+	fmt.Println(r.Form["name"])
+	fmt.Println(r.Form["address"])
+	w.Write([]byte("ok"))
+	/*
+		country := make([]Country, 0)
+		err := r.DecodeJsonPayload(&country)
+		if err != nil {
+			rest.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		log.Print(country)
+		w.WriteJson(&country)
+	*/
+}
 
 func main() {
 	http.Handle("/static/", http.FileServer(http.Dir("template")))
@@ -54,8 +75,8 @@ func main() {
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/loginQuery", loginQuery)
 	http.HandleFunc("/loginSubmit", loginSubmit)
-
-	err := http.ListenAndServe(":9090", nil)
+	http.HandleFunc("/countries", postCountry)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Println("ListenAndServer:", err)
 	}
