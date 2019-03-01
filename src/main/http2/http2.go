@@ -78,7 +78,7 @@ func main() {
 	http.HandleFunc("/countries", postCountry)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
-		fmt.Println("ListenAndServer:", err)
+		fmt.Println("ListenAndServe:", err)
 	}
 
 }

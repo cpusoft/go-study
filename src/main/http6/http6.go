@@ -47,7 +47,7 @@ func Lookup(w rest.ResponseWriter, req *rest.Request) {
 	"%{User-Agent}i", "{{.R.UserAgent | dashIfEmptyStr}}",
 	"%{Referer}i", "{{.R.Referer | dashIfEmptyStr}}",
 */
-func ListenAndServer(port string, router *rest.App) {
+func ListenAndServe(port string, router *rest.App) {
 	//logfile, _ := os.OpenFile(, os.O_RDWR|os.O_CREATE, 0666)
 	//logger := log.New(logfile, "\r\n", log.Ldate|log.Ltime|log.Llongfile)
 
@@ -91,6 +91,6 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	ListenAndServer(":8080", &router)
+	ListenAndServe(":8080", &router)
 
 }
