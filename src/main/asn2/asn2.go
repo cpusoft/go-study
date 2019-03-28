@@ -71,6 +71,6 @@ func main() {
 	if err1 != nil {
 		fmt.Println(err1)
 	}
-	fmt.Println(fmt.Sprintf("%v", ia), fmt.Sprint("%v"), addrs)
+	fmt.Println(fmt.Sprintf("%v", ia), fmt.Sprintf("%v", addrs))
 
 }

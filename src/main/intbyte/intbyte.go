@@ -2,12 +2,19 @@ package main
 
 import (
 	"bytes"
+
 	"fmt"
 	"strconv"
 	"strings"
 )
 
 func main() {
+	var a []byte = []byte{80, 128, 0, 0}
+	fmt.Println(a)
+
+	aaa := fmt.Sprintf("%d.%d.%d.%d", a[0], a[1], a[2], a[3])
+	fmt.Println(aaa)
+
 	ip := "199.99.99.0"
 	ss := IpToRtrFormat(ip)
 	fmt.Println(ss)

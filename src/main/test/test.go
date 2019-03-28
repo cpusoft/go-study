@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 func GetIndexLast0000(oldb []byte) int {
@@ -103,6 +105,11 @@ func FmtBytes(buf *[]byte) {
 	fmt.Printf("%p\r\n", buf)
 }
 func main() {
+
+	port := ":8443"
+	p, _ := strconv.Atoi(strings.Replace(port, ":", "", -1))
+	fmt.Println(p)
+
 	data1 := []byte("sss")
 	data := []byte{0x31, 0x38, 0x00, 0x31, 0x38, 0x00}
 	fmt.Printf("%p\r\n", &data1)
