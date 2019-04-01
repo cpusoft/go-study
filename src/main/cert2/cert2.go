@@ -58,8 +58,8 @@ type IPAddressChoice struct {
 }
 
 type IPAddressFamily struct {
-	//AddressFamily   []byte          `asn1:"optional,tag:0" json:"addressFamily"`
-	IPAddressChoice IPAddressChoice `asn1:"tag:0" json:"ipAddressChoice"`
+	AddressFamily   []byte          `asn1:"tag:0" json:"addressFamily"`
+	IPAddressChoice IPAddressChoice `asn1:"tag:1" json:"ipAddressChoice"`
 }
 type IPAddressFamilys struct {
 	//	AddressFamily   []byte          `asn1:"optional,tag:0" json:"addressFamily"`
@@ -135,6 +135,10 @@ type IPAddressRange struct {
 	Max string `json:"max"`
 }
 */
+type IPAddrBlocksnew struct {
+	FamilType []byte           `json:"familType"`
+	IPPrefx   []asn1.BitString `json:"ipPrefx"`
+}
 
 func main() {
 
@@ -160,18 +164,20 @@ func main() {
 		oid := extension.Id
 
 		if oidIpAddressKey == oid.String() {
-			var prefix []IPAddrBlocks
+
+			ipAddrBlocksnew := []IPAddrBlocksnew{}
+
 			iak := extension.Value
 			printBytes("iak", iak)
-			if rest, err := asn1.Unmarshal(iak, &prefix); err != nil {
+			if rest, err := asn1.Unmarshal(iak, &ipAddrBlocksnew); err != nil {
 				fmt.Println(err)
 				return
 			} else if len(rest) != 0 {
 				fmt.Println("x509: rest is not len0")
 				return
 			}
-			fmt.Printf("%+v", prefix)
-			jsonCer, _ := json.Marshal(prefix)
+			fmt.Printf("ipAddrBlocksnew %+v\r\n", ipAddrBlocksnew)
+			jsonCer, _ := json.Marshal(ipAddrBlocksnew)
 			fmt.Println(string(jsonCer))
 
 		} else if oidASKey == oid.String() {
