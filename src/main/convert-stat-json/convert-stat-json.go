@@ -10,6 +10,12 @@ import (
 	"strings"
 )
 
+type Warning struct {
+	Type        string `json:"type"`
+	Description string `json:"description"`
+}
+type Error Warning
+
 type Mft struct {
 	Roas    []string `json:"roas"`
 	Valto   string   `json:"valto"`
@@ -32,37 +38,37 @@ type CRL struct {
 }
 
 type Roa struct {
-	Prefix  []string `json:"prefix"`
-	Warning []string `json:"warning"`
-	Mft     Mft      `json:"mft"`
-	Name    string   `json:"name"`
-	Error   []string `json:"error"`
-	EE      EE       `json:"ee"`
-	ASN     int      `json:"asn"`
-	CRL     CRL      `json:"crl"`
+	Prefix  []string  `json:"prefix"`
+	Warning []Warning `json:"warning"`
+	Mft     Mft       `json:"mft"`
+	Name    string    `json:"name"`
+	Error   []Error   `json:"error"`
+	EE      EE        `json:"ee"`
+	ASN     int       `json:"asn"`
+	CRL     CRL       `json:"crl"`
 }
 
 type Chain struct {
-	Cert        string   `json:"cert"`
-	Valto       string   `json:"valto"`
-	Mft         Mft      `json:"mft"`
-	Valfrom     string   `json:"valfrom"`
-	Error       []string `json:"error"`
-	Prefix      []string `json:"prefix"`
-	Warning     []string `json:"warning"`
-	ASN         []int    `json:"asn"`
-	CRL         CRL      `json:"crl"`
-	PrefixOther []string `json:"prefix_other"`
+	Cert        string    `json:"cert"`
+	Valto       string    `json:"valto"`
+	Mft         Mft       `json:"mft"`
+	Valfrom     string    `json:"valfrom"`
+	Error       []Error   `json:"error"`
+	Prefix      []string  `json:"prefix"`
+	Warning     []Warning `json:"warning"`
+	ASN         []int     `json:"asn"`
+	CRL         CRL       `json:"crl"`
+	PrefixOther []string  `json:"prefix_other"`
 }
 type TA struct {
-	Prefix      []string `json:"prefix"`
-	Warning     []string `json:"warning"`
-	Name        string   `json:"name"`
-	Valfrom     string   `json:"valfrom"`
-	Error       []string `json:"error"`
-	Valto       string   `json:"valto"`
-	ASN         []int    `json:"asn"`
-	PrefixOther []string `json:"prefix_other"`
+	Prefix      []string  `json:"prefix"`
+	Warning     []Warning `json:"warning"`
+	Name        string    `json:"name"`
+	Valfrom     string    `json:"valfrom"`
+	Error       []Error   `json:"error"`
+	Valto       string    `json:"valto"`
+	ASN         []int     `json:"asn"`
+	PrefixOther []string  `json:"prefix_other"`
 }
 type StatResult struct {
 	Roa   Roa     `json:"roa"`
@@ -150,7 +156,7 @@ type StatResult_new6 struct {
 }
 
 func main() {
-	path := `G:\Download\cert\data_20190327\`
+	path := `G:\Download\cert\data_20190328\`
 	fileInfos, err := ioutil.ReadDir(path)
 	if err != nil {
 		fmt.Println(err)
@@ -190,13 +196,15 @@ func main() {
 		name := "ROA" //statResult.Roa.Name,
 		asns = "ASNs: " + strconv.Itoa(statResult.Roa.ASN)
 		ipPrefix = "IP Prefix:" + strings.Join(statResult.Roa.Prefix, ",")
+		warning := WarningJoin(statResult.Roa.Warning)
+		errors := ErrorJoins(statResult.Roa.Error)
 		roa_new := ROA_new{
 			Name:     name,
 			EE_new:   ee_new,
 			Asns:     asns,
 			IpPrefix: ipPrefix,
-			Warn:     strings.Join(statResult.Roa.Warning, ","),
-			Error:    statResult.Roa.Error,
+			Warn:     warning,
+			Error:    errors,
 		}
 
 		//////// ISP //////////////////
@@ -204,9 +212,10 @@ func main() {
 		for _, chain := range statResult.Chain {
 			ipPrefix = "IP Prefix:" + strings.Join(chain.Prefix, ",")
 			asns = "ASNs: " + IntJoin(chain.ASN)
+			warnings := WarningJoins(chain.Warning)
 			isp_new := ISP_new{
 				IpPrefix: ipPrefix,
-				MFTWarn:  chain.Warning,
+				MFTWarn:  warnings,
 				Name:     chain.Cert,
 				Asns:     asns,
 			}
@@ -288,4 +297,43 @@ func IntJoin(asn []int) string {
 	}
 
 	return buffer.String()
+}
+
+func WarningJoin(warning []Warning) string {
+	l := len(warning)
+	if l == 0 {
+		return ""
+	}
+	var buffer bytes.Buffer
+	for _, a := range warning {
+		buffer.WriteString(a.Type + ":" + a.Description + ";  ")
+	}
+
+	return buffer.String()
+}
+func WarningJoins(warning []Warning) []string {
+	l := len(warning)
+	ss := make([]string, 0)
+	if l == 0 {
+		return ss
+	}
+
+	for _, a := range warning {
+		ss = append(ss, (a.Type + ":" + a.Description + ";  "))
+	}
+
+	return ss
+}
+func ErrorJoins(errors []Error) []string {
+	l := len(errors)
+	ss := make([]string, 0)
+	if l == 0 {
+		return ss
+	}
+
+	for _, a := range errors {
+		ss = append(ss, (a.Type + ":" + a.Description + ";  "))
+	}
+
+	return ss
 }
