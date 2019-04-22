@@ -105,6 +105,14 @@ func FmtBytes(buf *[]byte) {
 	fmt.Printf("%p\r\n", buf)
 }
 func main() {
+	RSYNC_LOG_PREFIX := 12
+	result := `>f+++++++++ ripe-ncc-ta.cer`
+	fmt.Println(string(result[RSYNC_LOG_PREFIX:]))
+
+	input := "rsync://rpki.afrinic.net/repository/AfriNIC.cer\n"
+	tmp := strings.TrimSpace(input)
+	tmp = strings.Replace(tmp, "\r\n", "", -1)
+	fmt.Println(tmp)
 
 	port := ":8443"
 	p, _ := strconv.Atoi(strings.Replace(port, ":", "", -1))

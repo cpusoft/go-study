@@ -88,9 +88,18 @@ type Sets struct {
 	IPPrefx   []asn1.BitString `json:"ipPrefx"`
 }
 
+type ASSets struct {
+	Asns  int64   `asn1:"optional" json:"asns"`
+	AsSet []ASSet `asn1:"optional" json:"asSet"`
+}
+type ASSet struct {
+	Min int64 `json:"min"`
+	Max int64 `json:"max"`
+}
+
 func main() {
 	// 从sequence开始
-
+	/////////////////  decode ip
 	var ipPrefx asn1.BitString
 	ipPrefxByte := []byte{
 		0x03, 0x04, 0x02, 0x5B, 0xDB, 0x74}
@@ -113,7 +122,29 @@ func main() {
 	seqByte = []byte{
 		0x30, 0x0e, 0x30, 0x0C, 0x04, 0x02, 0x00, 0x01, 0x30, 0x06, 0x03, 0x04, 0x02, 0x5B, 0xDB, 0x74}
 	asn1.Unmarshal(seqByte, &seqs)
+	//[{FamilType:[0 1] IPPrefx:[{Bytes:[91 219 116] BitLength:22}]}]
 	fmt.Printf("%+v\r\n", seqs)
+
+	////////////// decode as
+	var asns int64
+	seqByte = []byte{0x02, 0x05, 0x00, 0xFF, 0xFF, 0xFF, 0xFF}
+	asn1.Unmarshal(seqByte, &asns)
+	//[{FamilType:[0 1] IPPrefx:[{Bytes:[91 219 116] BitLength:22}]}]
+	fmt.Printf("asns: %+v\r\n", asns)
+
+	asns = 0
+	var asSets ASSet
+	seqByte = []byte{0x30, 0x0A, 0x02, 0x01, 0x00, 0x02, 0x05, 0x00, 0xFF, 0xFF, 0xFF, 0xFF}
+	asn1.Unmarshal(seqByte, &asSets)
+	//[{FamilType:[0 1] IPPrefx:[{Bytes:[91 219 116] BitLength:22}]}]
+	fmt.Printf("asSets: %+v\r\n", asSets)
+
+	//0x30, 0x10, 0xA0, 0x0E,
+	var asSets2 ASSets
+	seqByte = []byte{0x30, 0x0C, 0x30, 0x0A, 0x02, 0x01, 0x00, 0x02, 0x05, 0x00, 0xFF, 0xFF, 0xFF, 0xFF}
+	asn1.Unmarshal(seqByte, &asSets2)
+	//[{FamilType:[0 1] IPPrefx:[{Bytes:[91 219 116] BitLength:22}]}]
+	fmt.Printf("asSets2: %+v\r\n", asSets2)
 
 	decoded := Tsr{}
 	b, _ := ioutil.ReadFile(`E:\Go\go-study\data\reply.tsr`)

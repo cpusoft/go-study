@@ -143,7 +143,7 @@ type IPAddrBlocksnew struct {
 func main() {
 
 	file := `E:\Go\go-study\data\3.cer`
-
+	file = `E:\Go\go-study\data\range_ipv4.cer`
 	caBlock, err := ioutil.ReadFile(file)
 	if err != nil {
 		fmt.Println("ReadFile err:", err)
@@ -168,7 +168,7 @@ func main() {
 			ipAddrBlocksnew := []IPAddrBlocksnew{}
 
 			iak := extension.Value
-			printBytes("iak", iak)
+			printBytes("oidIpAddressKey", iak)
 			if rest, err := asn1.Unmarshal(iak, &ipAddrBlocksnew); err != nil {
 				fmt.Println(err)
 				return
@@ -181,7 +181,8 @@ func main() {
 			fmt.Println(string(jsonCer))
 
 		} else if oidASKey == oid.String() {
-
+			iak := extension.Value
+			printBytes("oidASKey", iak)
 		}
 	}
 
