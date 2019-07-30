@@ -100,6 +100,11 @@ func main() {
 			cs, _ = GetDNFromName(cert.Subject, ",")
 			fmt.Println("GetDNFromRDNSeq cs:", cs)
 
+			for _, ext := range cert.Extensions {
+				fmt.Println(ext.Id)
+				fmt.Println(ext.Critical)
+			}
+
 		}
 		//	return
 	} else {
