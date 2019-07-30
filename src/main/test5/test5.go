@@ -3,10 +3,10 @@ package main
 import (
 	"crypto/md5"
 	"fmt"
-
 	"io"
 	"math/rand"
 	"strconv"
+	"sync/atomic"
 	"text/template"
 	"time"
 	"unicode"
@@ -72,6 +72,11 @@ func goRun(c, quit chan int) {
 }
 
 func main() {
+	var as int64
+	as = 0
+	as1 := atomic.AddInt64(&as, 1)
+	fmt.Println(as, as1)
+
 	s := "sssss<script/>"
 	ss1 := template.HTMLEscapeString(s)
 	fmt.Println(ss1)

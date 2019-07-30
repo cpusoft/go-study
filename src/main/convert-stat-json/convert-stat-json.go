@@ -153,6 +153,7 @@ type StatResult_new6 struct {
 	ISP_new3 ISP_new `json:"ISP3"`
 	ISP_new4 ISP_new `json:"ISP4"`
 	ISP_new5 ISP_new `json:"ISP5"`
+	ISP_new6 ISP_new `json:"ISP6"`
 }
 
 func main() {

@@ -18,6 +18,15 @@ func login(w http.ResponseWriter, r *http.Request) {
 	err := t.Execute(w, nil)
 	fmt.Println(err)
 }
+func login2(w http.ResponseWriter, r *http.Request) {
+	t, _ := template.ParseFiles("template/login/login2.html")
+	fmt.Println(t)
+	if t == nil {
+		fmt.Println("ParseFiles fail")
+	}
+	err := t.Execute(w, nil)
+	fmt.Println(err)
+}
 func loginQuery(w http.ResponseWriter, r *http.Request) {
 
 	mp := make(map[string]string)
@@ -73,6 +82,7 @@ func main() {
 	http.Handle("/static/", http.FileServer(http.Dir("template")))
 
 	http.HandleFunc("/login", login)
+	http.HandleFunc("/login2", login2)
 	http.HandleFunc("/loginQuery", loginQuery)
 	http.HandleFunc("/loginSubmit", loginSubmit)
 	http.HandleFunc("/countries", postCountry)

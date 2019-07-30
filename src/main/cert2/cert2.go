@@ -155,6 +155,10 @@ func main() {
 		fmt.Println("ParseCertificate err:", err)
 		return
 	}
+	alg := cert.SignatureAlgorithm.String()
+	fmt.Println("alg:", alg)
+	palg := cert.PublicKeyAlgorithm.String()
+	fmt.Println("palg:", palg)
 
 	//https://datatracker.ietf.org/doc/rfc3779/?include_text=1
 	oidIpAddressKey := "1.3.6.1.5.5.7.1.7"
