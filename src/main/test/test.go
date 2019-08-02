@@ -105,6 +105,10 @@ func FmtBytes(buf *[]byte) {
 	fmt.Printf("%p\r\n", buf)
 }
 func main() {
+	snStr := "596b39"
+	sn, err := strconv.ParseUint(snStr, 16, 0)
+	fmt.Println(sn, err)
+
 	RSYNC_LOG_PREFIX := 12
 	result := `>f+++++++++ ripe-ncc-ta.cer`
 	fmt.Println(string(result[RSYNC_LOG_PREFIX:]))
