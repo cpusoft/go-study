@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"regexp"
 	"strconv"
 	"sync/atomic"
 	"text/template"
@@ -72,6 +73,16 @@ func goRun(c, quit chan int) {
 }
 
 func main() {
+
+	ssss := `10d0c9f4328576d51cc73c042cfc15e9b3d6378`
+	sn, err := strconv.ParseUint(ssss, 16, 0)
+	fmt.Println(sn, err)
+
+	//  [:xdigit:]
+	//reg := regexp.MustCompile(`[:xdigit:]`)
+	b, err := regexp.MatchString(`^[0-9a-fA-F]+$`, ssss+"a111")
+	fmt.Println(b, err)
+
 	var as int64
 	as = 0
 	as1 := atomic.AddInt64(&as, 1)
