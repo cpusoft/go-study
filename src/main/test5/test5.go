@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"crypto/md5"
+	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"math/rand"
@@ -11,6 +14,8 @@ import (
 	"text/template"
 	"time"
 	"unicode"
+
+	"github.com/cpusoft/goutil/jsonutil"
 )
 
 type Person struct {
@@ -72,7 +77,48 @@ func goRun(c, quit chan int) {
 	quit <- 0
 }
 
+type RtrIpv4Prefix struct {
+	ProtocolVersion uint8  `json:"protocolVersion"`
+	PduType         uint8  `json:"pduType"`
+	Zero0           uint16 `json:"zero0"`
+	Length          uint32 `json:"length"`
+	Flags           uint8  `json:"flags"`
+	PrefixLength    uint8  `json:"prefixLength"`
+	MaxLength       uint8  `json:"maxLength"`
+	Zero1           uint8  `json:"zero1"`
+	Ipv4Prefix      uint32 `json:"ipv4Prefix"`
+	Asn             uint32 `json:"asn"`
+}
+
+func (p *RtrIpv4Prefix) Bytes() []byte {
+	wr := bytes.NewBuffer([]byte{})
+	binary.Write(wr, binary.BigEndian, p.ProtocolVersion)
+	binary.Write(wr, binary.BigEndian, p.PduType)
+	binary.Write(wr, binary.BigEndian, p.Zero0)
+	binary.Write(wr, binary.BigEndian, p.Length)
+	binary.Write(wr, binary.BigEndian, p.Flags)
+	binary.Write(wr, binary.BigEndian, p.PrefixLength)
+	binary.Write(wr, binary.BigEndian, p.MaxLength)
+	binary.Write(wr, binary.BigEndian, p.Zero1)
+	binary.Write(wr, binary.BigEndian, p.Ipv4Prefix)
+	binary.Write(wr, binary.BigEndian, p.Asn)
+	return wr.Bytes()
+}
+
 func main() {
+	sss1 := []byte{0x01, 0x02, 0x03, 0x04, 0xaa, 0xb1, 0xc8}
+	fmt.Println(hex.Dump(sss1))
+
+	rt := RtrIpv4Prefix{}
+	rt.ProtocolVersion = 1
+	rt.PduType = 1
+	rt.PrefixLength = 12
+	rt.Length = 12
+	rt.MaxLength = 13
+	rt.Ipv4Prefix = 0xA1A2A3A4
+	rt.Asn = 12
+	fmt.Println(jsonutil.MarshalJson(rt))
+	fmt.Println(rt.Bytes())
 
 	ssss := `10d0c9f4328576d51cc73c042cfc15e9b3d6378`
 	sn, err := strconv.ParseUint(ssss, 16, 0)
