@@ -11,7 +11,7 @@ import (
 )
 
 type RtrFull struct {
-	SerialNum       int    `json:"serialNum" xorm:"serial_num INT"`
+	SerialNumber       int    `json:"serialNumber" xorm:"serial_num INT"`
 	Asn             int    `json:"asn" xorm:"asn INT"`
 	Prefix          []byte `json:prefix" xorm:"prefix VARBINARY"`
 	PrefixLength    int    `json:prefix_length" xorm:"prefix_length TINYINT"`
@@ -19,7 +19,7 @@ type RtrFull struct {
 }
 
 type RtrFullCopy struct {
-	SerialNum       int    `json:"serialNum" xorm:"serial_num INT"`
+	SerialNumber       int    `json:"serialNumber" xorm:"serial_num INT"`
 	Asn             int    `json:"asn" xorm:"asn INT"`
 	Prefix          []byte `json:prefix" xorm:"prefix VARBINARY"`
 	PrefixLength    int    `json:prefix_length" xorm:"prefix_length TINYINT"`

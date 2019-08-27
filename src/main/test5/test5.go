@@ -77,6 +77,11 @@ func goRun(c, quit chan int) {
 	quit <- 0
 }
 
+type RtrPdu interface {
+	String() string
+	Bytes() []byte
+}
+
 type RtrIpv4Prefix struct {
 	ProtocolVersion uint8  `json:"protocolVersion"`
 	PduType         uint8  `json:"pduType"`
@@ -88,6 +93,10 @@ type RtrIpv4Prefix struct {
 	Zero1           uint8  `json:"zero1"`
 	Ipv4Prefix      uint32 `json:"ipv4Prefix"`
 	Asn             uint32 `json:"asn"`
+}
+
+func (c *RtrIpv4Prefix) String() string {
+	return jsonutil.MarshalJson(*c)
 }
 
 func (p *RtrIpv4Prefix) Bytes() []byte {
@@ -105,10 +114,7 @@ func (p *RtrIpv4Prefix) Bytes() []byte {
 	return wr.Bytes()
 }
 
-func main() {
-	sss1 := []byte{0x01, 0x02, 0x03, 0x04, 0xaa, 0xb1, 0xc8}
-	fmt.Println(hex.Dump(sss1))
-
+func test() (RtrPdu, error) {
 	rt := RtrIpv4Prefix{}
 	rt.ProtocolVersion = 1
 	rt.PduType = 1
@@ -117,8 +123,30 @@ func main() {
 	rt.MaxLength = 13
 	rt.Ipv4Prefix = 0xA1A2A3A4
 	rt.Asn = 12
-	fmt.Println(jsonutil.MarshalJson(rt))
+	return &rt, nil
+
+}
+
+func main() {
+	sss1 := []byte{0x01, 0x02, 0x03, 0x04, 0xaa, 0xb1, 0xc8}
+	fmt.Println(hex.Dump(sss1))
+
+	rt, _ := test()
+	fmt.Println(rt)
 	fmt.Println(rt.Bytes())
+	switch rt.(type) {
+	case *RtrIpv4Prefix:
+
+		fmt.Println("case   ", rt.String())
+
+	}
+
+	rtStr := jsonutil.MarshalJson(rt)
+	fmt.Println(rtStr)
+	fmt.Println(rt.Bytes())
+	rt2 := RtrIpv4Prefix{}
+	jsonutil.UnmarshalJson(rtStr, &rt2)
+	fmt.Println(rt2)
 
 	ssss := `10d0c9f4328576d51cc73c042cfc15e9b3d6378`
 	sn, err := strconv.ParseUint(ssss, 16, 0)
