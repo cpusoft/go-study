@@ -950,7 +950,7 @@ func main() {
 		file = os.Args[1]
 	} else {
 		//file = `G:\Download\cert\cache\`
-		file = `F:\share\我的坚果云\Thesis\参考资料\ietf数据\experts_chairs_Lou_Berger.txt`
+		file = `F:\share\我的坚果云\Thesis\参考资料\ietf数据\experts_Ole_Troan.txt`
 	}
 
 	m, err := ReadFileAndWordCountByField(file, stopWords, expertsName)
