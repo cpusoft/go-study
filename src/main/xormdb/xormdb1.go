@@ -3,6 +3,7 @@ package main
 import (
 	_ "database/sql"
 	"fmt"
+	"time"
 
 	belogs "github.com/astaxie/beego/logs"
 	_ "github.com/go-sql-driver/mysql"
@@ -51,15 +52,57 @@ func main() {
 		LastJsonAll string `json:"lastJsonAll" xorm:"lastJsonAll json"`
 		FileType    string `json:"jsonAll" xorm:"fileType  varchar(16)"`
 	}
+	/*
+		cerFileHashs := make([]RsyncFileHash, 15000)
+		err = engine.Table("lab_rpki_cer").
+			Select("filePath , fileName, fileHash, jsonAll as lastJsonAll, 'cer' as fileType").
+			Asc("id").Find(&cerFileHashs)
+		if err != nil {
+			fmt.Println(err)
+			belogs.Error("GetFilesHashFromDb(): get lab_rpki_cer fail:", err)
+			return
+		}
+		fmt.Println(len(cerFileHashs))
+	*/
+	/*
+		// get current rsyncState, the set new value
+		var id int64
+		_, err = session.Table("lab_rpki_sync_log").Select("max(id)").Get(&id)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(id)
+	*/
+	//lab_rpki_sync_log_file
+	type LabRpkiSyncLogFile struct {
+		Id        uint64 `json:"id" xorm:"pk autoincr"`
+		SyncLogId uint64 `json:"syncLogId" xorm:"syncLogId int"`
+		//cer/roa/mft/crl, not dot
+		FileType string `json:"fileType" xorm:"fileType varchar(16)"`
+		//sync time for every file
+		SyncTime                time.Time `json:"syncTime" xorm:"syncTime datetime"`
+		Ski                     string    `json:"ski" xorm:"ski varchar(128)"`
+		Aki                     string    `json:"aki" xorm:"aki varchar(128)"`
+		FilePath                string    `json:"filePath" xorm:"filePath varchar(512)"`
+		FileName                string    `json:"fileName" xorm:"fileName varchar(128)"`
+		ParseValidateResultJson string    `json:"syncJson" xorm:"syncJson json"`
+		JsonAll                 string    `json:"jsonAll" xorm:"jsonAll json"`
+		LastJsonAll             string    `json:"jsonAll" xorm:"lastJsonAll json"`
+		FileHash                string    `json:"fileHash" xorm:"fileHash varchar(512)"`
+		//add/update/del
+		SyncType string `json:"syncType" xorm:"syncType varchar(16)"`
+		//LabRpkiSyncLogFileState:
+		State string `json:"state" xorm:"state json"`
+	}
+	syncLogFiles := make([]LabRpkiSyncLogFile, 0)
+	//err = xormdb.XormEngine.Table(&syncLogFile).Where("syncLogId = ?", syncLog.Id).And("state->>'$.updateCertTable'=?", "notYet").Asc("id").Find(&syncLogFiles)
 
-	cerFileHashs := make([]RsyncFileHash, 15000)
-	err = engine.Table("lab_rpki_cer").
-		Select("filePath , fileName, fileHash, jsonAll as lastJsonAll, 'cer' as fileType").
-		Asc("id").Find(&cerFileHashs)
+	err = engine.Table("lab_rpki_sync_log_file").Select("id,filePath, fileName, fileType, syncType").
+		Where("state->>'$.updateCertTable'=?", "notYet").And("syncLogId=?", 18).OrderBy("id").Find(&syncLogFiles)
 	if err != nil {
 		fmt.Println(err)
-		belogs.Error("GetFilesHashFromDb(): get lab_rpki_cer fail:", err)
 		return
 	}
-	fmt.Println(len(cerFileHashs))
+	fmt.Println(len(syncLogFiles))
 }
