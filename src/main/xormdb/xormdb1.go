@@ -6,6 +6,7 @@ import (
 	_ "time"
 
 	belogs "github.com/astaxie/beego/logs"
+	jsonutil "github.com/cpusoft/goutil/jsonutil"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/core"
 	"github.com/go-xorm/xorm"
@@ -41,6 +42,7 @@ func main() {
 	//设置最大打开连接数
 	engine.SetMaxOpenConns(maxopenconns)
 	engine.SetTableMapper(core.SnakeMapper{})
+	engine.ShowSQL(true)
 
 	session := engine.NewSession()
 	defer session.Close()
@@ -117,15 +119,111 @@ func main() {
 		union
 		select filePath from lab_rpki_mft where fileName='eca135ce-a78f-437e-a32f-4714e9a373d2.cer'
 	*/
-	sqls := `
-	    select filePath from lab_rpki_cer where fileName='eca135ce-a78f-437e-a32f-4714e9a373d2.cer'
-		union
-		select filePath from lab_rpki_crl where fileName='eca135ce-a78f-437e-a32f-4714e9a373d2.cer'
-		union
-		select filePath from lab_rpki_mft where fileName='eca135ce-a78f-437e-a32f-4714e9a373d2.cer'
-		union
-		select filePath from lab_rpki_mft where fileName='eca135ce-a78f-437e-a32f-4714e9a373d2.cer'`
-	var filePath string
-	has, err := engine.SQL(sqls).Get(&filePath)
-	fmt.Println(filePath, has, err)
+	/*
+		sqls := `
+		    select filePath from lab_rpki_cer where fileName='eca135ce-a78f-437e-a32f-4714e9a373d2.cer'
+			union
+			select filePath from lab_rpki_crl where fileName='eca135ce-a78f-437e-a32f-4714e9a373d2.cer'
+			union
+			select filePath from lab_rpki_mft where fileName='eca135ce-a78f-437e-a32f-4714e9a373d2.cer'
+			union
+			select filePath from lab_rpki_mft where fileName='eca135ce-a78f-437e-a32f-4714e9a373d2.cer'`
+		var filePath string
+		has, err := engine.SQL(sqls).Get(&filePath)
+		fmt.Println(filePath, has, err)
+	*/
+	/*
+		type ChainIpAddress struct {
+			Id         uint64 `json:"id" xorm:"id int"`
+			RangeStart string `json:"rangeStart" xorm:"rangeStart"`
+			//max address range from addressPrefix or min/max, in hex:  63.69.7f.ff'
+			RangeEnd string `json:"rangeEnd" xorm:"rangeEnd"`
+		}
+	*/
+
+	/*
+		type ChainIpAddress struct {
+			Id            uint64 `json:"id" xorm:"id int"`
+			AddressFamily uint64 `json:"-"  xorm:"addressFamily int"`
+			//address prefix: 147.28.83.0/24 '
+			AddressPrefix string `json:"-"  xorm:"addressPrefix varchar(512)"`
+			MaxLength     uint64 `json:"-"  xorm:"maxLength int"`
+			//min address:  99.96.0.0
+			Min string `json:"-" xorm:"min varchar(512)`
+			//max address:   99.105.127.255
+			Max string `json:"-" xorm:"max varchar(512)`
+			//min address range from addressPrefix or min/max, in hex:  63.60.00.00'
+			RangeStart string `json:"rangeStart" xorm:"rangeStart"`
+			//max address range from addressPrefix or min/max, in hex:  63.69.7f.ff'
+			RangeEnd string `json:"rangeEnd" xorm:"rangeEnd"`
+			//min--max, such as 192.0.2.0--192.0.2.130, will convert to addressprefix range in json:{192.0.2.0/25, 192.0.2.128/31, 192.0.2.130/32}
+			AddressPrefixRange string `json:"-" xorm:"addressPrefixRange json"`
+		}
+		chainIpAddresses := make([]ChainIpAddress, 0)
+		cerId := 24217
+		err = engine.Table("lab_rpki_cer_ipaddress").
+			Select("id,rangeStart,rangeEnd").
+			Where("cerId=?", cerId).
+			OrderBy("id").Find(&chainIpAddresses)
+		fmt.Println(chainIpAddresses, err)
+	*/
+
+	/*
+		type ChainRoa struct {
+			Id          uint64 `json:"id" xorm:"id int"`
+			Asn         uint64 `json:"asn" xorm:"asn int"`
+			FilePath    string `json:"-" xorm:"filePath varchar(512)"`
+			FileName    string `json:"-" xorm:"fileName varchar(128)"`
+			Ski         string `json:"-" xorm:"ski varchar(128)"`
+			Aki         string `json:"-" xorm:"aki varchar(128)"`
+			State       string `json:"-" xorm:"state json"`
+			EeCertStart uint64 `json:"-" xorm:"eeCertStart int"`
+			EeCertEnd   uint64 `json:"-" xorm:"eeCertEnd int"`
+		}
+		chainRoa := ChainRoa{}
+		roaId := 61591
+		_, err = engine.Table("lab_rpki_roa").
+			Select("id,asn,ski,aki,filePath,fileName,state,jsonAll->'$.eeCertModel.eeCertStart' as eeCertStart,jsonAll->'$.eeCertModel.eeCertEnd' as eeCertEnd").
+			Where("id=?", roaId).Get(&chainRoa)
+		fmt.Println(chainRoa, err)
+
+
+	*/
+	type LabRpkiRtrFullLog struct {
+		Id           uint64 `json:"id" xorm:"id int"`
+		SerialNumber uint64 `json:"serialNumber" xorm:"serialNumber bigint"`
+		Asn          uint64 `json:"asn" xorm:"asn int"`
+		//address: 63.60.00.00
+		Address      string `json:"address" xorm:"address varchar(512)"`
+		PrefixLength uint64 `json:"prefixLength" xorm:"prefixLength int"`
+		MaxLength    uint64 `json:"maxLength" xorm:"maxLength int"`
+		//'come from : {souce:sync/slurm/transfer,syncLogId/syncLogFileId/slurmId/slurmFileId/transferLogId}',
+		SourceFrom string `json:"sourceFrom" xorm:"sourceFrom json"`
+	}
+
+	labRpkiRtrFullLog := LabRpkiRtrFullLog{}
+	Asn := uint64(1)
+	PrefixLength := uint64(1)
+	MaxLength := uint64(0)
+	Address := "1.1.1.1"
+	if Asn > 0 {
+		labRpkiRtrFullLog.Asn = Asn
+
+	}
+	if PrefixLength > 0 {
+		labRpkiRtrFullLog.PrefixLength = PrefixLength
+
+	}
+	if MaxLength > 0 {
+		labRpkiRtrFullLog.MaxLength = MaxLength
+
+	}
+	if len(Address) > 0 {
+		labRpkiRtrFullLog.Address = Address
+
+	}
+
+	fmt.Println(jsonutil.MarshalJson(labRpkiRtrFullLog))
+	aff, err := session.Delete(&labRpkiRtrFullLog)
+	fmt.Println(aff, err)
 }
