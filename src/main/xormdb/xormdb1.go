@@ -189,41 +189,50 @@ func main() {
 
 
 	*/
-	type LabRpkiRtrFullLog struct {
-		Id           uint64 `json:"id" xorm:"id int"`
-		SerialNumber uint64 `json:"serialNumber" xorm:"serialNumber bigint"`
-		Asn          uint64 `json:"asn" xorm:"asn int"`
-		//address: 63.60.00.00
-		Address      string `json:"address" xorm:"address varchar(512)"`
-		PrefixLength uint64 `json:"prefixLength" xorm:"prefixLength int"`
-		MaxLength    uint64 `json:"maxLength" xorm:"maxLength int"`
-		//'come from : {souce:sync/slurm/transfer,syncLogId/syncLogFileId/slurmId/slurmFileId/transferLogId}',
-		SourceFrom string `json:"sourceFrom" xorm:"sourceFrom json"`
-	}
+	/*
+		type LabRpkiRtrFullLog struct {
+			Id           uint64 `json:"id" xorm:"id int"`
+			SerialNumber uint64 `json:"serialNumber" xorm:"serialNumber bigint"`
+			Asn          uint64 `json:"asn" xorm:"asn int"`
+			//address: 63.60.00.00
+			Address      string `json:"address" xorm:"address varchar(512)"`
+			PrefixLength uint64 `json:"prefixLength" xorm:"prefixLength int"`
+			MaxLength    uint64 `json:"maxLength" xorm:"maxLength int"`
+			//'come from : {souce:sync/slurm/transfer,syncLogId/syncLogFileId/slurmId/slurmFileId/transferLogId}',
+			SourceFrom string `json:"sourceFrom" xorm:"sourceFrom json"`
+		}
 
-	labRpkiRtrFullLog := LabRpkiRtrFullLog{}
-	Asn := uint64(1)
-	PrefixLength := uint64(1)
-	MaxLength := uint64(0)
-	Address := "1.1.1.1"
-	if Asn > 0 {
-		labRpkiRtrFullLog.Asn = Asn
+		labRpkiRtrFullLog := LabRpkiRtrFullLog{}
+		Asn := uint64(1)
+		PrefixLength := uint64(1)
+		MaxLength := uint64(0)
+		Address := "1.1.1.1"
+		if Asn > 0 {
+			labRpkiRtrFullLog.Asn = Asn
 
-	}
-	if PrefixLength > 0 {
-		labRpkiRtrFullLog.PrefixLength = PrefixLength
+		}
+		if PrefixLength > 0 {
+			labRpkiRtrFullLog.PrefixLength = PrefixLength
 
-	}
-	if MaxLength > 0 {
-		labRpkiRtrFullLog.MaxLength = MaxLength
+		}
+		if MaxLength > 0 {
+			labRpkiRtrFullLog.MaxLength = MaxLength
 
-	}
-	if len(Address) > 0 {
-		labRpkiRtrFullLog.Address = Address
+		}
+		if len(Address) > 0 {
+			labRpkiRtrFullLog.Address = Address
 
-	}
+		}
 
-	fmt.Println(jsonutil.MarshalJson(labRpkiRtrFullLog))
-	aff, err := session.Delete(&labRpkiRtrFullLog)
-	fmt.Println(aff, err)
+		fmt.Println(jsonutil.MarshalJson(labRpkiRtrFullLog))
+		aff, err := session.Delete(&labRpkiRtrFullLog)
+		fmt.Println(aff, err)
+
+	*/
+	// /root/rpki/data/repo/rpki.arin.net/repository/arin-rpki-ta/5e4a23ea-e80a-403e-b08c-2171da2157d3/f60c9f32-a87c-4339-a2f3-6299a3b02e29/
+	filePathPrefix := `/root/rpki/data/repo/rpki.arin.net/`
+	cerId := make([]uint64, 0, 1000)
+	//err = session.SQL("select id from lab_rpki_cer Where filePath like '" + filePathPrefix + "%'").Find(&cerId)
+	err = session.SQL("select id from lab_rpki_cer Where filePath like ? ", filePathPrefix+"%").Find(&cerId)
+	fmt.Println(jsonutil.MarshalJson(cerId), err)
 }
