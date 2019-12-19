@@ -6,7 +6,7 @@ import (
 	_ "time"
 
 	belogs "github.com/astaxie/beego/logs"
-	jsonutil "github.com/cpusoft/goutil/jsonutil"
+	"github.com/cpusoft/goutil/jsonutil"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/core"
 	"github.com/go-xorm/xorm"
@@ -229,10 +229,44 @@ func main() {
 		fmt.Println(aff, err)
 
 	*/
-	// /root/rpki/data/repo/rpki.arin.net/repository/arin-rpki-ta/5e4a23ea-e80a-403e-b08c-2171da2157d3/f60c9f32-a87c-4339-a2f3-6299a3b02e29/
-	filePathPrefix := `/root/rpki/data/repo/rpki.arin.net/`
-	cerId := make([]uint64, 0, 1000)
-	//err = session.SQL("select id from lab_rpki_cer Where filePath like '" + filePathPrefix + "%'").Find(&cerId)
-	err = session.SQL("select id from lab_rpki_cer Where filePath like ? ", filePathPrefix+"%").Find(&cerId)
-	fmt.Println(jsonutil.MarshalJson(cerId), err)
+	/*
+		// /root/rpki/data/repo/rpki.arin.net/repository/arin-rpki-ta/5e4a23ea-e80a-403e-b08c-2171da2157d3/f60c9f32-a87c-4339-a2f3-6299a3b02e29/
+		filePathPrefix := `/root/rpki/data/repo/rpki.arin.net/`
+		cerId := make([]uint64, 0, 1000)
+		//err = session.SQL("select id from lab_rpki_cer Where filePath like '" + filePathPrefix + "%'").Find(&cerId)
+		err = session.SQL("select id from lab_rpki_cer Where filePath like ? ", filePathPrefix+"%").Find(&cerId)
+		fmt.Println(jsonutil.MarshalJson(cerId), err)
+
+	*/
+	/*
+		var mftId uint32
+		filePath := `/root/rpki/data/reporrdp/rpki.ripe.net/repository/DEFAULT/`
+		fileName := `KpSo3VVK5wEHIJnHC2QHVV3d5mk.mft`
+		has, err := engine.Table("lab_rpki_mft").Where("filePath=?", filePath).And("fileName=?", fileName).Cols("id").Get(&mftId)
+		if err != nil {
+			fmt.Println("GetChainMftId(): lab_rpki_mft id fail, filePath, fileName:", filePath, fileName, err)
+			return
+		}
+		if !has {
+			fmt.Println("GetChainMftId(): lab_rpki_mft id has not found, filePath, fileName:", filePath, fileName, err)
+			return
+		}
+		fmt.Println("GetChainMftId():", mftId)
+	*/
+	type ChainFileHash struct {
+		File string `json:"-" xorm:"file varchar(1024)"`
+		Hash string `json:"-" xorm:"hash varchar(1024)"`
+	}
+	chainFileHashs := make([]ChainFileHash, 0)
+	mftId := 31382
+	err = engine.Table("lab_rpki_mft_file_hash").
+		Cols("file,hash").
+		Where("mftId=?", mftId).
+		OrderBy("id").Find(&chainFileHashs)
+	if err != nil {
+		fmt.Println("getChainFileHashs(): lab_rpki_mft_file_hash fail:", err)
+		return
+	}
+	fmt.Println("getChainFileHashs():mftId, len(chainFileHashs):",
+		mftId, jsonutil.MarshalJson(chainFileHashs), len(chainFileHashs))
 }
