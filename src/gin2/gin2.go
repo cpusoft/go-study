@@ -42,7 +42,7 @@ func main() {
 	router.GET("/login2", login2)
 	router.GET("/dnsviz", dnsviz)
 	router.GET("/vlabs", vlabs)
-
+	router.GET("/query", query)
 	router.Run()
 }
 
@@ -117,4 +117,7 @@ func dnsviz(c *gin.Context) {
 }
 func vlabs(c *gin.Context) {
 	c.HTML(http.StatusOK, "vlabs.html", gin.H{})
+}
+func query(c *gin.Context) {
+	c.HTML(http.StatusOK, "query.html", gin.H{})
 }
