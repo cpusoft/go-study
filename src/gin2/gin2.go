@@ -39,6 +39,7 @@ func main() {
 	//router.Static("/dnsviz_files", osutil.GetParentPath()+"/template/static/")
 
 	//router.LoadHTMLFiles("templates/template1.html", "templates/template2.html")
+	router.GET("/loginhtml", loginhtml)
 	router.GET("/login2", login2)
 	router.GET("/dnsviz", dnsviz)
 	router.GET("/vlabs", vlabs)
@@ -104,6 +105,9 @@ func someXML(c *gin.Context) {
 func someJson(c *gin.Context) {
 	p := Person{Name: "name111", Address: "addressss"}
 	c.JSON(http.StatusOK, p)
+}
+func loginhtml(c *gin.Context) {
+	c.HTML(http.StatusOK, "login.html", gin.H{})
 }
 func login2(c *gin.Context) {
 	c.HTML(http.StatusOK, "login2.html", gin.H{
