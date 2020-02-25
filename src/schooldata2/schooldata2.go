@@ -15,10 +15,11 @@ import (
 )
 
 type TeacherDetail struct {
-	Name   string
-	Url    string
-	Gender string
-	Birth  string
+	Name     string
+	Url      string
+	PhotoUrl string
+	Gender   string
+	Birth    string
 	//籍贯
 	NativePlace string
 	//民族
@@ -79,6 +80,8 @@ func (c *TeacherDetail) HtmlString() string {
 	buffer.WriteString(c.Name)
 	buffer.WriteString("</td><td>")
 	buffer.WriteString(c.Url)
+	buffer.WriteString("</td><td>")
+	buffer.WriteString(c.PhotoUrl)
 	buffer.WriteString("</td><td>")
 	buffer.WriteString(c.Gender)
 	buffer.WriteString("</td><td>")
@@ -145,6 +148,7 @@ func (c *TeacherDetail) ToStrings() []string {
 	s := make([]string, 0)
 	s = append(s, c.Name)
 	s = append(s, c.Url)
+	s = append(s, c.PhotoUrl)
 	s = append(s, c.Gender)
 	s = append(s, c.Birth)
 	s = append(s, c.NativePlace)
@@ -181,7 +185,7 @@ func (c *TeacherDetail) ToStrings() []string {
 func main() {
 	urlFileName := `E:\Go\go-study\src\schooldata2\urls.txt`
 	htmlFileName := `E:\Go\go-study\src\schooldata2\teachers.html`
-	csvFileName := `E:\Go\go-study\src\schooldata2\teachers.csv`
+	csvFileName := `E:\Go\go-study\src\schooldata2\teachers_2.csv`
 	fmt.Println(urlFileName, htmlFileName, csvFileName)
 
 	urls, err := readFile(urlFileName)
@@ -215,7 +219,6 @@ func getTeacherDetails(urls []string) (teacherDetails []TeacherDetail, err error
 		}
 		teacherDetails = append(teacherDetails, detail)
 		time.Sleep(time.Duration(1) * time.Second)
-
 	}
 	return teacherDetails, nil
 }
@@ -244,13 +247,20 @@ func getTeacherDetail(url string) (teacherDetail TeacherDetail, err error) {
 	}
 
 	teacherDetail.Url = url
+	photoUrl, exist := doc.Find(".tbline img").Attr("src")
+	fmt.Println(photoUrl, exist)
+	if strings.Compare("../images/noimage.gif", photoUrl) != 0 {
+		photoUrl = strings.Replace(photoUrl, `..`, "http://yanzhao.scut.edu.cn", -1)
+		fmt.Println(photoUrl)
+		teacherDetail.PhotoUrl = photoUrl
+	}
 	// Find the review items
 	//个人简介
 	doc.Find(".tbline .tbline td").Each(func(i int, s *goquery.Selection) {
 		// For each item found, get the band and title
 		v1, _ := s.Html()
 		v2 := strings.TrimSpace(v1)
-		fmt.Printf("%s\r\n", v2)
+		//fmt.Printf("%s\r\n", v2)
 		switch i {
 		case 1:
 			teacherDetail.Name = v2
@@ -293,67 +303,67 @@ func getTeacherDetail(url string) (teacherDetail TeacherDetail, err error) {
 
 	//value1 := strings.TrimSpace(doc.Find("#contentParent_divGrjj1").Text())
 	value2, _ = doc.Find("#contentParent_divGrjj2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.PersonalProfile = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divGzjl1").Text())
 	value2, _ = doc.Find("#contentParent_divGzjl2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.WorkExperience = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divJyjl1").Text())
 	value2, _ = doc.Find("#contentParent_divJyjl2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.EducationExperience = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divHjry1").Text())
 	value2, _ = doc.Find("#contentParent_divHjry2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.AwardsHonoraryTitle = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divShjz1").Text())
 	value2, _ = doc.Find("#contentParent_divShjz2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.SocialAcademicPartTimeJob = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divYjly1").Text())
 	value2, _ = doc.Find("#contentParent_divYjly2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.ResearchField = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divKyxm1").Text())
 	value2, _ = doc.Find("#contentParent_divKyxm2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.ResearchProject = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divFblw1").Text())
 	value2, _ = doc.Find("#contentParent_divFblw2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.PublishThesis = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divZzjc1").Text())
 	value2, _ = doc.Find("#contentParent_divZzjc2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.PublishingTextbooks = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divKycx1").Text())
 	value2, _ = doc.Find("#contentParent_divKycx2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.ScientificResearchInnovation = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divJxhd1").Text())
 	value2, _ = doc.Find("#contentParent_divJxhd2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.TeachingActivity = strings.TrimSpace(value2) // strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divZdxs1").Text())
 	value2, _ = doc.Find("#contentParent_divZdxs2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.Guidestudent = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 
 	//value1 = strings.TrimSpace(doc.Find("#contentParent_divWdtd1").Text())
 	value2, _ = doc.Find("#contentParent_divWdtd2").Html()
-	fmt.Println(value2)
+	//fmt.Println(value2)
 	teacherDetail.MyTeam = strings.TrimSpace(value2) //strings.Replace(value2, "\n", "<br/>", -1)
 	return
 }
@@ -398,7 +408,7 @@ func saveCsvFile(teacherDetails []TeacherDetail, fileName string) (err error) {
 	//设置属性
 	w.Comma = ','
 	w.UseCRLF = true
-	row := []string{"姓名", "URL", "性别", "出生年月", "籍贯", "民族", "政治面貌", "最后学历", "最后学位", "技术职称", "导师类别", "行政职务", "Email", "工作单位", "邮政编码", "通讯地址", "单位电话", "个人主页", "个人简介", "工作经历", "教育经历", "获奖、荣誉称号", "社会、学会及学术兼职", "研究领域", "科研项目", "发表论文", "出版专著和教材", "科研创新", "教学活动", "指导学生情况", "我的团队"}
+	row := []string{"姓名", "URL", "PhotoUrl", "性别", "出生年月", "籍贯", "民族", "政治面貌", "最后学历", "最后学位", "技术职称", "导师类别", "行政职务", "Email", "工作单位", "邮政编码", "通讯地址", "单位电话", "个人主页", "个人简介", "工作经历", "教育经历", "获奖、荣誉称号", "社会、学会及学术兼职", "研究领域", "科研项目", "发表论文", "出版专著和教材", "科研创新", "教学活动", "指导学生情况", "我的团队"}
 	err = w.Write(row)
 	for i, _ := range teacherDetails {
 		if err = w.Write(teacherDetails[i].ToStrings()); err != nil {
@@ -422,6 +432,7 @@ func saveHtmlFile(teacherDetails []TeacherDetail, fileName string) (err error) {
 	newWriter.WriteString("<table border='1' cellspacing='0'>")
 	newWriter.WriteString(`<tr><td>姓名</td>
 	<td>URL</td>
+	<td>PhotoUrl</td>
 	<td>性别</td>
 	<td>出生年月</td>
 	<td>籍贯</td>
