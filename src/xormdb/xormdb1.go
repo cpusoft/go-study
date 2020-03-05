@@ -3,10 +3,11 @@ package main
 import (
 	_ "database/sql"
 	"fmt"
-	_ "time"
+	"time"
 
 	belogs "github.com/astaxie/beego/logs"
-	"github.com/cpusoft/goutil/jsonutil"
+	convert "github.com/cpusoft/goutil/convert"
+	_ "github.com/cpusoft/goutil/jsonutil"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/core"
 	"github.com/go-xorm/xorm"
@@ -14,10 +15,10 @@ import (
 
 func main() {
 	//DB, err = sql.Open("mysql", "rpstir:Rpstir-123@tcp(202.173.9.21:13306)/rpstir")
-	user := "rpstir"
+	user := "rpstir2"
 	password := "Rpstir-123"
-	server := "202.173.14.105:13306"
-	database := "rpstir_test"
+	server := "202.173.14.103:13307"
+	database := "rpstir2"
 	maxidleconns := 50
 	maxopenconns := 50
 
@@ -253,22 +254,87 @@ func main() {
 		}
 		fmt.Println("GetChainMftId():", mftId)
 	*/
+	/*
+		type ChainFileHash struct {
+			File string `json:"-" xorm:"file varchar(1024)"`
+			Hash string `json:"-" xorm:"hash varchar(1024)"`
+		}
+		chainFileHashs := make([]ChainFileHash, 0)
+		mftId := 31382
+		err = engine.Table("lab_rpki_mft_file_hash").
+			Cols("file,hash").
+			Where("mftId=?", mftId).
+			OrderBy("id").Find(&chainFileHashs)
+		if err != nil {
+			fmt.Println("getChainFileHashs(): lab_rpki_mft_file_hash fail:", err)
+			return
+		}
+		fmt.Println("getChainFileHashs():mftId, len(chainFileHashs):",
+			mftId, jsonutil.MarshalJson(chainFileHashs), len(chainFileHashs))
+	*/
+	/*
+		cerId := 10
+		var tmpIds []int64
+		err = session.Table("lab_rpki_cer_sia").Where("cerId=?", cerId).Cols("id").Find(&tmpIds)
+		if err != nil {
+			fmt.Println("lab_rpki_cer_sia find fail:", err)
+			return
+		}
+		fmt.Println(tmpIds)
+		if len(tmpIds) == 0 {
+			return
+		}
 
-	type ChainFileHash struct {
-		File string `json:"-" xorm:"file varchar(1024)"`
-		Hash string `json:"-" xorm:"hash varchar(1024)"`
+		ids, err := session.In("id", tmpIds).Delete("lab_rpki_cer_sia")
+		if err != nil {
+			fmt.Println("lab_rpki_cer_sia delete fail:", err)
+			return
+		}
+		fmt.Println("lab_rpki_cer_sia :", ids)
+		err = session.Rollback()
+		if err != nil {
+			fmt.Println("lab_rpki_cer_sia rollback fail:", err)
+			return
+		}
+	*/
+	/*
+		type ChainMft struct {
+			Id          uint64 `json:"id" xorm:"id int"`
+			FilePath    string `json:"-" xorm:"filePath varchar(512)"`
+			FileName    string `json:"-" xorm:"fileName varchar(128)"`
+			Ski         string `json:"-" xorm:"ski varchar(128)"`
+			Aki         string `json:"-" xorm:"aki varchar(128)"`
+			MftNumber   string `json:"-" xorm:"mftNumber varchar(1024)"`
+			State       string `json:"-" xorm:"state json"`
+			EeCertStart uint64 `json:"-" xorm:"eeCertStart int"`
+			EeCertEnd   uint64 `json:"-" xorm:"eeCertEnd int"`
+		}
+		var mftId uint64
+		mftId = 1
+		chainMft := ChainMft{}
+		_, err = session.Table("lab_rpki_mft").
+			Select("id,ski,aki,filePath,fileName,mftNumber,state,jsonAll->'$.eeCertModel.eeCertStart' as eeCertStart,jsonAll->'$.eeCertModel.eeCertEnd' as eeCertEnd").
+			Where("id=?", mftId).Get(&chainMft)
+		if err != nil {
+			fmt.Println("GetChainMft(): lab_rpki_mft fail:", mftId, err)
+			return
+		}
+		fmt.Println(chainMft)
+	*/
+	type ChainSnInCrlRevoked struct {
+		CrlFileName    string    `json:"-" xorm:"fileName varchar(512)"`
+		RevocationTime time.Time `json:"-" xorm:"revocationTime datetime"`
 	}
-	chainFileHashs := make([]ChainFileHash, 0)
-	mftId := 31382
-	err = engine.Table("lab_rpki_mft_file_hash").
-		Cols("file,hash").
-		Where("mftId=?", mftId).
-		OrderBy("id").Find(&chainFileHashs)
+	cerId := 100
+	chainSnInCrlRevoked := ChainSnInCrlRevoked{}
+	sql := `select l.fileName, r.revocationTime from lab_rpki_cer c, lab_rpki_crl l, lab_rpki_crl_revoked_cert r
+	 where  c.sn = r.sn and r.crlId = l.id and c.aki = l.aki and c.id=` + convert.ToString(cerId)
+	has, err := engine.
+		Sql(sql).Get(&chainSnInCrlRevoked)
 	if err != nil {
-		fmt.Println("getChainFileHashs(): lab_rpki_mft_file_hash fail:", err)
+		fmt.Println("select fail:", has, err)
 		return
 	}
-	fmt.Println("getChainFileHashs():mftId, len(chainFileHashs):",
-		mftId, jsonutil.MarshalJson(chainFileHashs), len(chainFileHashs))
+	fmt.Println(chainSnInCrlRevoked)
 
 }
