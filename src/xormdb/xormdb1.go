@@ -3,11 +3,10 @@ package main
 import (
 	_ "database/sql"
 	"fmt"
-	"time"
 
 	belogs "github.com/astaxie/beego/logs"
-	convert "github.com/cpusoft/goutil/convert"
-	_ "github.com/cpusoft/goutil/jsonutil"
+
+	"github.com/cpusoft/goutil/jsonutil"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/core"
 	"github.com/go-xorm/xorm"
@@ -17,7 +16,7 @@ func main() {
 	//DB, err = sql.Open("mysql", "rpstir:Rpstir-123@tcp(202.173.9.21:13306)/rpstir")
 	user := "rpstir2"
 	password := "Rpstir-123"
-	server := "202.173.14.103:13307"
+	server := "202.173.14.105:13306"
 	database := "rpstir2"
 	maxidleconns := 50
 	maxopenconns := 50
@@ -321,20 +320,49 @@ func main() {
 		}
 		fmt.Println(chainMft)
 	*/
-	type ChainSnInCrlRevoked struct {
-		CrlFileName    string    `json:"-" xorm:"fileName varchar(512)"`
-		RevocationTime time.Time `json:"-" xorm:"revocationTime datetime"`
+	/*
+		type ChainSnInCrlRevoked struct {
+			CrlFileName    string    `json:"-" xorm:"fileName varchar(512)"`
+			RevocationTime time.Time `json:"-" xorm:"revocationTime datetime"`
+		}
+		cerId := 100
+		chainSnInCrlRevoked := ChainSnInCrlRevoked{}
+		sql := `select l.fileName, r.revocationTime from lab_rpki_cer c, lab_rpki_crl l, lab_rpki_crl_revoked_cert r
+		 where  c.sn = r.sn and r.crlId = l.id and c.aki = l.aki and c.id=` + convert.ToString(cerId)
+		has, err := engine.
+			Sql(sql).Get(&chainSnInCrlRevoked)
+		if err != nil {
+			fmt.Println("select fail:", has, err)
+			return
+		}
+		fmt.Println(chainSnInCrlRevoked)
+
+	*/
+	type SyncLogFileModel struct {
+		Id        uint64 `json:"id" xorm:"pk autoincr"`
+		SyncLogId uint64 `json:"syncLogId" xorm:"syncLogId int"`
+		FilePath  string `json:"filePath" xorm:"filePath varchar(512)"`
+		FileName  string `json:"fileName" xorm:"fileName varchar(128)"`
+		FileType  string `json:"fileType" xorm:"fileType varchar(16)"`
+		SyncType  string `json:"syncType" xorm:"syncType varchar(16)"`
+		JsonAll   string `json:"jsonAll"`
+		//cerId / mftId / roaId / crlId
+		CertId uint64 `json:"certId"`
 	}
-	cerId := 100
-	chainSnInCrlRevoked := ChainSnInCrlRevoked{}
-	sql := `select l.fileName, r.revocationTime from lab_rpki_cer c, lab_rpki_crl l, lab_rpki_crl_revoked_cert r
-	 where  c.sn = r.sn and r.crlId = l.id and c.aki = l.aki and c.id=` + convert.ToString(cerId)
-	has, err := engine.
-		Sql(sql).Get(&chainSnInCrlRevoked)
+	labRpkiSyncLogId := 8
+	dbSyncLogFileModels := make([]SyncLogFileModel, 0)
+	err = engine.Table("lab_rpki_sync_log_file").Select("id,syncLogId,filePath,fileName, fileType, syncType").
+		Where("state->'$.updateCertTable'=?", "notYet").And("syncLogId=?", labRpkiSyncLogId).
+		And("fileType=?", "mft").
+		OrderBy("id").Find(&dbSyncLogFileModels)
 	if err != nil {
-		fmt.Println("select fail:", has, err)
+		fmt.Println(err)
 		return
 	}
-	fmt.Println(chainSnInCrlRevoked)
+	for i, _ := range dbSyncLogFileModels {
+		if dbSyncLogFileModels[i].FileName == "fIPsfy5eLDPb2Ki9g3-aa8fzomM.mft" {
+			fmt.Println(jsonutil.MarshalJson(dbSyncLogFileModels[i]))
+		}
+	}
 
 }

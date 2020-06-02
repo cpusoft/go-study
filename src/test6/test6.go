@@ -10,6 +10,12 @@ type Person struct {
 }
 
 func main() {
+	a := []int{0, 1, 2, 3, 4}
+	//删除第i个元素
+	i := 4
+	a = append(a[:i], a[i+1:]...)
+	fmt.Println(a)
+
 	pm := make(map[string]*Person, 10)
 	p1 := &Person{"aa", 1}
 	p2 := &Person{"ab", 2}
