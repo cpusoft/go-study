@@ -68,7 +68,8 @@ type CerParse struct {
 
 type AttributeTypeAndBitString struct {
 	Type asn1.ObjectIdentifier
-	V    asn1.RawValue
+	//	OctectString asn1.RawValue //`asn1:"explicit,tag:4"`
+	OctectString OctectString `asn1:"application,tag:4,explicit"`
 }
 
 type OctectString struct {
@@ -114,14 +115,16 @@ func main() {
 	asn1.Unmarshal(b, &cerParse)
 	fmt.Println("cerParse:", jsonutil.MarshallJsonIndent(cerParse))
 
-	b = cerParse.SubjectKeyIdentifier.V.Bytes
-	s = convert.PrintBytes(b, 8)
-	fmt.Println(s)
-	octectString := make([]byte, 0)
-	asn1.Unmarshal(b, &octectString)
-	fmt.Println("octectString:", jsonutil.MarshallJsonIndent(octectString))
-	s = convert.PrintBytes(octectString, 8)
-	fmt.Println(s)
+	/*
+		b = cerParse.SubjectKeyIdentifier.V
+		s = convert.PrintBytes(b, 8)
+		fmt.Println(s)
+		octectString := make([]byte, 0)
+		asn1.Unmarshal(b, &octectString)
+		fmt.Println("octectString:", jsonutil.MarshallJsonIndent(octectString))
+		s = convert.PrintBytes(octectString, 8)
+		fmt.Println(s)
+	*/
 	/*
 		b = octectString.Bytes
 		s = convert.PrintBytes(b, 8)
