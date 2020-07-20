@@ -54,26 +54,33 @@ type PublicKeyInfo struct {
 }
 
 type CerParse struct {
-	SubjectKeyIdentifier AttributeTypeAndBitString
-	/*
-		AuthorityKeyIdentifier RDNSequence
-		KeyUsage               RDNSequence
-		BasicConstraints       RDNSequence
-		CRLDistributionPoints  RDNSequence
-		CertificatePolicies    RDNSequence
-		SubjectInfoAccess      RDNSequence
-		IpAddrBlocks           RDNSequence
-	*/
+	SubjectKeyIdentifier   ObjectIdentifierAndRawValue
+	AuthorityKeyIdentifier ObjectIdentifierAndRawValue
+	KeyUsage               ObjectIdentifierAndBoolAndRawValue
+	BasicConstraints       ObjectIdentifierAndBoolAndRawValue
+	CRLDistributionPoints  ObjectIdentifierAndRawValue
+	AuthorityInfoAccess    ObjectIdentifierAndRawValue
+	CertificatePolicies    ObjectIdentifierAndBoolAndRawValue
+	SubjectInfoAccess      ObjectIdentifierAndRawValue
+	IpAddrBlocks           ObjectIdentifierAndBoolAndRawValue
 }
 
-type AttributeTypeAndBitString struct {
-	Type asn1.ObjectIdentifier
-	//	OctectString asn1.RawValue //`asn1:"explicit,tag:4"`
-	OctectString OctectString `asn1:"application,tag:4,explicit"`
+type ObjectIdentifierAndRawValue struct {
+	Type     asn1.ObjectIdentifier
+	RawValue asn1.RawValue
+}
+type ObjectIdentifierAndBoolAndRawValue struct {
+	Type     asn1.ObjectIdentifier
+	Bool     bool
+	RawValue asn1.RawValue
 }
 
-type OctectString struct {
-	V asn1.RawValue
+func Asn1ParseFromRawValue(rawValue *asn1.RawValue, v interface{}) {
+	s := convert.PrintBytes(rawValue.Bytes, 8)
+	fmt.Println("Asn1ParseFromRawValue():", s)
+	cerParse := CerParse{}
+	asn1.Unmarshal(rawValue.Bytes, &cerParse)
+	fmt.Println("Asn1ParseFromRawValue():", jsonutil.MarshallJsonIndent(cerParse))
 }
 
 /*
@@ -108,13 +115,18 @@ func main() {
 	asn1.Unmarshal(b, &certificate)
 	fmt.Println("certificate:", jsonutil.MarshallJsonIndent(certificate))
 
-	b = certificate.TBSCertificate.CerRawValue.Bytes
-	s = convert.PrintBytes(b, 8)
-	fmt.Println(s)
 	cerParse := CerParse{}
-	asn1.Unmarshal(b, &cerParse)
-	fmt.Println("cerParse:", jsonutil.MarshallJsonIndent(cerParse))
-
+	Asn1ParseFromRawValue(&certificate.TBSCertificate.CerRawValue, &cerParse)
+	fmt.Println("Asn1ParseFromRawValue cerParse:", jsonutil.MarshallJsonIndent(cerParse))
+	/*
+		// ok
+		b = certificate.TBSCertificate.CerRawValue.Bytes
+		s = convert.PrintBytes(b, 8)
+		fmt.Println(s)
+		cerParse = CerParse{}
+		asn1.Unmarshal(b, &cerParse)
+		fmt.Println("cerParse:", jsonutil.MarshallJsonIndent(cerParse))
+	*/
 	/*
 		b = cerParse.SubjectKeyIdentifier.V
 		s = convert.PrintBytes(b, 8)
