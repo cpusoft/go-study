@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/cpusoft/goutil/convert"
@@ -79,8 +80,33 @@ func Asn1ParseFromRawValue(rawValue *asn1.RawValue, v interface{}) {
 	s := convert.PrintBytes(rawValue.Bytes, 8)
 	fmt.Println("Asn1ParseFromRawValue():", s)
 	cerParse := CerParse{}
+	fmt.Println("Asn1ParseFromRawValue()  cerParse:", cerParse)
 	asn1.Unmarshal(rawValue.Bytes, &cerParse)
 	fmt.Println("Asn1ParseFromRawValue():", jsonutil.MarshallJsonIndent(cerParse))
+}
+func Asn1ParseReflectFromRawValue(rawValue *asn1.RawValue, v interface{}) (r interface{}, err error) {
+	//s := convert.PrintBytes(rawValue.Bytes, 8)
+	//fmt.Println("Asn1ParseReflectFromRawValue():s:", s)
+	rt := reflect.TypeOf(v)
+	fmt.Printf("Asn1ParseReflectFromRawValue():rt:%v,%T\n", jsonutil.MarshallJsonIndent(rt), rt)
+	asn1.Unmarshal(rawValue.Bytes, &rt)
+	fmt.Println("Asn1ParseFromRawValue():rt:", jsonutil.MarshallJsonIndent(rt))
+
+	rt = rt.Elem()
+	fmt.Printf("Asn1ParseReflectFromRawValue()  new rt %v,%T\n", jsonutil.MarshallJsonIndent(rt), rt)
+	asn1.Unmarshal(rawValue.Bytes, &rt)
+	fmt.Println("Asn1ParseFromRawValue():new rt:", jsonutil.MarshallJsonIndent(rt))
+
+	nt := reflect.New(rt) // 调用反射创建对象
+	fmt.Printf("Asn1ParseReflectFromRawValue()  nt: %v,%T\n", jsonutil.MarshallJsonIndent(nt), nt)
+	asn1.Unmarshal(rawValue.Bytes, &nt)
+	fmt.Println("Asn1ParseFromRawValue():nt:", jsonutil.MarshallJsonIndent(nt))
+
+	nt = nt.Elem()
+	fmt.Printf("Asn1ParseReflectFromRawValue()  new nt:%v,%T\n", jsonutil.MarshallJsonIndent(nt), nt)
+	asn1.Unmarshal(rawValue.Bytes, &nt)
+	fmt.Println("Asn1ParseFromRawValue():new nt", jsonutil.MarshallJsonIndent(nt))
+	return nt, nil
 }
 
 /*
@@ -114,10 +140,42 @@ func main() {
 	//roaAllParse := RoaAllParse{}
 	asn1.Unmarshal(b, &certificate)
 	fmt.Println("certificate:", jsonutil.MarshallJsonIndent(certificate))
+	/*
+		v := CerParse{}
+		Asn1ParseFromRawValue(&certificate.TBSCertificate.CerRawValue, &v)
+		fmt.Println("Asn1ParseFromRawValue cerParse:", jsonutil.MarshallJsonIndent(v))
+	*/
+	rawValue := certificate.TBSCertificate.CerRawValue
+	v := CerParse{}
+	asn1.Unmarshal(rawValue.Bytes, &v)
+	fmt.Println("Asn1ParseFromRawValue():v", jsonutil.MarshallJsonIndent(v))
 
-	cerParse := CerParse{}
-	Asn1ParseFromRawValue(&certificate.TBSCertificate.CerRawValue, &cerParse)
-	fmt.Println("Asn1ParseFromRawValue cerParse:", jsonutil.MarshallJsonIndent(cerParse))
+	e := reflect.New(reflect.TypeOf(CerParse{})).Elem()
+	i := e.Interface()
+	fmt.Println("Asn1ParseFromRawValue():e,i:", e, "--------", i)
+	c := i.(CerParse)
+	fmt.Println("Asn1ParseFromRawValue():c:", c)
+	asn1.Unmarshal(rawValue.Bytes, &c)
+	fmt.Println("Asn1ParseFromRawValue():c:", jsonutil.MarshallJsonIndent(c))
+	/*
+		rt := reflect.TypeOf(v)
+		fmt.Printf("Asn1ParseReflectFromRawValue():rt:%v,%T\n", rt, rt)
+
+		asn1.Unmarshal(rawValue.Bytes, &rt)
+		fmt.Println("Asn1ParseFromRawValue():rt:", rt)
+
+		nt := reflect.New(rt) // 调用反射创建对象
+		fmt.Printf("Asn1ParseReflectFromRawValue()  nt: %v,%T\n", nt, nt)
+		asn1.Unmarshal(rawValue.Bytes, &nt)
+		fmt.Println("Asn1ParseFromRawValue():nt:", nt)
+
+		nt = nt.Elem()
+		fmt.Printf("Asn1ParseReflectFromRawValue()  new nt:%v,%T\n", nt, nt)
+		asn1.Unmarshal(rawValue.Bytes, nt)
+		fmt.Println("Asn1ParseFromRawValue():new nt", nt)
+	*/
+	//	cerParse, err := Asn1ParseReflectFromRawValue(&certificate.TBSCertificate.CerRawValue, (*CerParse)(nil))
+	//	fmt.Println("Asn1ParseReflectFromRawValue cerParse:", jsonutil.MarshallJsonIndent(cerParse), err)
 	/*
 		// ok
 		b = certificate.TBSCertificate.CerRawValue.Bytes
