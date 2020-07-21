@@ -114,7 +114,7 @@ Any array or slice     | SEQUENCE OF
 Any struct             | SEQUENCE
 */
 func main() {
-	file := `E:\Go\go-study\src\asncer1\0.cer`
+	file := `E:\Go\go-study\src\asncer3\3.cer`
 	b, err := fileutil.ReadFileToBytes(file)
 	if err != nil {
 		fmt.Println(file, err)
