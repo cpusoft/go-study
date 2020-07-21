@@ -28,9 +28,7 @@ type tbsCertificate struct {
 	Validity           validity
 	Subject            asn1.RawValue
 	PublicKey          publicKeyInfo
-	UniqueId           asn1.BitString `asn1:"optional,tag:1"`
-	SubjectUniqueId    asn1.BitString `asn1:"optional,tag:2"`
-	Extensions         []Extension    `asn1:"optional,explicit,tag:3"`
+	Extensions         []Extension `asn1:"optional,explicit,tag:3"`
 }
 type AlgorithmIdentifier struct {
 	Algorithm  asn1.ObjectIdentifier
@@ -169,6 +167,7 @@ func main() {
 	certificate := certificate{}
 	asn1.Unmarshal(b, &certificate)
 	fmt.Println("certificate:", jsonutil.MarshallJsonIndent(certificate))
+
 	/*
 		cerParseExt := CerParseExt{}
 		asn1.Unmarshal(certificate.TBSCertificate.CerRawValue.Bytes, &cerParseExt)
