@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "crypto/x509"
+	"errors"
 	"fmt"
 	"math/big"
 	"time"
@@ -51,48 +53,6 @@ type Extension struct {
 }
 
 /*
-type Certificate struct {
-	TBSCertificate TBSCertificate
-
-	SignatureAlgorithm AlgorithmIdentifier
-	SignatureValue     asn1.BitString
-}
-
-type TBSCertificate struct {
-	Version            int `asn1:"optional,explicit,default:0,tag:0"`
-	SerialNumber       asn1.RawValue
-	SignatureAlgorithm AlgorithmIdentifier
-	Issuer             RDNSequence
-	Validity           Validity
-	Subject            RDNSequence
-	PublicKey          PublicKeyInfo
-	UniqueId           asn1.BitString       `asn1:"optional,tag:1"`
-	SubjectUniqueId    asn1.BitString       `asn1:"optional,tag:2"`
-	Extensions         []OidAndBoolAndBytes `asn1:"optional,explicit,tag:3"`
-}
-
-type RDNSequence []RelativeDistinguishedNameSET
-
-type RelativeDistinguishedNameSET []AttributeTypeAndValue
-
-type AttributeTypeAndValue struct {
-	Type  asn1.ObjectIdentifier
-	Value interface{}
-}
-
-type Validity struct {
-	NotBefore time.Time `asn1:"generalized"`
-	NotAfter  time.Time `asn1:"generalized"`
-}
-
-type PublicKeyInfo struct {
-	Algorithm AlgorithmIdentifier
-	PublicKey asn1.BitString
-}
-
-type CerParseExt struct {
-	ObjectIdentifierAndBoolAndRawValues []ObjectIdentifierAndBoolAndRawValue
-}
 
 type CerParse struct {
 	SubjectKeyIdentifier   ObjectIdentifierAndRawValue
@@ -147,7 +107,106 @@ type IPAddress []byte
 
 
 */
-type ObjectIdentifierAndOctecString struct {
+func GetOctectString(value []byte) (string, error) {
+	tmp := make([]byte, 0)
+	_, err := asn1.Unmarshal(value, &tmp)
+	if err != nil {
+		return "", err
+	}
+	return convert.Bytes2String(tmp), nil
+}
+func GetOctectStringSequenceString(value []byte) (string, error) {
+	raws := make([]asn1.RawValue, 0)
+	_, err := asn1.Unmarshal(value, &raws)
+	if err != nil {
+		return "", err
+	}
+	if len(raws) > 0 {
+		return convert.Bytes2String(raws[0].Bytes), nil
+	} else {
+		return "", errors.New("it is no sequence of []byte")
+	}
+}
+
+func GetOctectStringSequenceBool(value []byte) (bool, error) {
+	bools := make([]bool, 0)
+	_, err := asn1.Unmarshal(value, &bools)
+	if err != nil {
+		return false, err
+	}
+	if len(bools) > 0 {
+		return bools[0], nil
+	} else {
+		return false, errors.New("it is no sequence of []bool")
+	}
+}
+func GetOctectStringBitString(value []byte) (asn1.BitString, error) {
+	bitString := asn1.BitString{}
+	_, err := asn1.Unmarshal(value, &bitString)
+	if err != nil {
+		return bitString, err
+	}
+	return bitString, nil
+
+}
+
+type SeqExtension struct {
+	Raw   asn1.RawContent
+	Oid   asn1.ObjectIdentifier
+	Value []byte `asn1:"implicit,tag:6"`
+	//Value string `asn1:"implicit,tag:6"`
+}
+
+func GetOctectStringSequenceOidString(value []byte) ([]SeqExtension, error) {
+
+	seqExtensions := make([]SeqExtension, 0)
+	_, err := asn1.Unmarshal(value, &seqExtensions)
+	fmt.Println(len(seqExtensions))
+	if err != nil {
+		return nil, err
+	}
+	return seqExtensions, nil
+
+}
+
+type SeqString0 struct {
+	Value []SeqString06 // `asn1:"implicit,tag:0"`
+}
+type SeqString06 struct {
+	Value SeqString6 `asn1:"implicit,tag:0"`
+}
+type SeqString6 struct {
+	Value asn1.RawValue `asn1:"implicit,tag:6"`
+}
+
+func GetOctectStringSeqSeqString(value []byte) (string, error) {
+
+	raws := make([]asn1.RawValue, 0)
+	_, err := asn1.Unmarshal(value, &raws)
+	fmt.Println(len(raws), err)
+	fmt.Println(convert.Bytes2String(raws[0].Bytes))
+
+	seqString0 := SeqString0{}
+	_, err := asn1.Unmarshal(value, &seqString0)
+
+	fmt.Println(seqString0)
+	if err != nil {
+		return "", err
+	}
+
+	cdp := make([]asn1.RawValue, 0)
+	asn1.Unmarshal(value, &cdp)
+	cdp1 := asn1.RawValue{}
+	asn1.Unmarshal(cdp[0].Bytes, &cdp1)
+	cdp2 := asn1.RawValue{}
+	asn1.Unmarshal(cdp1.Bytes, &cdp2)
+	fmt.Println(convert.Bytes2String(cdp2.Bytes), string(cdp2.Bytes))
+
+	cdp3 := make([]byte, 0)
+	asn1.Unmarshal(cdp2.Bytes, &cdp3)
+	fmt.Println("crldp:", string(cdp3))
+	return string(cdp3), nil
+
 }
 
 /*
@@ -162,6 +221,20 @@ asn1.Oid               | OBJECT INDETIFIER
 asn1.Null              | NULL
 Any array or slice     | SEQUENCE OF
 Any struct             | SEQUENCE
+
+x509
+const (
+	KeyUsageDigitalSignature KeyUsage = 1 << iota  //1 << 0 which is  0000 0001
+	KeyUsageContentCommitment                      //1 << 1 which is  0000 0010
+	KeyUsageKeyEncipherment                        //1 << 2 which is  0000 0100
+	KeyUsageDataEncipherment                       //1 << 3 which is  0000 1000
+	KeyUsageKeyAgreement                           //1 << 4 which is  0001 0000
+	KeyUsageCertSign                               //1 << 5 which is  0010 0000
+	KeyUsageCRLSign                                //1 << 6 which is  0100 0000
+	KeyUsageEncipherOnly                           //1 << 7 which is  1000 0000
+	KeyUsageDecipherOnly                           //1 <<8 which is 1 0000 0000
+)
+
 */
 func main() {
 	//file := `E:\Go\go-study\src\asncer1\0.cer`
@@ -177,11 +250,70 @@ func main() {
 	fmt.Println(len(certificate.TBSCertificate.Extensions))
 	for i := range certificate.TBSCertificate.Extensions {
 		extension := &certificate.TBSCertificate.Extensions[i]
+		fmt.Println(extension.Oid.String())
 		if extension.Oid.String() == "2.5.29.14" {
-			fmt.Println(extension.Oid.String())
-			fmt.Println(convert.Bytes2String(extension.Value))
-		}
+			// subjectKeyIdentifier
+			fmt.Println(GetOctectString(extension.Value))
+		} else if extension.Oid.String() == "2.5.29.35" {
+			// authorityKeyIdentifier
+			fmt.Println(GetOctectStringSequenceString(extension.Value))
+		} else if extension.Oid.String() == "2.5.29.19" {
+			// basicConstraints
+			fmt.Println(extension.Critical)
+			fmt.Println(GetOctectStringSequenceBool(extension.Value))
+		} else if extension.Oid.String() == "2.5.29.15" {
+			// keyUsage
+			fmt.Println(extension.Critical)
 
+			usageValue, err := GetOctectStringBitString(extension.Value)
+			fmt.Println(usageValue, err)
+
+			var tmp int
+			// usageValue: 0000011
+			// 从左边开始数，从0开始计数，即第5,6位为1, 则对应KeyUsageCertSign  KeyUsageCRLSign
+			for i := 0; i < 9; i++ {
+				//当为1时挪动，即看是第几个进行挪动
+				//fmt.Println(i, usageValue.At(i))
+				if usageValue.At(i) != 0 {
+					tmp |= 1 << uint(i)
+				}
+			}
+			// 先写死吧
+			usage := int(tmp)
+			usageStr := "Certificate Sign, CRL Sign"
+			fmt.Println(usage)
+			fmt.Println(usageStr)
+			/*
+				fmt.Println(x509.KeyUsageDigitalSignature)
+				fmt.Println(x509.KeyUsageContentCommitment)
+				fmt.Println(x509.KeyUsageKeyEncipherment)
+				fmt.Println(x509.KeyUsageDataEncipherment)
+				fmt.Println(x509.KeyUsageKeyAgreement)
+				fmt.Println(x509.KeyUsageCertSign)
+				fmt.Println(x509.KeyUsageCRLSign)
+				fmt.Println(x509.KeyUsageEncipherOnly)
+				fmt.Println(x509.KeyUsageDecipherOnly)
+			*/
+
+		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.1" {
+			// authorityInfoAccess
+			seqs, err := GetOctectStringSequenceOidString(extension.Value)
+			fmt.Println(len(seqs), err)
+			for i := range seqs {
+				fmt.Println(seqs[i].Oid, string(seqs[i].Value))
+			}
+		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.11" {
+			// subjectInfoAccess
+			seqs, err := GetOctectStringSequenceOidString(extension.Value)
+			fmt.Println(len(seqs), err)
+			for i := range seqs {
+				fmt.Println(seqs[i].Oid, string(seqs[i].Value))
+			}
+		} else if extension.Oid.String() == "2.5.29.31" {
+			// cRLDistributionPoints
+			seqs, err := GetOctectStringSeqSeqString(extension.Value)
+			fmt.Println(seqs, err)
+		}
 	}
 	/*
 		cerParseExt := CerParseExt{}
