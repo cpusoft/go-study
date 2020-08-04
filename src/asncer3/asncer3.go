@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"time"
 
-	_ "github.com/cpusoft/goutil/convert"
+	"github.com/cpusoft/goutil/convert"
 	"github.com/cpusoft/goutil/fileutil"
 	"github.com/cpusoft/goutil/jsonutil"
 
@@ -20,7 +20,7 @@ type certificate struct {
 }
 
 type tbsCertificate struct {
-	//Raw                asn1.RawContent
+	Raw                asn1.RawContent
 	Version            int `asn1:"optional,explicit,default:0,tag:0"`
 	SerialNumber       *big.Int
 	SignatureAlgorithm AlgorithmIdentifier
@@ -44,11 +44,13 @@ type publicKeyInfo struct {
 }
 
 type Extension struct {
-	Id       asn1.ObjectIdentifier
+	Raw      asn1.RawContent
+	Oid      asn1.ObjectIdentifier
 	Critical bool `asn1:"optional"`
 	Value    []byte
 }
 
+/*
 type Certificate struct {
 	TBSCertificate TBSCertificate
 
@@ -143,6 +145,11 @@ type IPAddresses struct {
 }
 type IPAddress []byte
 
+
+*/
+type ObjectIdentifierAndOctecString struct {
+}
+
 /*
 Go type                | ASN.1 universal tag
 -----------------------|--------------------
@@ -158,7 +165,7 @@ Any struct             | SEQUENCE
 */
 func main() {
 	//file := `E:\Go\go-study\src\asncer1\0.cer`
-	file := `E:\Go\go-study\src\asncer1\0.cer`
+	file := `E:\Go\go-study\src\asncer3\3.cer`
 	b, err := fileutil.ReadFileToBytes(file)
 	if err != nil {
 		fmt.Println(file, err)
@@ -167,7 +174,15 @@ func main() {
 	certificate := certificate{}
 	asn1.Unmarshal(b, &certificate)
 	fmt.Println("certificate:", jsonutil.MarshallJsonIndent(certificate))
+	fmt.Println(len(certificate.TBSCertificate.Extensions))
+	for i := range certificate.TBSCertificate.Extensions {
+		extension := &certificate.TBSCertificate.Extensions[i]
+		if extension.Oid.String() == "2.5.29.14" {
+			fmt.Println(extension.Oid.String())
+			fmt.Println(convert.Bytes2String(extension.Value))
+		}
 
+	}
 	/*
 		cerParseExt := CerParseExt{}
 		asn1.Unmarshal(certificate.TBSCertificate.CerRawValue.Bytes, &cerParseExt)
