@@ -169,44 +169,106 @@ func GetOctectStringSequenceOidString(value []byte) ([]SeqExtension, error) {
 
 }
 
-type SeqString0 struct {
-	Value []SeqString06 // `asn1:"implicit,tag:0"`
+// CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint
+//
+// DistributionPoint ::= SEQUENCE {
+//     distributionPoint       [0]     DistributionPointName OPTIONAL,
+//     reasons                 [1]     ReasonFlags OPTIONAL,
+//     cRLIssuer               [2]     GeneralNames OPTIONAL }
+//
+// DistributionPointName ::= CHOICE {
+//     fullName                [0]     GeneralNames,
+//     nameRelativeToCRLIssuer [1]     RelativeDistinguishedName }
+// RFC 5280, 4.2.1.14
+type distributionPoint struct {
+	DistributionPoint distributionPointName `asn1:"optional,tag:0"`
+	Reason            asn1.BitString        `asn1:"optional,tag:1"`
+	CRLIssuer         asn1.RawValue         `asn1:"optional,tag:2"`
 }
-type SeqString06 struct {
-	Value SeqString6 `asn1:"implicit,tag:0"`
+
+type distributionPointName struct {
+	FullName     []asn1.RawValue `asn1:"optional,tag:0"`
+	RelativeName asn1.RawValue   `asn1:"optional,tag:1"`
 }
-type SeqString6 struct {
-	Value asn1.RawValue `asn1:"implicit,tag:6"`
-}
 
-func GetOctectStringSeqSeqString(value []byte) (string, error) {
-
-	raws := make([]asn1.RawValue, 0)
-	_, err := asn1.Unmarshal(value, &raws)
-	fmt.Println(len(raws), err)
-	fmt.Println(convert.Bytes2String(raws[0].Bytes))
-
-	seqString0 := SeqString0{}
-	_, err := asn1.Unmarshal(value, &seqString0)
-
-	fmt.Println(seqString0)
+func GetCrldp(value []byte) ([]string, error) {
+	var cdp []distributionPoint
+	_, err := asn1.Unmarshal(value, &cdp)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	cdp := make([]asn1.RawValue, 0)
-	asn1.Unmarshal(value, &cdp)
-	cdp1 := asn1.RawValue{}
-	asn1.Unmarshal(cdp[0].Bytes, &cdp1)
-	cdp2 := asn1.RawValue{}
-	asn1.Unmarshal(cdp1.Bytes, &cdp2)
-	fmt.Println(convert.Bytes2String(cdp2.Bytes), string(cdp2.Bytes))
+	cls := make([]string, 0)
+	for _, dp := range cdp {
+		// Per RFC 5280, 4.2.1.13, one of distributionPoint or cRLIssuer may be empty.
+		if len(dp.DistributionPoint.FullName) == 0 {
+			continue
+		}
 
-	cdp3 := make([]byte, 0)
-	asn1.Unmarshal(cdp2.Bytes, &cdp3)
-	fmt.Println("crldp:", string(cdp3))
-	return string(cdp3), nil
+		for _, fullName := range dp.DistributionPoint.FullName {
+			if fullName.Tag == 6 {
+				cls = append(cls, string(fullName.Bytes))
+			}
+		}
+	}
+	return cls, nil
+}
 
+// RFC 5280 4.2.1.4
+type policy struct {
+	Policy asn1.ObjectIdentifier
+	// policyQualifiers omitted
+}
+
+func GetPolicies(value []byte) ([]string, error) {
+	policies := make([]policy, 0)
+	_, err := asn1.Unmarshal(value, &policies)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(len(policies))
+	tmp := make([]string, len(policies))
+	for i := range policies {
+		tmp[i] = policies[i].Policy.String()
+	}
+	return tmp, err
+}
+
+type IpBlock struct {
+	AddressFamily []byte
+	//	IPAddressRange []asn1.BitString `asn1:"optional`
+	//	IPMaxMin       []IPMaxMin       `asn1:"optional`
+	IPAddressRange []asn1.RawValue //[]IPMaxMin
+}
+type IPMaxMin struct {
+	IPMax asn1.BitString
+	IPMin asn1.BitString `asn1:"explicit,optional`
+}
+
+func GetIpBlocks(value []byte) (ip IpBlock, err error) {
+	ipBlocks := make([]IpBlock, 0)
+	_, err = asn1.Unmarshal(value, &ipBlocks)
+	fmt.Println("ips:", len(ipBlocks))
+	for i := range ipBlocks {
+		fmt.Println("ips:", i, "  AddressFamily:", convert.Bytes2Uint64(ipBlocks[i].AddressFamily))
+		for j := range ipBlocks[i].IPAddressRange {
+			//fmt.Println(convert.PrintBytes(ipBlocks[i].IPAddressRange[j].Bytes, 8))
+
+			ipAddress := asn1.BitString{}
+			_, err = asn1.Unmarshal(ipBlocks[i].IPAddressRange[j].FullBytes, &ipAddress)
+			fmt.Println(convert.PrintBytes(ipAddress.Bytes, 8), err)
+
+			ipAddresses := make([]asn1.BitString, 0)
+			_, err = asn1.Unmarshal(ipBlocks[i].IPAddressRange[j].FullBytes, &ipAddresses)
+			fmt.Println(len(ipAddresses), err)
+			for x := range ipAddresses {
+				fmt.Println(convert.PrintBytes(ipAddresses[x].Bytes, 8))
+			}
+
+		}
+	}
+
+	return ip, nil
 }
 
 /*
@@ -237,8 +299,10 @@ const (
 
 */
 func main() {
-	//file := `E:\Go\go-study\src\asncer1\0.cer`
-	file := `E:\Go\go-study\src\asncer3\3.cer`
+	var file string
+	file = `E:\Go\go-study\src\asncer1\0.cer`
+	file = `E:\Go\go-study\src\asncer3\3.cer`
+	file = `E:\Go\go-study\src\asncer3\3-.cer`
 	b, err := fileutil.ReadFileToBytes(file)
 	if err != nil {
 		fmt.Println(file, err)
@@ -311,7 +375,15 @@ func main() {
 			}
 		} else if extension.Oid.String() == "2.5.29.31" {
 			// cRLDistributionPoints
-			seqs, err := GetOctectStringSeqSeqString(extension.Value)
+			seqs, err := GetCrldp(extension.Value)
+			fmt.Println(seqs, err)
+		} else if extension.Oid.String() == "2.5.29.32" {
+			// cRLDistributionPoints
+			seqs, err := GetPolicies(extension.Value)
+			fmt.Println(seqs, err)
+		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.7" {
+			// cRLDistributionPoints
+			seqs, err := GetIpBlocks(extension.Value)
 			fmt.Println(seqs, err)
 		}
 	}
