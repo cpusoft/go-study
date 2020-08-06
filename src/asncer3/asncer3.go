@@ -240,29 +240,128 @@ type IpBlock struct {
 	//	IPMaxMin       []IPMaxMin       `asn1:"optional`
 	IPAddressRange []asn1.RawValue //[]IPMaxMin
 }
+
+type IpBlock2 struct {
+	AddressFamily []byte
+	IPMaxMin      [][]asn1.BitString `asn1:"tag:16"`
+}
 type IPMaxMin struct {
-	IPMax asn1.BitString
-	IPMin asn1.BitString `asn1:"explicit,optional`
+	Raw asn1.RawContent
+	//IPAddress      asn1.RawValue   `asn1:"optional,tag:3"`
+	//IPAddressRange []asn1.RawValue `asn1:"optional,tag:16"`
 }
 
+// ipFamily: ipv4:1, ipv6:2
+// ipAddressType: min, max, ipPrefix
+func decodeAddressPrefix(ipFamily int, addressShouldLenByte []byte, unusedByte []byte, value []byte, ipAddressType string) (ipAddress string, err error) {
+	addressShouldLen := int(convert.Bytes2Uint64(addressShouldLenByte))
+	unusedBitLen := int(convert.Bytes2Uint64(unusedByte))
+	fmt.Println("ipFamily:", ipFamily, "   addressShouldLenByte:", addressShouldLenByte, "  unusedByte:", unusedByte,
+		"   addressShouldLen:", addressShouldLen, "   unusedBitLen:", unusedBitLen)
+
+	address := value
+
+	if ipFamily == 1 {
+		// ipv4 ipaddress prefx
+		prefix := 8*(addressShouldLen-1) - unusedBitLen
+		fmt.Println("prefix := 8*(addressShouldLen-1) - unusedBitLen:  %d := 8 *(%d-1)-  %d \r\n",
+			prefix, addressShouldLen, unusedBitLen)
+
+		if ipAddressType == "ipPrefix" {
+			ipv4Address += "/" + fmt.Sprintf("%d", prefix)
+		} else if ipAddressType == "min" {
+			var leastByte uint16
+		} else if ipAddressType == "max" {
+
+		}
+
+		ipv4Address := ""
+		for i := 0; i < len(address); i++ {
+			ipv4Address += fmt.Sprintf("%d", address[i])
+			if i < len(address)-1 {
+				ipv4Address += "."
+			}
+		}
+
+		ipAddress = ipv4Address
+		fmt.Println("ipAddress:%s", ipAddress)
+
+	} else if ipFamily == 2 {
+		// ipv6 ipaddress prefx
+		prefix := 8*(addressShouldLen-1) - unusedBitLen
+		fmt.Println("prefix :=  8*(addressShouldLen-1) - unusedBitLen:  %d := 8 *(%d-1)-  %d \r\n",
+			prefix, addressShouldLen, unusedBitLen)
+
+		//printBytes("address:", address)
+
+		ipv6Address := ""
+		for i := 0; i < len(address); i++ {
+			ipv6Address += fmt.Sprintf("%02x", address[i])
+			if i%2 == 1 && i < len(address)-1 {
+				ipv6Address += ":"
+			}
+		}
+		//Complement digit
+		if len(address)%2 == 1 {
+			ipv6Address += "00"
+		}
+		if unusedBitLen > 0 {
+			ipv6Address += "/" + fmt.Sprintf("%d", prefix)
+		}
+		ipAddress = ipv6Address
+		fmt.Println("ipAddress:%s", ipAddress)
+
+	}
+
+	return
+}
 func GetIpBlocks(value []byte) (ip IpBlock, err error) {
+	/*
+		ipBlocks2 := make([]IpBlock2, 0)
+		_, err = asn1.Unmarshal(value, &ipBlocks2)
+		fmt.Println("ips2:", len(ipBlocks2), err)
+		for i := range ipBlocks2 {
+			fmt.Println("ips2:", i, "  AddressFamily:", convert.Bytes2Uint64(ipBlocks2[i].AddressFamily))
+			fmt.Println(len(ipBlocks2[i].IPMaxMin))
+
+		}
+
+		fmt.Println("``````````````````````````````")
+	*/
 	ipBlocks := make([]IpBlock, 0)
 	_, err = asn1.Unmarshal(value, &ipBlocks)
 	fmt.Println("ips:", len(ipBlocks))
 	for i := range ipBlocks {
-		fmt.Println("ips:", i, "  AddressFamily:", convert.Bytes2Uint64(ipBlocks[i].AddressFamily))
+		ipFamily := int(convert.Bytes2Uint64(ipBlocks[i].AddressFamily))
+		fmt.Println("ips:", i, "  AddressFamily:", ipFamily)
 		for j := range ipBlocks[i].IPAddressRange {
 			//fmt.Println(convert.PrintBytes(ipBlocks[i].IPAddressRange[j].Bytes, 8))
 
 			ipAddress := asn1.BitString{}
 			_, err = asn1.Unmarshal(ipBlocks[i].IPAddressRange[j].FullBytes, &ipAddress)
-			fmt.Println(convert.PrintBytes(ipAddress.Bytes, 8), err)
+			if len(ipAddress.Bytes) > 0 {
+				fmt.Println("fullBytes:", convert.PrintBytes(ipBlocks[i].IPAddressRange[j].FullBytes, 8))
+				fmt.Println("Bytes:", convert.PrintBytes(ipAddress.Bytes, 8))
+				unused := ipBlocks[i].IPAddressRange[j].FullBytes[2:3]
+				addressShouldLength := ipBlocks[i].IPAddressRange[j].FullBytes[1:2]
+				addressPrefix, err := decodeAddressPrefix(ipFamily, addressShouldLength, unused, ipAddress.Bytes)
+				fmt.Println("ipFamily:", ipFamily, addressPrefix, err)
+			}
 
-			ipAddresses := make([]asn1.BitString, 0)
+			ipAddresses := make([]asn1.RawValue, 0)
 			_, err = asn1.Unmarshal(ipBlocks[i].IPAddressRange[j].FullBytes, &ipAddresses)
-			fmt.Println(len(ipAddresses), err)
-			for x := range ipAddresses {
-				fmt.Println(convert.PrintBytes(ipAddresses[x].Bytes, 8))
+			if len(ipAddresses) > 0 {
+				fmt.Println(len(ipAddresses))
+				for x := range ipAddresses {
+					fmt.Println("min max:", convert.PrintBytes(ipAddresses[x].FullBytes, 8))
+					unused := ipAddresses[x].FullBytes[2:3]
+					addressShouldLength := ipAddresses[x].FullBytes[1:2]
+					ipAddress := asn1.BitString{}
+					_, err = asn1.Unmarshal(ipAddresses[x].FullBytes, &ipAddress)
+
+					addressPrefix, err := decodeAddressPrefix(ipFamily, addressShouldLength, unused, ipAddress.Bytes)
+					fmt.Println("min max: ipFamily:", ipFamily, addressPrefix, err)
+				}
 			}
 
 		}
