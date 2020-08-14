@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "crypto/x509"
+	"encoding/asn1"
 	"errors"
 	"fmt"
 	"math/big"
@@ -11,8 +12,6 @@ import (
 	"github.com/cpusoft/goutil/convert"
 	"github.com/cpusoft/goutil/fileutil"
 	"github.com/cpusoft/goutil/jsonutil"
-
-	"asn1"
 )
 
 type certificate struct {
@@ -53,61 +52,6 @@ type Extension struct {
 	Value    []byte
 }
 
-/*
-
-type CerParse struct {
-	SubjectKeyIdentifier   ObjectIdentifierAndRawValue
-	AuthorityKeyIdentifier ObjectIdentifierAndRawValue
-	KeyUsage               ObjectIdentifierAndBoolAndRawValue
-	BasicConstraints       ObjectIdentifierAndBoolAndRawValue
-	CRLDistributionPoints  ObjectIdentifierAndRawValue
-	AuthorityInfoAccess    ObjectIdentifierAndRawValue
-	CertificatePolicies    ObjectIdentifierAndBoolAndRawValue
-	SubjectInfoAccess      ObjectIdentifierAndRawValue
-	IpAddrBlocks           ObjectIdentifierAndBoolAndRawValue
-}
-
-type ObjectIdentifierAndRawValue struct {
-	Type     asn1.ObjectIdentifier
-	RawValue asn1.RawValue
-}
-type ObjectIdentifierAndBoolAndRawValue struct {
-	Type     asn1.ObjectIdentifier
-	Bool     bool `asn:"optional"`
-	RawValue asn1.RawValue
-}
-type OidAndBoolAndBytes struct {
-	Oid   asn1.ObjectIdentifier
-	Bool  bool `asn:"optional"`
-	Value []byte
-}
-type RawValue struct {
-	RawValue asn1.RawValue
-}
-type IPAddrBlocks []IPAddressFamily
-
-type IPAddressFamily struct {
-	IPAddressChoices []IPAddressChoices
-}
-
-type IPAddressChoices struct {
-	AddressFamily     asn1.RawValue
-	AddressesOrRanges []IPAddressOrRange
-}
-
-type IPAddressOrRange struct {
-	AddressPrefix IPAddress     `asn:"optional"`
-	IPAddresses   []IPAddresses `asn:"optional"`
-}
-
-type IPAddresses struct {
-	Min IPAddress
-	Max IPAddress
-}
-type IPAddress []byte
-
-
-*/
 func GetOctectString(value []byte) (string, error) {
 	tmp := make([]byte, 0)
 	_, err := asn1.Unmarshal(value, &tmp)
@@ -462,9 +406,9 @@ func GetAsns(value []byte) {
 
 	asnOrAsnRanges := make([]asn1.RawValue, 0)
 	_, err = asn1.Unmarshal(asn.AsnOrAsnRange.Bytes, &asnOrAsnRanges)
-	fmt.Println("asnOrAsnRanges:", asnOrAsnRanges, err)
+	//fmt.Println("asnOrAsnRanges:", asnOrAsnRanges, err)
 	for i := range asnOrAsnRanges {
-		fmt.Println("asn, i:", i, asnOrAsnRanges[i].Class, asnOrAsnRanges[i].Tag, asnOrAsnRanges[i].IsCompound, convert.PrintBytes(asnOrAsnRanges[i].Bytes, 8))
+		//fmt.Println("asn, i:", i, asnOrAsnRanges[i].Class, asnOrAsnRanges[i].Tag, asnOrAsnRanges[i].IsCompound, convert.PrintBytes(asnOrAsnRanges[i].Bytes, 8))
 		if !asnOrAsnRanges[i].IsCompound {
 			asn := convert.Bytes2Uint64(asnOrAsnRanges[i].Bytes)
 			fmt.Println("asn:", asn)
@@ -472,7 +416,7 @@ func GetAsns(value []byte) {
 		} else {
 			asns := make([]asn1.RawValue, 0)
 			_, err = asn1.Unmarshal(asnOrAsnRanges[i].FullBytes, &asns)
-			fmt.Println("len(asns):", len(asns), err)
+			//	fmt.Println("len(asns):", len(asns), err)
 			for j := range asns {
 				asn := convert.Bytes2Uint64(asns[j].Bytes)
 				fmt.Println("asns:", asn)
