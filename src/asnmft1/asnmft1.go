@@ -90,20 +90,21 @@ func main() {
 		fmt.Println(extension.Oid.String())
 		if extension.Oid.String() == "2.5.29.14" {
 			// subjectKeyIdentifier
+			fmt.Print("ski:")
 			fmt.Println(GetOctectString(extension.Value))
 		} else if extension.Oid.String() == "2.5.29.35" {
 			// authorityKeyIdentifier
+			fmt.Print("aki:")
 			fmt.Println(GetOctectStringSequenceString(extension.Value))
 		} else if extension.Oid.String() == "2.5.29.19" {
 			// basicConstraints
-			fmt.Println(extension.Critical)
+
+			fmt.Print("basic constraints:", extension.Critical)
 			fmt.Println(GetOctectStringSequenceBool(extension.Value))
 		} else if extension.Oid.String() == "2.5.29.15" {
 			// keyUsage
-			fmt.Println(extension.Critical)
-
 			usageValue, err := GetOctectStringBitString(extension.Value)
-			fmt.Println(usageValue, err)
+			fmt.Println("keyUsage:", extension.Critical, usageValue, err)
 
 			var tmp int
 			// usageValue: 0000011
@@ -135,25 +136,25 @@ func main() {
 		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.1" {
 			// authorityInfoAccess
 			seqs, err := GetOctectStringSequenceOidString(extension.Value)
-			fmt.Println(len(seqs), err)
+			fmt.Println("aia:", err)
 			for i := range seqs {
 				fmt.Println(seqs[i].Oid, string(seqs[i].Value))
 			}
 		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.11" {
 			// subjectInfoAccess
 			seqs, err := GetOctectStringSequenceOidString(extension.Value)
-			fmt.Println(len(seqs), err)
+			fmt.Println("sia:", err)
 			for i := range seqs {
 				fmt.Println(seqs[i].Oid, string(seqs[i].Value))
 			}
 		} else if extension.Oid.String() == "2.5.29.31" {
 			// cRLDistributionPoints
 			seqs, err := GetCrldp(extension.Value)
-			fmt.Println(seqs, err)
+			fmt.Println("crl:", seqs, err)
 		} else if extension.Oid.String() == "2.5.29.32" {
 			// Policies
 			seqs, err := GetPolicies(extension.Value)
-			fmt.Println(seqs, err)
+			fmt.Println("plicies:", seqs, err)
 		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.7" {
 			// IpBlock
 			//seqs, err := GetIpBlocks(extension.Value)
