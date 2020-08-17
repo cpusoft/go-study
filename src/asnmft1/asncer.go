@@ -10,6 +10,7 @@ import (
 
 	"github.com/cpusoft/goutil/bitutil"
 	"github.com/cpusoft/goutil/convert"
+	"github.com/cpusoft/goutil/jsonutil"
 )
 
 type Certificate struct {
@@ -158,23 +159,35 @@ func GetCrldp(value []byte) ([]string, error) {
 }
 
 // RFC 5280 4.2.1.4
-type policy struct {
-	Policy asn1.ObjectIdentifier
-	// policyQualifiers omitted
+type Policy struct {
+	Oid              asn1.ObjectIdentifier
+	PolicyQualifiers []PolicyQualifier
+	//PolicyQualifiers []asn1.RawValue
+}
+type PolicyQualifier struct {
+	Oid asn1.ObjectIdentifier
+	Url string `asn1:"ia5"`
 }
 
-func GetPolicies(value []byte) ([]string, error) {
-	policies := make([]policy, 0)
-	_, err := asn1.Unmarshal(value, &policies)
+func GetPolicies(value []byte) (string, error) {
+	//fmt.Println(convert.PrintBytes(value, 8))
+	tmp := asn1.RawValue{}
+	_, err := asn1.Unmarshal(value, &tmp)
+	//fmt.Println(convert.PrintBytes(tmp.Bytes, 8))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	fmt.Println(len(policies))
-	tmp := make([]string, len(policies))
-	for i := range policies {
-		tmp[i] = policies[i].Policy.String()
+
+	policy := Policy{}
+	_, err = asn1.Unmarshal(tmp.Bytes, &policy)
+	if err != nil {
+		return "", err
 	}
-	return tmp, err
+	fmt.Println(jsonutil.MarshallJsonIndent(policy))
+	if len(policy.PolicyQualifiers) > 0 {
+		return policy.PolicyQualifiers[0].Url, nil
+	}
+	return "", nil
 }
 
 type IpBlock struct {
