@@ -81,6 +81,7 @@ func main() {
 	_, err = asn1.Unmarshal(raw1.Bytes, &manifestParse)
 	fmt.Println("seqs[2]:mft:", jsonutil.MarshallJsonIndent(manifestParse))
 
+	// ee cer
 	cer := Certificate{}
 	asn1.Unmarshal(certificate.Seqs[3].Bytes, &cer)
 	fmt.Println("certificate:", jsonutil.MarshallJsonIndent(cer))
@@ -165,4 +166,10 @@ func main() {
 
 		}
 	}
+
+	sd, sign, err := GetSignedData(certificate.Seqs[4].Bytes)
+	fmt.Println("sd:", sd.Version, convert.Bytes2String(sd.Tmp1), err)
+	fmt.Println(jsonutil.MarshallJsonIndent(sd.SignSha2561), jsonutil.MarshallJsonIndent(sign))
+	fmt.Println(jsonutil.MarshallJsonIndent(sd.SignSha2562), convert.Bytes2String(sd.Tmp2))
+
 }
