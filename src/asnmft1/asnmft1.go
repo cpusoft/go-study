@@ -168,7 +168,7 @@ func main() {
 	}
 
 	sd, sign, err := GetSignedData(certificate.Seqs[4].Bytes)
-	fmt.Println("sd:", sd.Version, convert.Bytes2String(sd.Tmp1), err)
+	fmt.Println("sign")
 	fmt.Println(jsonutil.MarshallJsonIndent(sd.SignSha2561), jsonutil.MarshallJsonIndent(sign))
 	fmt.Println(jsonutil.MarshallJsonIndent(sd.SignSha2562), convert.Bytes2String(sd.Tmp2))
 
