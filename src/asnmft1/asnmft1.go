@@ -15,18 +15,6 @@ type CertificateList struct {
 	Seqs []asn1.RawValue `asn1:"optional,explicit,default:0,tag:0""`
 }
 
-type MftCertificateList struct {
-	Oid   asn1.ObjectIdentifier
-	Value asn1.RawValue `asn1:"explicit,tag:0"`
-	//Seqs ManifestParse1 `asn1:"explicit,tag:0"`
-}
-type ManifestParse1 struct {
-	ManifestParse2 []asn1.RawValue //ManifestParse2
-	//ManifestParse []ManifestParse
-}
-type ManifestParse2 struct {
-	ManifestParse asn1.RawValue
-}
 type ManifestParse struct {
 	ManifestNumber asn1.RawValue         `json:"manifestNumber"`
 	ThisUpdate     time.Time             `asn1:"generalized" json:"thisUpdate"`
