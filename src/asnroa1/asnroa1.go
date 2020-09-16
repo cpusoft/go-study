@@ -37,6 +37,8 @@ func main() {
 	var file string
 	file = `E:\Go\go-study\src\asnroa1\1.roa`
 	file = `E:\Go\go-study\src\asnroa1\asn0.roa`
+	file = `E:\Go\go-study\src\asnroa1\ok.roa`
+	file = `E:\Go\go-study\src\asnroa1\fail1.roa`
 	b, err := fileutil.ReadFileToBytes(file)
 	if err != nil {
 		fmt.Println(file, err)
