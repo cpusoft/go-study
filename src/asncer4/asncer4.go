@@ -455,11 +455,7 @@ const (
 */
 func main() {
 	var file string
-	file = `E:\Go\go-study\src\asncer3\0.cer`
-	file = `E:\Go\go-study\src\asncer3\3.cer`
-	file = `E:\Go\go-study\src\asncer3\3-.cer`
-	file = `E:\Go\go-study\src\asncer3\4.cer`
-	file = `E:\Go\go-study\src\asncer3\roa_trim883921807.cer`
+	file = `E:\Go\go-study\src\asncer4\mI3HSdubGlsq0Jmmxx-yW5GzhgQ.ee.cer`
 	b, err := fileutil.ReadFileToBytes(file)
 	if err != nil {
 		fmt.Println(file, err)
