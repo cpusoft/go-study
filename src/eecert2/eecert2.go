@@ -15,10 +15,10 @@ func main() {
 		newFile := path + "db42e932-926a-42bd-afdb-63320fa7ec40.ee.cer"
 	*/
 	path := `G:\Download\cert\`
-	oldFile := path + `C1A58E56F2D411EAAA2A3738C4F9AE02.roa`
-	eeStart := 420
-	eeEnd := 1837
-	newFile := path + "C1A58E56F2D411EAAA2A3738C4F9AE02.ee.cer"
+	oldFile := path + `c922abf8-95b1-37f0-90cd-bdb125467e8e.roa`
+	eeStart := 93
+	eeEnd := 1699
+	newFile := path + "c922abf8-95b1-37f0-90cd-bdb125467e8e.ee.cer"
 
 	oldFileByte, err := ioutil.ReadFile(oldFile)
 	if err != nil {
