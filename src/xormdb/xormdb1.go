@@ -67,7 +67,7 @@ func main() {
 		fmt.Println(len(cerFileHashs))
 	*/
 	/*
-		// get current rsyncState, the set new value
+		// get current , the set new value
 		var id int64
 		_, err = session.Table("lab_rpki_sync_log").Select("max(id)").Get(&id)
 		if err != nil {
