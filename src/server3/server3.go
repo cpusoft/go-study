@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	_ "golang.org/x/net/websocket"
 	"net"
-	. "netutil"
 	"strconv"
 	"strings"
 	"time"
+
+	_ "golang.org/x/net/websocket"
 )
 
 type MyNetUtil struct {

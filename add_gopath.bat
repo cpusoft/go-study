@@ -1,1 +1,0 @@
-set GOPATH="%GOPATH%";E:\Go\go-study

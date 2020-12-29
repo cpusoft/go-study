@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/asn1"
 	"fmt"
 	"reflect"
 	"time"
@@ -8,8 +9,6 @@ import (
 	"github.com/cpusoft/goutil/convert"
 	"github.com/cpusoft/goutil/fileutil"
 	"github.com/cpusoft/goutil/jsonutil"
-
-	"asn1"
 )
 
 type Certificate struct {
