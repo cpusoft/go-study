@@ -5,6 +5,12 @@ import (
 )
 
 func main() {
+
+	var ip int = 9
+	fmt.Printf("%08b\n", ip)
+
+	ip=
+	fmt.Printf("%08b%08b\n", ip)
 	// max
 	var a uint8 = 1
 	var b byte
