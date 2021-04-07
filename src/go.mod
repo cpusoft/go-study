@@ -11,7 +11,7 @@ require (
 	github.com/astaxie/beego v1.12.3
 	github.com/chemikadze/asn1go v0.0.0-20180813044444-884e30ce6a93
 	github.com/cpusoft/go-json-rest v4.0.0+incompatible
-	github.com/cpusoft/goutil v1.0.13
+	github.com/cpusoft/goutil v1.0.21
 	github.com/derekparker/trie v0.0.0-20200317170641-1fdf38b7b0e9
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/gin-contrib/sessions v0.0.3
