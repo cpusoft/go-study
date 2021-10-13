@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	belogs "github.com/astaxie/beego/logs"
+	belogs "github.com/beego/beego/v2/core/logs"
 	_ "github.com/cpusoft/goutil/conf"
 	_ "github.com/cpusoft/goutil/logs"
 	osutil "github.com/cpusoft/goutil/osutil"

@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/astaxie/beego/config"
+	"github.com/beego/beego/v2/core/config"
 	"github.com/cpusoft/goutil/osutil"
 )
 

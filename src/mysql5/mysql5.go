@@ -14,10 +14,13 @@ var DB *sql.DB
 func main() {
 	var err error
 	DB, err = sql.Open("mysql", "rpstir2:Rpstir-123@tcp(127.0.0.1:13306)/rpstir2")
+	//DB, err = sql.Open("mysql", "rpstir2:Rpstir-123@tcp(172.17.0.2:3306)/rpstir2")
 	if err != nil {
 		panic(err)
 	}
 	defer DB.Close()
+	DB.SetMaxOpenConns(3)
+	DB.SetMaxIdleConns(0)
 
 	err = DB.Ping()
 	if err != nil {

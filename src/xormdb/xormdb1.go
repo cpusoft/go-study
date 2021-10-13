@@ -4,7 +4,7 @@ import (
 	_ "database/sql"
 	"fmt"
 
-	belogs "github.com/astaxie/beego/logs"
+	belogs "github.com/beego/beego/v2/core/logs"
 
 	"github.com/cpusoft/goutil/jsonutil"
 	_ "github.com/go-sql-driver/mysql"
@@ -349,10 +349,10 @@ func main() {
 		//cerId / mftId / roaId / crlId
 		CertId uint64 `json:"certId"`
 	}
-	labRpkiSyncLogId := 8
+	//labRpkiSyncLogId := 8
 	dbSyncLogFileModels := make([]SyncLogFileModel, 0)
 	err = engine.Table("lab_rpki_sync_log_file").Select("id,syncLogId,filePath,fileName, fileType, syncType").
-		Where("state->'$.updateCertTable'=?", "notYet").And("syncLogId=?", labRpkiSyncLogId).
+		Where("state->'$.updateCertTable'=?", "notYet"). //And("syncLogId=?", labRpkiSyncLogId).
 		And("fileType=?", "mft").
 		OrderBy("id").Find(&dbSyncLogFileModels)
 	if err != nil {

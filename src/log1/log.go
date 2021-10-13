@@ -3,14 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
-	belogs "github.com/astaxie/beego/logs"
-	glog "github.com/golang/glog"
 	"log"
+
+	belogs "github.com/beego/beego/v2/core/logs"
+	glog "github.com/golang/glog"
+
 	//	"log/syslog"
 	"encoding/json"
-	config "github.com/astaxie/beego/config"
 	"os"
 	"path/filepath"
+
+	config "github.com/beego/beego/v2/core/config"
 )
 
 func main() {

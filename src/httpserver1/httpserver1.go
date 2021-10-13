@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	belogs "github.com/astaxie/beego/logs"
+	belogs "github.com/beego/beego/v2/core/logs"
 	"github.com/cpusoft/go-json-rest/rest"
 	"github.com/cpusoft/goutil/httpserver"
 )

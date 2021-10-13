@@ -1,11 +1,9 @@
 package main
 
-import (
 //	"os"
 //	"syscall"
 
-//	belogs "github.com/astaxie/beego/logs"
-)
+//	belogs "github.com/beego/beego/v2/core/logs"
 
 //var globalFile *os.File
 

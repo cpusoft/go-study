@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cpusoft/go-json-rest/rest"
 	"net"
 	"net/http"
 	"time"
 
-	belogs "github.com/astaxie/beego/logs"
+	"github.com/cpusoft/go-json-rest/rest"
+
+	belogs "github.com/beego/beego/v2/core/logs"
 )
 
 func Lookup(w rest.ResponseWriter, req *rest.Request) {

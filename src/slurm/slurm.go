@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	config "github.com/astaxie/beego/config"
 	"io/ioutil"
 	"strconv"
 	"strings"
+
+	config "github.com/beego/beego/v2/core/config"
 )
 
 //slurm head , 这里特殊处理，相当于每组只会有一个
