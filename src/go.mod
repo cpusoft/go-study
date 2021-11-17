@@ -16,7 +16,7 @@ require (
 	github.com/denisenkom/go-mssqldb v0.9.0 // indirect
 	github.com/derekparker/trie v0.0.0-20200317170641-1fdf38b7b0e9
 	github.com/gin-contrib/sessions v0.0.3
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.0
 	github.com/go-ini/ini v1.62.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/go-xorm/core v0.6.2
