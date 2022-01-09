@@ -2,21 +2,22 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/cpusoft/goutil/base64util"
 	"github.com/cpusoft/goutil/convert"
 )
 
 func main() {
-	s := `MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxsAqAhWIO+ON2Ef9oRDM
-pKxv+AfmSLIdLWJtjrvUyDxJPBjgR+kVrOHUeTaujygFUp49tuN5H2C1rUuQavTH
-vve6xNF5fU3OkTcqEzMOZy+ctkbde2SRMVdvbO22+TH9gNhKDc9l7Vu01qU4LeJH
-k3X0f5uu5346YrGAOSv6AaYBXVgXxa0s9ZvgqFpim50pReQe/WI3QwFKNgpPzfQL
-6Y7fDPYdYaVOXPXSKtx7P4s4KLA/ZWmRL/bobw/i2fFviAGhDrjqqqum+/9w1hEl
-L/vqihVnV18saKTnLvkItA/Bf5i11Yhw2K7qv573YWxyuqCknO/iYLTR1DToBZcZ
-UQIDAQAB`
+	s := `MIGcMBShEjAQMA4EAQIwCQMHACABBnwgjDALBglghkgBZQMEAgEwdzA0FhBiNDJfaXB2Nl9sb2EucG5nBCCVFt1kvnwXJbn8oRcSDljo2EKlIGhzOZs93/yRxLas8DA/FhtiNDJfc2VydmljZV9kZWZpbml0aW9uLmpzb24EIArhOUciAFzZL0xqoCTV1rPi5n1inxFyDZR4pjOhF6HH`
 
 	b, err := base64util.DecodeBase64(s)
 	s = convert.PrintBytes(b, 8)
+	fmt.Println(b, err)
+	fmt.Println(s)
+
+	s = `RHVwbGljYXRlIGFubm91bmNlbWVudCByZWNlaXZlZA==`
+	b, err = base64util.DecodeBase64(s)
+	s = string(b)
 	fmt.Println(b, err)
 	fmt.Println(s)
 
