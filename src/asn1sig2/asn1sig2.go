@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/cpusoft/goutil/asn1util/asn1parse"
+	"github.com/cpusoft/goutil/asn1util/asn1node"
 	"github.com/cpusoft/goutil/jsonutil"
 )
 
@@ -13,7 +13,7 @@ type NameAndHash struct {
 
 func main() {
 	sigStr := `30819C3014A1123010300E04010230090307002001067C208C300B06096086480165030402013077303416106234325F697076365F6C6F612E706E6704209516DD64BE7C1725B9FCA117120E58E8D842A5206873399B3DDFFC91C4B6ACF0303F161B6234325F736572766963655F646566696E6974696F6E2E6A736F6E04200AE1394722005CD92F4C6AA024D5D6B3E2E67D629F11720D9478A633A117A1C7`
-	n, err := asn1parse.ParseHex(sigStr)
+	n, err := asn1node.ParseHex(sigStr)
 	fmt.Println(err)
 	s := jsonutil.MarshalJson(n)
 	fmt.Println("Json:\n" + s)
