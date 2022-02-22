@@ -272,19 +272,26 @@ func DecodeIPMinMax(addrfamily []byte, addr asn1.BitString, max bool) (net.IP, e
 		if addrfamily[1] == 2 {
 			size = 16
 		}
+		fmt.Println("size:", size)
 		ipaddr := make([]byte, size)
 		copy(ipaddr, addr.Bytes)
+		fmt.Println("ipaddr:", convert.PrintBytesOneLine(ipaddr))
+
 		if max {
 			for i := addr.BitLength/8 + 1; i < len(ipaddr); i++ {
 				ipaddr[i] = 0xFF
 			}
+			fmt.Println("ipaddr i max:", convert.PrintBytesOneLine(ipaddr))
+
 			if addr.BitLength/8 > len(ipaddr) {
 				return nil, errors.New(fmt.Sprintf("Error converting ip address %v %v", addr.BitLength, len(ipaddr)))
 			}
 			if addr.BitLength/8 < len(ipaddr) {
 				ipaddr[addr.BitLength/8] |= 0xFF >> uint(8-(8*(addr.BitLength/8+1)-addr.BitLength))
+				fmt.Println("ipaddr <len() max:", convert.PrintBytesOneLine(ipaddr))
 			}
 		}
+		fmt.Println("ipaddr end:", convert.PrintBytesOneLine(ipaddr))
 		return net.IP(ipaddr), nil
 	} else {
 		return nil, errors.New("Not an IP address")
@@ -302,6 +309,7 @@ func DecodeIPAddressBlock(data []byte) ([]IPCertificateInformation, error) {
 
 	_, err := asn1.Unmarshal(data, &blk)
 	if err != nil {
+		fmt.Println("Unmarshal data:", err)
 		return ipaddresses, err
 	}
 	fmt.Println("blk:", len(blk), jsonutil.MarshalJson(blk))
@@ -338,8 +346,12 @@ func DecodeIPAddressBlock(data []byte) ([]IPCertificateInformation, error) {
 					if err != nil {
 						return ipaddresses, err
 					}
-					a, _ := DecodeIPNet(2, addrRange)
-					//a, _ := DecodeIP(ipaddrfam.AddressFamily, addrRange)
+					//a, _ := DecodeIPNet(2, addrRange)
+					addrRange1 := asn1.BitString{
+						Bytes:     addrRange.Bytes,
+						BitLength: addrRange.BitLength,
+					}
+					a, _ := DecodeIP(ipaddrfam.AddressFamily, addrRange1)
 					ipaddresses = append(ipaddresses, &IPNet{
 						IPNet: a,
 					})
@@ -352,6 +364,7 @@ func DecodeIPAddressBlock(data []byte) ([]IPCertificateInformation, error) {
 
 					var addrRange AddrRange
 					_, err := asn1.Unmarshal(ipaddrrange.FullBytes, &addrRange)
+					//addrRange, err := asn1base.ParseBitString(ipaddrrange.Bytes)
 					fmt.Println("ipaddrranges asn1.TagSequence:", convert.PrintBytesOneLine(ipaddrrange.FullBytes), addrRange, err)
 					if err != nil {
 						return ipaddresses, err

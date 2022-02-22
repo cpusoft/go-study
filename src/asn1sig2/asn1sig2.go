@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cpusoft/goutil/asn1util/asn1node"
+	"github.com/cpusoft/goutil/convert"
 	"github.com/cpusoft/goutil/jsonutil"
 )
 
@@ -17,6 +18,10 @@ func main() {
 	fmt.Println(err)
 	s := jsonutil.MarshalJson(n)
 	fmt.Println("Json:\n" + s)
+
+	fmt.Println("data:\n" + convert.PrintBytesOneLine(n.Nodes[0].Data))
+	fmt.Println("data:\n" + convert.PrintBytesOneLine(n.Nodes[0].Nodes[0].Data))
+	fmt.Println("data:\n" + convert.PrintBytesOneLine(n.Nodes[0].Nodes[0].Nodes[0].Data))
 
 	ipNode := n.Nodes[0].Nodes[0].Nodes[0].Nodes[0]
 	ipFamliy := ipNode.Nodes[0]

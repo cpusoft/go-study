@@ -7,7 +7,7 @@
 //
 // See also ``A Layman's Guide to a Subset of ASN.1, BER, and DER,''
 // http://luca.ntop.org/Teaching/Appunti/asn1.html.
-package asnsig1
+package main
 
 // ASN.1 is a syntax for specifying abstract objects and BER, DER, PER, XER etc
 // are different encoding formats for those objects. Here, we'll be dealing

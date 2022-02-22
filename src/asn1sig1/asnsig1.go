@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/cpusoft/goutil/convert"
 	"github.com/cpusoft/goutil/jsonutil"
 )
 
@@ -45,13 +46,18 @@ type ROAIPAddressFamily struct {
 	//	Sig           []asn1.RawContent `json:"sig"`
 }
 
+type Sig struct {
+	//	AsID         ASID                 `json:"asID"`
+	IpAddrBlock1 []asn1.RawValue `json:"ipAddrBlockss"`
+}
+
 func main() {
 	sigStr := `30819C3014A1123010300E04010230090307002001067C208C300B06096086480165030402013077303416106234325F697076365F6C6F612E706E6704209516DD64BE7C1725B9FCA117120E58E8D842A5206873399B3DDFFC91C4B6ACF0303F161B6234325F736572766963655F646566696E6974696F6E2E6A736F6E04200AE1394722005CD92F4C6AA024D5D6B3E2E67D629F11720D9478A633A117A1C7`
 	sigBytes, err := hex.DecodeString(sigStr)
-	fmt.Println(sigBytes, err)
+	fmt.Println(convert.PrintBytesOneLine(sigBytes), err)
 
-	roa := RouteOriginAttestation{}
-	_, err = Unmarshal(sigBytes, &roa)
-	fmt.Println("ParseRoaModelByOpensslResults(): roa:", jsonutil.MarshalJson(roa), err)
+	sig := make([]asn1.RawValue, 0)
+	_, err = Unmarshal(sigBytes, &sig)
+	fmt.Println("ParseRoaModelByOpensslResults(): sig:", jsonutil.MarshalJson(sig), err)
 
 }

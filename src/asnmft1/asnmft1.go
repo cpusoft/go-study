@@ -67,6 +67,7 @@ func main() {
 
 	manifestParse := ManifestParse{}
 	_, err = asn1.Unmarshal(raw1.Bytes, &manifestParse)
+	fmt.Println("mft:", convert.PrintBytesOneLine(raw1.Bytes))
 	fmt.Println("seqs[2]:mft:", jsonutil.MarshallJsonIndent(manifestParse))
 
 	// ee cer
