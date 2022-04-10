@@ -9,8 +9,10 @@ import (
 )
 
 type AsProviderAttestation struct {
-	CustomerAsId  int            `json:"customerAsId"`
-	ProviderAsIds []ProviderAsId `json:"ProviderAsIds"`
+	//Version                 int            `json:"version" asn1:"optional"` //default 0
+	AddressFamilyIdentifier Afi            `json:"addressFamilyIdentifier" asn1:"optional"`
+	CustomerAsId            int            `json:"customerAsId"`
+	ProviderAsIds           []ProviderAsId `json:"ProviderAsIds"`
 }
 type ProviderAsId struct {
 	ProviderAsId            int `json:"providerAsId"`

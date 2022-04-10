@@ -34,6 +34,7 @@ require (
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/square/certigo v1.12.1
 	github.com/urfave/cli v1.22.5 // indirect
+	github.com/zcalusic/sysinfo v0.9.5 // indirect
 	github.com/zpatrick/go-config v0.0.0-20191118215128-80ba6b3e54f6
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c

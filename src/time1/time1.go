@@ -14,4 +14,8 @@ func main() {
 
 	curNow := time.Now().Local()
 	fmt.Println(curNow)
+
+	now := time.Now()
+	s := now.Local().Format("2006-01-02T15:04:05-0700")
+	fmt.Println(s)
 }
