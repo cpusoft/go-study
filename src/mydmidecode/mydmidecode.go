@@ -19,69 +19,69 @@ func main() {
 	checkError(err)
 
 	fmt.Println("BIOS")
-	infos, err := dmi.BIOS()
-	for i := range infos {
-		fmt.Println(infos[i])
+	infos1, err := dmi.BIOS()
+	for i := range infos1 {
+		fmt.Println(infos1[i])
 	}
 
 	fmt.Println("BaseBoard")
-	infos, err = dmi.BaseBoard()
-	for i := range infos {
-		fmt.Println(infos[i])
+	infos2, err := dmi.BaseBoard()
+	for i := range infos2 {
+		fmt.Println(infos2[i])
 	}
 
 	fmt.Println("Chassis")
-	infos, err = dmi.Chassis()
-	for i := range infos {
-		fmt.Println(infos[i])
+	infos3, err := dmi.Chassis()
+	for i := range infos3 {
+		fmt.Println(infos3[i])
 	}
 
 	fmt.Println("MemoryArray")
-	infos, err = dmi.MemoryArray()
-	for i := range infos {
-		fmt.Println(infos[i])
+	infos4, err := dmi.MemoryArray()
+	for i := range infos4 {
+		fmt.Println(infos4[i])
 	}
 
 	fmt.Println("MemoryDevice")
-	infos, err = dmi.MemoryDevice()
-	for i := range infos {
-		fmt.Println(infos[i])
+	infos5, err := dmi.MemoryDevice()
+	for i := range infos5 {
+		fmt.Println(infos5[i])
 	}
 
 	fmt.Println("Onboard")
-	infos, err = dmi.Onboard()
-	for i := range infos {
-		fmt.Println(infos[i])
+	infos6, err := dmi.Onboard()
+	for i := range infos6 {
+		fmt.Println(infos6[i])
 	}
 
 	fmt.Println("PortConnector")
-	infos, err = dmi.PortConnector()
-	for i := range infos {
-		fmt.Println(infos[i])
+	infos7, err := dmi.PortConnector()
+	for i := range infos7 {
+		fmt.Println(infos7[i])
 	}
 
 	fmt.Println("Processor")
-	infos, err = dmi.Processor()
-	for i := range infos {
-		fmt.Println(infos[i])
+	infos8, err := dmi.Processor()
+	for i := range infos8 {
+		fmt.Println(infos8[i])
 	}
 
 	fmt.Println("ProcessorCache")
-	infos, err = dmi.ProcessorCache()
-	for i := range infos {
-		fmt.Println(infos[i])
+	infos9, err := dmi.ProcessorCache()
+	for i := range infos9 {
+		fmt.Println(infos9[i])
 	}
 
 	fmt.Println("Slot")
-	infos, err = dmi.Slot()
-	for i := range infos {
-		fmt.Println(infos[i])
+	infos10, err := dmi.Slot()
+	for i := range infos10 {
+		fmt.Println(infos10[i])
 	}
 
 	fmt.Println("System")
-	infos, err = dmi.System()
-	for i := range infos {
-		fmt.Println(infos[i])
+	infos11, err := dmi.System()
+	for i := range infos11 {
+		fmt.Println(infos11[i])
 	}
 
 	checkError(err)
