@@ -18,21 +18,72 @@ func main() {
 	dmi, err := dmidecode.New()
 	checkError(err)
 
+	fmt.Println("BIOS")
 	infos, err := dmi.BIOS()
-	// 支持以下类型的解析
-	// dmi.BaseBoard()
-	// dmi.Chassis()
-	// dmi.MemoryArray()
-	// dmi.MemoryDevice()
-	// dmi.Onboard()
-	// dmi.PortConnector()
-	// dmi.Processor()
-	// dmi.ProcessorCache()
-	// dmi.Slot()
-	// dmi.System()
-	checkError(err)
-
 	for i := range infos {
 		fmt.Println(infos[i])
 	}
+
+	fmt.Println("BaseBoard")
+	infos, err = dmi.BaseBoard()
+	for i := range infos {
+		fmt.Println(infos[i])
+	}
+
+	fmt.Println("Chassis")
+	infos, err = dmi.Chassis()
+	for i := range infos {
+		fmt.Println(infos[i])
+	}
+
+	fmt.Println("MemoryArray")
+	infos, err = dmi.MemoryArray()
+	for i := range infos {
+		fmt.Println(infos[i])
+	}
+
+	fmt.Println("MemoryDevice")
+	infos, err = dmi.MemoryDevice()
+	for i := range infos {
+		fmt.Println(infos[i])
+	}
+
+	fmt.Println("Onboard")
+	infos, err = dmi.Onboard()
+	for i := range infos {
+		fmt.Println(infos[i])
+	}
+
+	fmt.Println("PortConnector")
+	infos, err = dmi.PortConnector()
+	for i := range infos {
+		fmt.Println(infos[i])
+	}
+
+	fmt.Println("Processor")
+	infos, err = dmi.Processor()
+	for i := range infos {
+		fmt.Println(infos[i])
+	}
+
+	fmt.Println("ProcessorCache")
+	infos, err = dmi.ProcessorCache()
+	for i := range infos {
+		fmt.Println(infos[i])
+	}
+
+	fmt.Println("Slot")
+	infos, err = dmi.Slot()
+	for i := range infos {
+		fmt.Println(infos[i])
+	}
+
+	fmt.Println("System")
+	infos, err = dmi.System()
+	for i := range infos {
+		fmt.Println(infos[i])
+	}
+
+	checkError(err)
+
 }
