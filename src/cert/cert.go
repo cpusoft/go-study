@@ -16,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cpusoft/goutil/jsonutil"
 )
 
 // cer 文件
@@ -174,6 +176,8 @@ func parseCer(file string) error {
 	cerInfo.AsNum = make([]ASIdOrRange, 0)
 	cerInfo.Rdi = make([]ASIdOrRange, 0)
 
+	fmt.Println("cerInfo=:", jsonutil.MarshalJson(cerInfo))
+
 	//	fmt.Printf("serialNumber=%s\r\n", cert.Subject.SerialNumber)
 	//	fmt.Printf("serialNumber=%s\r\n", cert.Issuer.SerialNumber)
 	//	fmt.Printf("SN=%v\r\n", cert.SerialNumber.Uint64())
@@ -327,11 +331,12 @@ func main() {
 		//file = `E:\Go\go-study\src\main\cert\H.cer`
 		//file = `E:\Go\go-study\src\main\secruity\1.cer`
 		//file = `E:\Go\go-study\src\main\secruity\range_ipv6.cer`
-		file = `E:\Go\go-study\src\main\cert\41870XBX5RmmOBSWl-AwgOrYdys_test.cer`
+		file = `F:\share\我的坚果云\Go\go-study\data\ca.cer`
 		//fmt.Println("usage: ./cert 1.cer")
 		//return
 	}
 	//`E:\Go\go-study\src\main\cert\root.cer`
+	fmt.Println(file)
 	var err error
 	certFile := strings.ToLower(file)
 	if strings.HasSuffix(certFile, ".cer") {
