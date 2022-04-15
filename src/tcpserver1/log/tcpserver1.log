@@ -1,0 +1,48 @@
+2022/04/14 18:26:40.924  [D]  server
+2022/04/14 18:26:40.924  [D]  server
+2022/04/14 18:26:40.924  [D]  NewTcpServer():tcpProcessFunc: &{}
+2022/04/14 18:26:40.924  [D]  NewTcpServer():ts: &{map[] {{0 0} 0 0 0 0} 0x6c9c18}    ts.tcpConnsMutex: {{0 0} 0 0 0 0}
+2022/04/14 18:26:40.926  [D]  Start(): tcp  create server ok, server is  0.0.0.0:9999   will accept client
+2022/04/14 18:26:42.573  [D]  client
+2022/04/14 18:26:42.573  [D]  client
+2022/04/14 18:26:42.573  [D]  NewTcpClient():tcpClientProcessFuncs: &{}
+2022/04/14 18:26:42.573  [D]  NewTcpClient(): stop: stop
+2022/04/14 18:26:42.573  [D]  NewTcpClient():tc: &{stop 0xc0001024e0 0x6c9c18}
+2022/04/14 18:26:42.573  [D]  Start(): tcp create client, server is   192.168.83.139:9999
+2022/04/14 18:26:42.573  [D]  Start(): tcp create client, server is   192.168.83.139:9999   tcpServer: 192.168.83.139:9999
+2022/04/14 18:26:42.574  [D]  Start(): tcp DialTCP, server is   192.168.83.139:9999   tcpConn: 192.168.83.139:9999
+2022/04/14 18:26:42.574  [D]  OnConnect():tcp tcpConn:  192.168.83.139:9999    call process func: OnConnect 
+2022/04/14 18:26:42.575  [I]  OnConnect(): tcp add tcpConn:  192.168.83.139:9999    time(s): 0.0010001
+2022/04/14 18:26:42.575  [D]  Start(): tcp connect to server: 192.168.83.139:9999    tcpConn: 192.168.83.139:9999
+2022/04/14 18:26:42.575  [I]  Start(): tcp  Accept remote:  192.168.83.139:50139
+2022/04/14 18:26:42.575  [D]  tc: &{stop 0xc0001024e0 0x6c9c18} <nil>
+2022/04/14 18:26:42.575  [D]  will SendData
+2022/04/14 18:26:42.575  [D]  OnConnect(): tcp new tcpConn:  &{{0xc0000ce280}}
+2022/04/14 18:26:42.575  [D]  SendData(): tcp, len(sendData): 32
+2022/04/14 18:26:42.575  [D]  OnConnect():tcp tcpConn:  192.168.83.139:50139 , connKey: 192.168.83.139:50139   new len(tcpConns):  1
+2022/04/14 18:26:42.575  [D]  OnConnect():tcp tcpConn:  192.168.83.139:50139    call process func: OnConnect 
+2022/04/14 18:26:42.575  [I]  OnConnect(): tcp add tcpConn:  192.168.83.139:50139    len(tcpConns):  1    time(s): 0
+2022/04/14 18:26:42.575  [D]  OnSendAndReceive(): tcp, tcpConn: 192.168.83.139:9999
+2022/04/14 18:26:42.575  [D]  OnSendAndReceive(): tcp, tcpConn: 192.168.83.139:9999   len(sendData): 32   isUnidirection: true
+2022/04/14 18:26:42.575  [D]  will stop
+2022/04/14 18:26:42.575  [D]  SendData(): tcp, len(sendData): 4
+2022/04/14 18:26:42.575  [D]  OnSendAndReceive(): tcp  Write to tcpConn: 192.168.83.139:9999   len(sendData): 32   write n: 32   time(s): 0
+2022/04/14 18:26:42.575  [I]  OnSendAndReceive(): tcp OnReceive, isUnidirection, will return:  192.168.83.139:9999
+2022/04/14 18:26:42.575  [D]  ReceiveAndSend(): tcp server read: Read n:  192.168.83.139:50139 32
+2022/04/14 18:26:42.575  [D]  ReceiveAndSend(): tcp  will ReceiveAndSendProcess, server tcpConn:  192.168.83.139:50139   n: 32  , will call process func: OnReceiveAndSend,  time(s): 0s
+2022/04/14 18:26:42.575  [D]  ReceiveAndSendProcess(): len(receiveData): 32    receiveData: 000a0001000000100000000000000000000a0001000000100000000000000000
+2022/04/14 18:26:42.575  [D]  RecombineReceiveData(): len(receiveData): 32    receiveData: 00 0a 00 01 00 00 00 10 
+00 00 00 00 00 00 00 00 
+00 0a 00 01 00 00 00 10 
+00 00 00 00 00 00 00 00 
+    minPacketLen: 8    lengthFieldStart: 4    lengthFieldEnd: 8
+2022/04/14 18:26:42.575  [D]  RecombineReceiveData():lengthBuffer: [0 0 0 16]  length: 16
+2022/04/14 18:26:42.575  [D]  RecombineReceiveData(): len(receiveData) lager than length, then continue, len(receiveData), length: 32 16
+2022/04/14 18:26:42.575  [D]  RecombineReceiveData(): new len(receiveData) lager than length, new(receiveData),length: 16 16    new receiveData: 00 0a 00 01 00 00 00 10 
+00 00 00 00 00 00 00 00 
+
+2022/04/14 18:26:42.575  [D]  RecombineReceiveData():lengthBuffer: [0 0 0 16]  length: 16
+2022/04/14 18:26:42.575  [D]  RecombineReceiveData(): len(receiveData) equal to length, then return, len(receiveData), length: 16 16
+2022/04/14 18:26:42.575  [D]  ReceiveAndSendProcess(): RecombineReceiveData packets.Len(): 2
+2022/04/14 18:26:42.575  [D]  RtrProcess(): buf: &{[0 10 0 1 0 0 0 16 0 0 0 0 0 0 0 0] 0 -1}
+2022/04/14 18:26:42.575  [D]  ReceiveAndSend(): tcp  after ReceiveAndSendProcess,server tcpConn:  192.168.83.139:50139  receive n:  32   len(leftData): 0   time(s): 0s
