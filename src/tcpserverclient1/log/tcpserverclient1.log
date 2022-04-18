@@ -1,0 +1,61 @@
+2022/04/18 11:04:18.032  [D]  server
+2022/04/18 11:04:18.032  [D]  server
+2022/04/18 11:04:18.032  [D]  NewTcpServer():tcpProcessFunc: &{}
+2022/04/18 11:04:18.032  [D]  NewTcpServer():ts: &{map[] {{0 0} 0 0 0 0} 0x6a09a8}    ts.tcpConnsMutex: {{0 0} 0 0 0 0}
+2022/04/18 11:04:18.034  [D]  Start(): tcpserver  create server ok, server is  0.0.0.0:9999   will accept client
+2022/04/18 11:04:26.542  [D]  client
+2022/04/18 11:04:26.542  [D]  client
+2022/04/18 11:04:26.542  [D]  NewTcpClient():tcpClientProcessFuncs: &{}
+2022/04/18 11:04:26.542  [I]  NewTcpClient():tc: &{0xc00008ea20 0x6a09a8}
+2022/04/18 11:04:26.542  [D]  Start(): tcpclient  create client, server is   192.168.83.139:9999
+2022/04/18 11:04:26.542  [D]  Start(): tcpclient  create client, server is   192.168.83.139:9999   tcpServer: 192.168.83.139:9999
+2022/04/18 11:04:26.543  [D]  OnConnect(): tcpclient  tcpConn:  192.168.83.139:9999    call process func: OnConnect 
+2022/04/18 11:04:26.543  [I]  OnConnect(): tcpclient  after OnConnectProcess, tcpConn:  192.168.83.139:9999
+2022/04/18 11:04:26.543  [I]  Start(): tcpclient  OnConnect, server is   192.168.83.139:9999   tcpConn: 192.168.83.139:9999
+2022/04/18 11:04:26.543  [D]  Start(): tcpclient  waite SendAndReceive, server: 192.168.83.139:9999    tcpConn: 192.168.83.139:9999
+2022/04/18 11:04:26.543  [D]  tc: &{0xc00008ea20 0x6a09a8} <nil>
+2022/04/18 11:04:26.543  [D]  will SendData
+2022/04/18 11:04:26.543  [D]  SendAndReceive(): tcpclient , tcpConn: 192.168.83.139:9999
+2022/04/18 11:04:26.543  [I]  Start(): tcpserver  Accept remote:  192.168.83.139:58931
+2022/04/18 11:04:26.543  [D]  OnConnect(): tcpserver new tcpConn:  &{{0xc0001aa280}}
+2022/04/18 11:04:26.543  [D]  SendMsg(): tcpclient, tcpClientMsg: {"NextConnectClosePolicy":0,"NextRwPolice":3,"SendData":"AAoAAQAAABAAAAAAAAAAAAAKAAEAAAAQAAAAAAAAAAA="}
+2022/04/18 11:04:26.544  [D]  OnConnect(): tcpserver tcpConn:  192.168.83.139:58931 , connKey: 192.168.83.139:58931   new len(tcpConns):  1
+2022/04/18 11:04:26.544  [D]  SendAndReceive(): tcpclient , tcpConn: 192.168.83.139:9999   tcpClientMsg:  {"NextConnectClosePolicy":0,"NextRwPolice":3,"SendData":"AAoAAQAAABAAAAAAAAAAAAAKAAEAAAAQAAAAAAAAAAA="}
+2022/04/18 11:04:26.544  [I]  OnConnect(): tcpserver add tcpConn:  192.168.83.139:58931    len(tcpConns):  1    time(s): 0.0010001
+2022/04/18 11:04:26.544  [D]  ReceiveAndSend(): tcpserver read: Read n:  192.168.83.139:58931 32
+2022/04/18 11:04:26.544  [D]  SendAndReceive(): tcpclient   Write to tcpConn: 192.168.83.139:9999   len(sendData): 32   write n: 32    nextRwPolice: 3   time(s): 0
+2022/04/18 11:04:26.544  [D]  OnReceive(): tcpclient  wait for OnReceive, tcpConn: 192.168.83.139:9999
+2022/04/18 11:04:26.544  [D]  ReceiveAndSend(): tcpserver  will ReceiveAndSendProcess, server tcpConn:  192.168.83.139:58931   n: 32  , will call process func: OnReceiveAndSend,  time(s): 0s
+2022/04/18 11:04:26.544  [D]  ReceiveAndSendProcess(): len(receiveData): 32    receiveData: 000a0001000000100000000000000000000a0001000000100000000000000000
+2022/04/18 11:04:26.544  [D]  RecombineReceiveData(): len(receiveData): 32    receiveData: 00 0a 00 01 00 00 00 10 
+00 00 00 00 00 00 00 00 
+00 0a 00 01 00 00 00 10 
+00 00 00 00 00 00 00 00 
+    minPacketLen: 8    lengthFieldStart: 4    lengthFieldEnd: 8
+2022/04/18 11:04:26.544  [D]  RecombineReceiveData():lengthBuffer: [0 0 0 16]  length: 16
+2022/04/18 11:04:26.544  [D]  RecombineReceiveData(): len(receiveData) lager than length, then continue, len(receiveData), length: 32 16
+2022/04/18 11:04:26.544  [D]  RecombineReceiveData(): new len(receiveData) lager than length, new(receiveData),length: 16 16    new receiveData: 00 0a 00 01 00 00 00 10 
+00 00 00 00 00 00 00 00 
+
+2022/04/18 11:04:26.544  [D]  RecombineReceiveData():lengthBuffer: [0 0 0 16]  length: 16
+2022/04/18 11:04:26.544  [D]  RecombineReceiveData(): len(receiveData) equal to length, then return, len(receiveData), length: 16 16
+2022/04/18 11:04:26.544  [D]  ReceiveAndSendProcess(): RecombineReceiveData packets.Len(): 2
+2022/04/18 11:04:26.544  [D]  RtrProcess(): buf: &{[0 10 0 1 0 0 0 16 0 0 0 0 0 0 0 0] 0 -1}
+2022/04/18 11:04:26.544  [D]  RtrProcess(): buf: &{[0 10 0 1 0 0 0 16 0 0 0 0 0 0 0 0] 0 -1}
+2022/04/18 11:04:26.544  [D]  ReceiveAndSend(): tcpserver  after ReceiveAndSendProcess,server tcpConn:  192.168.83.139:58931  receive n:  32   len(leftData): 0   time(s): 0s
+2022/04/18 11:04:26.544  [D]  OnReceive(): tcpclient  client read: Read n:  192.168.83.139:9999 32
+2022/04/18 11:04:26.544  [D]  OnReceive(): tcpclient  client tcpConn:  192.168.83.139:9999   n: 32  , will call process func: OnReceiveAndSend,  time(s): 0s
+2022/04/18 11:04:26.544  [D]  OnReceiveProcess : &{{0xc0000b0000}} 000a0001000000100000000000000000000a0001000000100000000000000000
+2022/04/18 11:04:26.544  [I]  OnReceive(): tcpclient  tcpClientProcessFunc.OnReceiveProcess, tcpConn:  192.168.83.139:9999  receive n:  32   len(leftData): 0   nextRwPolicy: 5   time(s): 0s
+2022/04/18 11:04:26.544  [D]  OnReceive(): tcpclient  nextRwPolicy, will end this write/read loop:  192.168.83.139:9999
+2022/04/18 11:04:26.544  [I]  SendAndReceive(): tcpclient  shouldWaitReceive yes, tcpConn: 192.168.83.139:9999   len(sendData): 32   write n: 32   time(s): 0
+2022/04/18 11:05:26.544  [D]  will stop
+2022/04/18 11:05:26.544  [D]  SendMsg(): tcpclient, tcpClientMsg: {"NextConnectClosePolicy":1,"NextRwPolice":3,"SendData":null}
+2022/04/18 11:05:26.544  [D]  SendAndReceive(): tcpclient , tcpConn: 192.168.83.139:9999   tcpClientMsg:  {"NextConnectClosePolicy":1,"NextRwPolice":3,"SendData":null}
+2022/04/18 11:05:26.544  [I]  SendAndReceive(): tcpclient   nextConnectClosePolicy close end client, will end tcpConn:  192.168.83.139:9999    nextConnectClosePolicy: 1
+2022/04/18 11:05:26.544  [I]  OnClose(): tcpclient  client, tcpConn:  192.168.83.139:9999
+2022/04/18 11:05:26.544  [D]  ReceiveAndSend(): tcpserver read: Read n:  192.168.83.139:58931 0
+2022/04/18 11:05:26.544  [I]  ReceiveAndSend(): tcpserver Read io.EOF, client close:  192.168.83.139:58931 EOF
+2022/04/18 11:05:26.544  [D]  OnClose(): tcpserver server,tcpConn:  192.168.83.139:58931    call process func: OnClose 
+2022/04/18 11:05:26.544  [D]  OnClose(): tcpserver server,tcpConn:  192.168.83.139:58931    old len(tcpConns):  1
+2022/04/18 11:05:26.544  [I]  OnClose(): tcpserver server,new len(tcpConns):  0   time(s): 0

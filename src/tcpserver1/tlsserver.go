@@ -77,6 +77,7 @@ func (ts *TlsServer) Start(port string) (err error) {
 	if ts.verifyClient {
 		clientAuthType = tls.RequireAndVerifyClientCert
 	}
+
 	config := &tls.Config{
 		Certificates:       []tls.Certificate{cert},
 		ClientAuth:         clientAuthType,

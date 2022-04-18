@@ -27,11 +27,12 @@ func main() {
 	if t == "server" {
 		belogs.Debug("server")
 		CreateTcpServer()
+		select {}
 	} else if t == "client" {
 		belogs.Debug("client")
 		CreateTcpClient()
 	}
-	select {}
+
 }
 func GetData() (buffer []byte) {
 
@@ -94,6 +95,8 @@ func CreateTcpServer() {
 	serverProcessFunc := new(ServerProcessFunc)
 	ts := NewTcpServer(serverProcessFunc)
 	ts.Start("0.0.0.0:9999")
+	time.Sleep(2 * time.Second)
+	ts.ActiveSend()
 }
 
 func RtrProcess(receiveData []byte) (sendData []byte, err error) {

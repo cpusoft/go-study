@@ -6,12 +6,12 @@ import (
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/go-xorm/core"
-	"github.com/go-xorm/xorm"
+	"xorm.io/xorm"
+	"xorm.io/xorm/names"
 )
 
 type RtrFull struct {
-	SerialNumber       int    `json:"serialNumber" xorm:"serial_num INT"`
+	SerialNumber    int    `json:"serialNumber" xorm:"serial_num INT"`
 	Asn             int    `json:"asn" xorm:"asn INT"`
 	Prefix          []byte `json:prefix" xorm:"prefix VARBINARY"`
 	PrefixLength    int    `json:prefix_length" xorm:"prefix_length TINYINT"`
@@ -19,7 +19,7 @@ type RtrFull struct {
 }
 
 type RtrFullCopy struct {
-	SerialNumber       int    `json:"serialNumber" xorm:"serial_num INT"`
+	SerialNumber    int    `json:"serialNumber" xorm:"serial_num INT"`
 	Asn             int    `json:"asn" xorm:"asn INT"`
 	Prefix          []byte `json:prefix" xorm:"prefix VARBINARY"`
 	PrefixLength    int    `json:prefix_length" xorm:"prefix_length TINYINT"`
@@ -89,7 +89,7 @@ func main() {
 		url	URL
 
 	*/
-	engine.SetTableMapper(core.SnakeMapper{})
+	engine.SetTableMapper(names.SnakeMapper{})
 
 	fmt.Println(engine)
 

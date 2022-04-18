@@ -8,8 +8,8 @@ import (
 
 	"github.com/cpusoft/goutil/jsonutil"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/go-xorm/core"
-	"github.com/go-xorm/xorm"
+	"xorm.io/xorm"
+	"xorm.io/xorm/names"
 )
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
 	engine.SetMaxIdleConns(maxidleconns)
 	//设置最大打开连接数
 	engine.SetMaxOpenConns(maxopenconns)
-	engine.SetTableMapper(core.SnakeMapper{})
+	engine.SetTableMapper(names.SnakeMapper{})
 	engine.ShowSQL(true)
 
 	session := engine.NewSession()

@@ -38,23 +38,23 @@ func NewTcpServer(tcpServerProcessFunc TcpServerProcessFunc) (ts *TcpServer) {
 func (ts *TcpServer) Start(server string) (err error) {
 	tcpServer, err := net.ResolveTCPAddr("tcp", server)
 	if err != nil {
-		belogs.Error("Start(): tcp  ResolveTCPAddr fail: ", server, err)
+		belogs.Error("Start(): tcpserver  ResolveTCPAddr fail: ", server, err)
 		return err
 	}
 
 	listen, err := net.ListenTCP("tcp", tcpServer)
 	if err != nil {
-		belogs.Error("Start(): tcp  ListenTCP fail: ", server, err)
+		belogs.Error("Start(): tcpserver  ListenTCP fail: ", server, err)
 		return err
 	}
 	defer listen.Close()
-	belogs.Debug("Start(): tcp  create server ok, server is ", server, "  will accept client")
+	belogs.Debug("Start(): tcpserver  create server ok, server is ", server, "  will accept client")
 
 	for {
 		tcpConn, err := listen.AcceptTCP()
-		belogs.Info("Start(): tcp  Accept remote: ", tcpConn.RemoteAddr().String())
+		belogs.Info("Start(): tcpserver  Accept remote: ", tcpConn.RemoteAddr().String())
 		if err != nil {
-			belogs.Error("Start(): tcp  Accept remote fail: ", server, tcpConn.RemoteAddr().String(), err)
+			belogs.Error("Start(): tcpserver  Accept remote fail: ", server, tcpConn.RemoteAddr().String(), err)
 			continue
 		}
 		if tcpConn == nil {
@@ -70,9 +70,9 @@ func (ts *TcpServer) Start(server string) (err error) {
 	return nil
 }
 
-func (ts *TcpServer) OnConnect(tcpConn *net.TCPConn) {
+func (ts *TcpServer) OnConnect(tcpConn *net.TCPConn) (connKey string) {
 	start := time.Now()
-	belogs.Debug("OnConnect(): tcp new tcpConn: ", tcpConn)
+	belogs.Debug("OnConnect(): tcpserver new tcpConn: ", tcpConn)
 
 	// add new tcpConn to tcpconns
 	ts.tcpConnsMutex.Lock()
@@ -86,7 +86,8 @@ func (ts *TcpServer) OnConnect(tcpConn *net.TCPConn) {
 	// call process func OnConnect
 	belogs.Debug("OnConnect():tcp tcpConn: ", tcpConn.RemoteAddr().String(), "   call process func: OnConnect ")
 	ts.tcpServerProcessFunc.OnConnectProcess(tcpConn)
-	belogs.Info("OnConnect(): tcp add tcpConn: ", tcpConn.RemoteAddr().String(), "   len(tcpConns): ", len(ts.tcpConns), "   time(s):", time.Now().Sub(start).Seconds())
+	belogs.Info("OnConnect(): tcpserver add tcpConn: ", tcpConn.RemoteAddr().String(), "   len(tcpConns): ", len(ts.tcpConns), "   time(s):", time.Now().Sub(start).Seconds())
+	return connKey
 }
 
 func (ts *TcpServer) ReceiveAndSend(tcpConn *net.TCPConn) {
@@ -100,14 +101,14 @@ func (ts *TcpServer) ReceiveAndSend(tcpConn *net.TCPConn) {
 	for {
 		n, err := tcpConn.Read(buffer)
 		start := time.Now()
-		belogs.Debug("ReceiveAndSend(): tcp server read: Read n: ", tcpConn.RemoteAddr().String(), n)
+		belogs.Debug("ReceiveAndSend(): tcpserver read: Read n: ", tcpConn.RemoteAddr().String(), n)
 		if err != nil {
 			if err == io.EOF {
 				// is not error, just client close
-				belogs.Debug("ReceiveAndSend(): tcp server Read io.EOF, client close: ", tcpConn.RemoteAddr().String(), err)
+				belogs.Debug("ReceiveAndSend(): tcpserver Read io.EOF, client close: ", tcpConn.RemoteAddr().String(), err)
 				return
 			}
-			belogs.Error("ReceiveAndSend(): tcp server Read fail, err ", tcpConn.RemoteAddr().String(), err)
+			belogs.Error("ReceiveAndSend(): tcpserver Read fail, err ", tcpConn.RemoteAddr().String(), err)
 			return
 		}
 		if n == 0 {
@@ -116,17 +117,17 @@ func (ts *TcpServer) ReceiveAndSend(tcpConn *net.TCPConn) {
 
 		// call process func OnReceiveAndSend
 		// copy to leftData
-		belogs.Debug("ReceiveAndSend(): tcp  will ReceiveAndSendProcess, server tcpConn: ", tcpConn.RemoteAddr().String(), "  n:", n,
+		belogs.Debug("ReceiveAndSend(): tcpserver  will ReceiveAndSendProcess, server tcpConn: ", tcpConn.RemoteAddr().String(), "  n:", n,
 			" , will call process func: OnReceiveAndSend,  time(s):", time.Now().Sub(start))
 		nextConnectPolicy, leftData, err := ts.tcpServerProcessFunc.ReceiveAndSendProcess(tcpConn, append(leftData, buffer[:n]...))
-		belogs.Debug("ReceiveAndSend(): tcp  after ReceiveAndSendProcess,server tcpConn: ", tcpConn.RemoteAddr().String(), " receive n: ", n,
+		belogs.Debug("ReceiveAndSend(): tcpserver  after ReceiveAndSendProcess,server tcpConn: ", tcpConn.RemoteAddr().String(), " receive n: ", n,
 			"  len(leftData):", len(leftData), "  time(s):", time.Now().Sub(start))
 		if err != nil {
-			belogs.Error("OnReceiveAndSend():tcp server fail ,will remove this tcpConn : ", tcpConn.RemoteAddr().String(), err)
+			belogs.Error("OnReceiveAndSend(): tcpserver ReceiveAndSendProcess fail ,will remove this tcpConn : ", tcpConn.RemoteAddr().String(), err)
 			return
 		}
 		if nextConnectPolicy == NEXT_CONNECT_POLICE_CLOSE_GRACEFUL || nextConnectPolicy == NEXT_CONNECT_POLICE_CLOSE_FORCIBLE {
-			belogs.Debug("OnReceiveAndSend():nextConnectPolicy return : ", tcpConn.RemoteAddr().String(), nextConnectPolicy)
+			belogs.Debug("OnReceiveAndSend(): tcpserver  nextConnectPolicy return : ", tcpConn.RemoteAddr().String(), nextConnectPolicy)
 			return
 		}
 	}
@@ -138,13 +139,13 @@ func (ts *TcpServer) OnClose(tcpConn *net.TCPConn) {
 	start := time.Now()
 
 	// call process func OnClose
-	belogs.Debug("OnClose(): tcp server,tcpConn: ", tcpConn.RemoteAddr().String(), "   call process func: OnClose ")
+	belogs.Debug("OnClose(): tcpserver server,tcpConn: ", tcpConn.RemoteAddr().String(), "   call process func: OnClose ")
 	ts.tcpServerProcessFunc.OnCloseProcess(tcpConn)
 
 	// remove tcpConn from tcpConns
 	ts.tcpConnsMutex.Lock()
 	defer ts.tcpConnsMutex.Unlock()
-	belogs.Debug("OnClose(): tcp server,tcpConn: ", tcpConn.RemoteAddr().String(), "   old len(tcpConns): ", len(ts.tcpConns))
+	belogs.Debug("OnClose(): tcpserver server,tcpConn: ", tcpConn.RemoteAddr().String(), "   old len(tcpConns): ", len(ts.tcpConns))
 	newTcpConns := make(map[string]*net.TCPConn, len(ts.tcpConns))
 	for i := range ts.tcpConns {
 		if ts.tcpConns[i] != tcpConn {
@@ -154,7 +155,7 @@ func (ts *TcpServer) OnClose(tcpConn *net.TCPConn) {
 	}
 	ts.tcpConns = newTcpConns
 	tcpConn = nil
-	belogs.Info("OnClose(): tcp server,new len(tcpConns): ", len(ts.tcpConns), "  time(s):", time.Now().Sub(start).Seconds())
+	belogs.Info("OnClose(): tcpserver server,new len(tcpConns): ", len(ts.tcpConns), "  time(s):", time.Now().Sub(start).Seconds())
 }
 
 // connKey is "": send to all clients
@@ -164,39 +165,32 @@ func (ts *TcpServer) ActiveSend(sendData []byte, connKey string) (err error) {
 	defer ts.tcpConnsMutex.RUnlock()
 	start := time.Now()
 
-	belogs.Debug("ActiveSend(): tcp server,len(sendData):", len(sendData), "   len(tcpConns): ", len(ts.tcpConns), "  connKey:", connKey)
+	belogs.Debug("ActiveSend(): tcpserver ,len(sendData):", len(sendData), "   len(tcpConns): ", len(ts.tcpConns), "  connKey:", connKey)
 	if len(connKey) == 0 {
-		belogs.Debug("ActiveSend(): tcp server, to all, len(sendData):", len(sendData), "   len(tcpConns): ", len(ts.tcpConns))
+		belogs.Debug("ActiveSend(): tcpserver , to all, len(sendData):", len(sendData), "   len(tcpConns): ", len(ts.tcpConns))
 		for i := range ts.tcpConns {
-			belogs.Debug("ActiveSend(): tcp   to all, client: ", i, "    ts.tcpConns[i]:", ts.tcpConns[i], "   call process func: ActiveSend ")
+			belogs.Debug("ActiveSend(): tcpserver   to all, client: ", i, "    ts.tcpConns[i]:", ts.tcpConns[i], "   call process func: ActiveSend ")
 			err = ts.tcpServerProcessFunc.ActiveSendProcess(ts.tcpConns[i], sendData)
 			if err != nil {
 				// just logs, not return or break
-				belogs.Error("ActiveSend(): tcp  fail, to all, client: ", i, "    ts.tcpConns[i]:", ts.tcpConns[i], err)
+				belogs.Error("ActiveSend(): tcpserver  ActiveSendProcess fail, to all, client: ", i, "    ts.tcpConns[i]:", ts.tcpConns[i], err)
 			}
 		}
-		belogs.Info("ActiveSend(): tcp  send to all clients ok,  len(sendData):", len(sendData), "   len(tcpConns): ", len(ts.tcpConns),
+		belogs.Info("ActiveSend(): tcpserver  send to all clients ok,  len(sendData):", len(sendData), "   len(tcpConns): ", len(ts.tcpConns),
 			"  time(s):", time.Now().Sub(start).Seconds())
 		return
 	} else {
-		belogs.Debug("ActiveSend(): tcp server, to connKey:", connKey)
+		belogs.Debug("ActiveSend(): tcpserver server, to connKey:", connKey)
 		if tcpConn, ok := ts.tcpConns[connKey]; ok {
 			err = ts.tcpServerProcessFunc.ActiveSendProcess(tcpConn, sendData)
 			if err != nil {
 				// just logs, not return or break
-				belogs.Error("ActiveSend(): tcp  fail, to connKey: ", connKey, "   tcpConn:", tcpConn.RemoteAddr().String(), err)
+				belogs.Error("ActiveSend(): tcpserver  fail, to connKey: ", connKey, "   tcpConn:", tcpConn.RemoteAddr().String(), err)
 			}
 		}
-		belogs.Info("ActiveSend(): tcp  send to connKey ok,  len(sendData):", len(sendData), "   connKey: ", connKey,
+		belogs.Info("ActiveSend(): tcpserver  send to connKey ok,  len(sendData):", len(sendData), "   connKey: ", connKey,
 			"  time(s):", time.Now().Sub(start).Seconds())
 		return
 	}
-
-}
-
-// gracefulClose: close gracefully or forcibly abort
-// connKey is "": send to all clients
-// connKey is net.Conn.Address.String(): send this client
-func (ts *TcpServer) ActiveClose(gracefulClose bool, connKey string) {
 
 }
