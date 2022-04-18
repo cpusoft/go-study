@@ -7,6 +7,7 @@ import (
 
 	belogs "github.com/cpusoft/goutil/belogs"
 	"github.com/cpusoft/goutil/convert"
+	"github.com/cpusoft/goutil/tcpserverclient/util"
 	tcputil "github.com/cpusoft/goutil/tcpserverclient/util"
 )
 
@@ -24,6 +25,14 @@ func main() {
 		belogs.Debug("tlsServer")
 		CreateTlsServer()
 		select {}
+	} else if t == "tcpClient" {
+		belogs.Debug("tcpClient")
+		CreateTcpClient()
+		select {}
+	} else if t == "tlsClient" {
+		belogs.Debug("tlsClient")
+		CreateTlsClient()
+		select {}
 	}
 
 }
@@ -37,11 +46,11 @@ func CreateTcpServer() {
 }
 func CreateTlsServer() {
 	serverProcessFunc := new(ServerProcessFunc)
-	rootCrtFileName := `./ca/ca.cer`
-	publicCrtFileName := `./server/server.cer`
-	privateKeyFileName := `./server/serverkey.pem`
+	tlsRootCrtFileName := `./ca/ca.cer`
+	tlsPublicCrtFileName := `./server/server.cer`
+	tlsPrivateKeyFileName := `./server/serverkey.pem`
 
-	ts := NewTlsServer(rootCrtFileName, publicCrtFileName, privateKeyFileName, true, serverProcessFunc)
+	ts := NewTlsServer(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileName, true, serverProcessFunc)
 	ts.StartTlsServer("9999")
 	time.Sleep(2 * time.Second)
 	ts.ActiveSend(GetData(), "")
@@ -95,7 +104,7 @@ func (spf *ServerProcessFunc) ReceiveAndSendProcess(tcpTlsConn *TcpTlsConn, rece
 
 	_, err = tcpTlsConn.Write(GetData())
 	if err != nil {
-		belogs.Error("ReceiveAndSendProcess(): tcp  Write fail:  tcpConn:", tcpTlsConn.RemoteAddr().String(), err)
+		belogs.Error("ReceiveAndSendProcess(): tcp  Write fail:  tcpTlsConn:", tcpTlsConn.RemoteAddr().String(), err)
 		return tcputil.NEXT_CONNECT_POLICE_CLOSE_FORCIBLE, nil, err
 	}
 	// continue to receive next receiveData
@@ -113,3 +122,84 @@ const (
 	PDU_TYPE_LENGTH_START = 4
 	PDU_TYPE_LENGTH_END   = 8
 )
+
+func CreateTcpClient() {
+	clientProcessFunc := new(ClientProcessFunc)
+
+	//CreateTcpClient("127.0.0.1:9999", ClientProcess1)
+	tc := NewTcpClient(clientProcessFunc)
+	err := tc.StartTcpClient("127.0.0.1:9999")
+	belogs.Debug("CreateTcpClient(): tc: ", tc, err)
+	if err != nil {
+		return
+	}
+	belogs.Debug("CreateTcpClient(): tcpclient will SendData")
+	tcpClientSendMsg := &TcpTlsClientSendMsg{NextConnectClosePolicy: util.NEXT_CONNECT_POLICE_KEEP,
+		NextRwPolice: util.NEXT_RW_POLICE_WAIT_READ,
+		SendData:     GetTcpClientData(),
+	}
+	tc.SendMsg(tcpClientSendMsg)
+	time.Sleep(60 * time.Second)
+
+	belogs.Debug("CreateTcpClient(): tcpclient will stop")
+	tcpClientSendMsg.NextConnectClosePolicy = util.NEXT_CONNECT_POLICE_CLOSE_GRACEFUL
+	tcpClientSendMsg.SendData = nil
+	tc.SendMsg(tcpClientSendMsg)
+
+}
+
+func CreateTlsClient() {
+	clientProcessFunc := new(ClientProcessFunc)
+	tlsRootCrtFileName := `./ca/ca.cer`
+	tlsPublicCrtFileName := `./server/server.cer`
+	tlsPrivateKeyFileName := `./server/serverkey.pem`
+
+	//CreateTcpClient("127.0.0.1:9999", ClientProcess1)
+	tc := NewTlsClient(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileName, clientProcessFunc)
+	err := tc.StartTcpClient("127.0.0.1:9999")
+	belogs.Debug("CreateTcpClient(): tc: ", tc, err)
+	if err != nil {
+		return
+	}
+	belogs.Debug("CreateTcpClient(): tcpclient will SendData")
+	tcpClientSendMsg := &TcpTlsClientSendMsg{NextConnectClosePolicy: util.NEXT_CONNECT_POLICE_KEEP,
+		NextRwPolice: util.NEXT_RW_POLICE_WAIT_READ,
+		SendData:     GetTcpClientData(),
+	}
+	tc.SendMsg(tcpClientSendMsg)
+	time.Sleep(60 * time.Second)
+
+	belogs.Debug("CreateTcpClient(): tcpclient will stop")
+	tcpClientSendMsg.NextConnectClosePolicy = util.NEXT_CONNECT_POLICE_CLOSE_GRACEFUL
+	tcpClientSendMsg.SendData = nil
+	tc.SendMsg(tcpClientSendMsg)
+
+}
+
+type ClientProcessFunc struct {
+}
+
+func (cp *ClientProcessFunc) OnConnectProcess(tcpTlsConn *TcpTlsConn) {
+
+	belogs.Info("OnConnectProcess(): tcpclient tcpTlsConn:", tcpTlsConn.RemoteAddr().String())
+
+}
+func (cp *ClientProcessFunc) OnCloseProcess(tcpTlsConn *TcpTlsConn) {
+	if tcpTlsConn != nil {
+		belogs.Info("OnCloseProcess(): tcpclient tcpTlsConn:", tcpTlsConn.RemoteAddr().String())
+	}
+}
+
+func (sq *ClientProcessFunc) OnReceiveProcess(tcpTlsConn *TcpTlsConn, receiveData []byte) (nextRwPolicy int, leftData []byte, err error) {
+
+	belogs.Debug("OnReceiveProcess() tcpclient  :", tcpTlsConn, convert.Bytes2String(receiveData))
+	return util.NEXT_RW_POLICE_END_READ, make([]byte, 0), nil
+}
+
+func GetTcpClientData() (buffer []byte) {
+
+	return []byte{0x00, 0x0b, 0x00, 0x01, 0x00, 0x00, 0x00, 0x10,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x0b, 0x00, 0x01, 0x00, 0x00, 0x00, 0x10,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+}
