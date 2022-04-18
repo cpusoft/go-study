@@ -10,7 +10,6 @@ import (
 
 	belogs "github.com/cpusoft/goutil/belogs"
 	"github.com/cpusoft/goutil/jsonutil"
-	"github.com/cpusoft/goutil/tcpserverclient/util"
 )
 
 type TcpTlsClientSendMsg struct {
@@ -163,8 +162,8 @@ func (tc *TcpTlsClient) SendAndReceive(tcpTlsConn *TcpTlsConn) (err error) {
 				"  tcpTlsClientSendMsg: ", jsonutil.MarshalJson(tcpTlsClientSendMsg))
 
 			// if close
-			if nextConnectClosePolicy == util.NEXT_CONNECT_POLICE_CLOSE_GRACEFUL ||
-				nextConnectClosePolicy == util.NEXT_CONNECT_POLICE_CLOSE_FORCIBLE {
+			if nextConnectClosePolicy == NEXT_CONNECT_POLICE_CLOSE_GRACEFUL ||
+				nextConnectClosePolicy == NEXT_CONNECT_POLICE_CLOSE_FORCIBLE {
 				belogs.Info("SendAndReceive(): tcptlsclient   nextConnectClosePolicy close end client, will end tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(),
 					"   nextConnectClosePolicy:", nextConnectClosePolicy)
 				tc.OnClose(tcpTlsConn)
@@ -183,7 +182,7 @@ func (tc *TcpTlsClient) SendAndReceive(tcpTlsConn *TcpTlsConn) (err error) {
 				"  time(s):", time.Now().Sub(start).Seconds())
 
 			// if wait receive, then wait next tcpTlsClientSendMsg
-			if nextRwPolice == util.NEXT_RW_POLICE_WAIT_READ {
+			if nextRwPolice == NEXT_RW_POLICE_WAIT_READ {
 				// if server tell client: end this loop, or end conn
 				err := tc.OnReceive(tcpTlsConn)
 				if err != nil {
@@ -236,7 +235,7 @@ func (tc *TcpTlsClient) OnReceive(tcpTlsConn *TcpTlsConn) (err error) {
 			belogs.Error("OnReceive(): tcptlsclient  tcpTlsClientProcessFunc.OnReceiveProcess  fail ,will close this tcpTlsConn : ", tcpTlsConn.RemoteAddr().String(), err)
 			return err
 		}
-		if nextRwPolicy == util.NEXT_RW_POLICE_END_READ {
+		if nextRwPolicy == NEXT_RW_POLICE_END_READ {
 			belogs.Debug("OnReceive(): tcptlsclient  nextRwPolicy, will end this write/read loop: ", tcpTlsConn.RemoteAddr().String())
 			return nil
 		}

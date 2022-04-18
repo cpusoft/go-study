@@ -10,7 +10,6 @@ import (
 	"time"
 
 	belogs "github.com/cpusoft/goutil/belogs"
-	util "github.com/cpusoft/goutil/tcpserverclient/util"
 )
 
 // core struct: Start/OnConnect/ReceiveAndSend....
@@ -98,18 +97,23 @@ func (ts *TcpTlsServer) StartTcpServer(port string) (err error) {
 // port: `8888` --> `:8888`
 func (ts *TcpTlsServer) StartTlsServer(port string) (err error) {
 
+	belogs.Debug("StartTlsServer(): tlsserver  port:", port)
 	cert, err := tls.LoadX509KeyPair(ts.tlsPublicCrtFileName, ts.tlsPrivateKeyFileName)
 	if err != nil {
 		belogs.Error("StartTlsServer(): tlsserver  LoadX509KeyPair fail: port:", port,
 			"  tlsPublicCrtFileName, tlsPrivateKeyFileName:", ts.tlsPublicCrtFileName, ts.tlsPrivateKeyFileName, err)
 		return err
 	}
+	belogs.Debug("StartTlsServer(): tlsserver  cert:", cert)
+
 	rootCrtBytes, err := ioutil.ReadFile(ts.tlsRootCrtFileName)
 	if err != nil {
 		belogs.Error("StartTlsServer(): tlsserver  ReadFile tlsRootCrtFileName fail, port:", port,
 			"  tlsRootCrtFileName:", ts.tlsRootCrtFileName, err)
 		return err
 	}
+	belogs.Debug("StartTlsServer(): tlsserver  len(rootCrtBytes):", len(rootCrtBytes), "  tlsRootCrtFileName:", ts.tlsRootCrtFileName)
+
 	rootCertPool := x509.NewCertPool()
 	ok := rootCertPool.AppendCertsFromPEM(rootCrtBytes)
 	if !ok {
@@ -117,16 +121,21 @@ func (ts *TcpTlsServer) StartTlsServer(port string) (err error) {
 			"  tlsRootCrtFileName:", ts.tlsRootCrtFileName, "  len(rootCrtBytes):", len(rootCrtBytes), err)
 		return err
 	}
+	belogs.Debug("StartTlsServer(): tlsserver  AppendCertsFromPEM len(rootCrtBytes):", len(rootCrtBytes), "  tlsRootCrtFileName:", ts.tlsRootCrtFileName)
+
 	clientAuthType := tls.NoClientCert
 	if ts.tlsVerifyClient {
 		clientAuthType = tls.RequireAndVerifyClientCert
 	}
+	belogs.Debug("StartTlsServer(): tlsserver clientAuthType:", clientAuthType)
+
 	// https://stackoverflow.com/questions/63676241/how-to-set-setkeepaliveperiod-on-a-tls-conn
 	setTCPKeepAlive := func(clientHello *tls.ClientHelloInfo) (*tls.Config, error) {
 		// Check that the underlying connection really is TCP.
 		if tcpConn, ok := clientHello.Conn.(*net.TCPConn); ok {
 			tcpConn.SetKeepAlive(true)
 			tcpConn.SetKeepAlivePeriod(time.Second * 300)
+			belogs.Debug("StartTlsServer(): tlsserver SetKeepAlive:")
 		}
 		// Make sure to return nil, nil to let the caller fall back on the default behavior.
 		return nil, nil
@@ -210,8 +219,8 @@ func (ts *TcpTlsServer) ReceiveAndSend(tcpTlsConn *TcpTlsConn) {
 			belogs.Error("ReceiveAndSend(): tcptlsserver ReceiveAndSendProcess fail ,will remove this tcpTlsConn : ", tcpTlsConn.RemoteAddr().String(), err)
 			return
 		}
-		if nextConnectPolicy == util.NEXT_CONNECT_POLICE_CLOSE_GRACEFUL ||
-			nextConnectPolicy == util.NEXT_CONNECT_POLICE_CLOSE_FORCIBLE {
+		if nextConnectPolicy == NEXT_CONNECT_POLICE_CLOSE_GRACEFUL ||
+			nextConnectPolicy == NEXT_CONNECT_POLICE_CLOSE_FORCIBLE {
 			belogs.Info("ReceiveAndSend(): tcptlsserver  nextConnectPolicy return : ", tcpTlsConn.RemoteAddr().String(), nextConnectPolicy)
 			return
 		}

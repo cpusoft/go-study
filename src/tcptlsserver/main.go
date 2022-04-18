@@ -6,13 +6,15 @@ import (
 	"time"
 
 	belogs "github.com/cpusoft/goutil/belogs"
+	_ "github.com/cpusoft/goutil/conf"
 	"github.com/cpusoft/goutil/convert"
+	_ "github.com/cpusoft/goutil/logs"
 	"github.com/cpusoft/goutil/tcpserverclient/util"
 	tcputil "github.com/cpusoft/goutil/tcpserverclient/util"
 )
 
 func main() {
-	t := `server`
+	t := `tcpServer`
 	if len(os.Args) > 1 {
 		t = os.Args[1]
 	}
