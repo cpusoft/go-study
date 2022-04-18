@@ -15,7 +15,7 @@ import (
 
 // core struct: Start/OnConnect/ReceiveAndSend....
 type TcpTlsServer struct {
-	// common
+	// both tcp and tls
 	isTcpServer             bool
 	tcpTlsConns             map[string]*TcpTlsConn // map[addr]*net.TCPConn
 	tcpTlsConnsMutex        sync.RWMutex
