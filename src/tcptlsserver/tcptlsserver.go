@@ -88,7 +88,7 @@ func (ts *TcpTlsServer) StartTcpServer(port string) (err error) {
 		tcpTlsConn := NewFromTcpConn(tcpConn)
 		ts.OnConnect(tcpTlsConn)
 
-		// call func to process tcpConn
+		// call func to process tcpTlsConn
 		go ts.ReceiveAndSend(tcpTlsConn)
 
 	}
@@ -227,7 +227,7 @@ func (ts *TcpTlsServer) ActiveSend(sendData []byte, connKey string) (err error) 
 
 	belogs.Debug("ActiveSend(): tcptlsserver ,len(sendData):", len(sendData), "   len(tcpTlsConns): ", len(ts.tcpTlsConns), "  connKey:", connKey)
 	if len(connKey) == 0 {
-		belogs.Debug("ActiveSend(): tcptlsserver , to all, len(sendData):", len(sendData), "   len(tcpConns): ", len(ts.tcpTlsConns))
+		belogs.Debug("ActiveSend(): tcptlsserver to all, len(sendData):", len(sendData), "   len(tcpConns): ", len(ts.tcpTlsConns))
 		for i := range ts.tcpTlsConns {
 			belogs.Debug("ActiveSend(): tcptlsserver   to all, client: ", i, "    ts.tcpConns[i]:", ts.tcpTlsConns[i], "   call process func: ActiveSend ")
 			err = ts.tcpTlsServerProcessFunc.ActiveSendProcess(ts.tcpTlsConns[i], sendData)
@@ -240,7 +240,7 @@ func (ts *TcpTlsServer) ActiveSend(sendData []byte, connKey string) (err error) 
 			"  time(s):", time.Now().Sub(start).Seconds())
 		return
 	} else {
-		belogs.Debug("ActiveSend(): tcptlsserver server, to connKey:", connKey)
+		belogs.Debug("ActiveSend(): tcptlsserver  to connKey:", connKey)
 		if tcpTlsConn, ok := ts.tcpTlsConns[connKey]; ok {
 			err = ts.tcpTlsServerProcessFunc.ActiveSendProcess(tcpTlsConn, sendData)
 			if err != nil {
@@ -259,15 +259,15 @@ func (ts *TcpTlsServer) OnConnect(tcpTlsConn *TcpTlsConn) {
 	start := time.Now()
 	belogs.Debug("OnConnect(): new tcpTlsConn: ", tcpTlsConn)
 
-	// add new tcpConn to tcpconns
+	// add new tcpTlsConn to tcpTlsConns
 	ts.tcpTlsConnsMutex.Lock()
 	defer ts.tcpTlsConnsMutex.Unlock()
 
 	connKey := tcpTlsConn.RemoteAddr().String()
 	ts.tcpTlsConns[connKey] = tcpTlsConn
-	belogs.Debug("OnConnect(): tcptlsserver tcpConn: ", tcpTlsConn.RemoteAddr().String(), ", connKey:", connKey, "  new len(tcpTlsConns): ", len(ts.tcpTlsConns))
+	belogs.Debug("OnConnect(): tcptlsserver tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), ", connKey:", connKey, "  new len(tcpTlsConns): ", len(ts.tcpTlsConns))
 	ts.tcpTlsServerProcessFunc.OnConnectProcess(tcpTlsConn)
-	belogs.Info("OnConnect(): tcptlsserver add tcpConn: ", tcpTlsConn.RemoteAddr().String(), "   len(tcpTlsConns): ", len(ts.tcpTlsConns), "   time(s):", time.Now().Sub(start).Seconds())
+	belogs.Info("OnConnect(): tcptlsserver add tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), "   len(tcpTlsConns): ", len(ts.tcpTlsConns), "   time(s):", time.Now().Sub(start).Seconds())
 
 }
 
@@ -280,13 +280,13 @@ func (ts *TcpTlsServer) OnClose(tcpTlsConn *TcpTlsConn) {
 	start := time.Now()
 
 	// call process func OnClose
-	belogs.Debug("OnClose(): tcptlsserver server,tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), "   call process func: OnClose ")
+	belogs.Debug("OnClose(): tcptlsserver tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), "   call process func: OnClose ")
 	ts.tcpTlsServerProcessFunc.OnCloseProcess(tcpTlsConn)
 
-	// remove tcpConn from tcpConns
+	// remove tcpTlsConn from tcpConns
 	ts.tcpTlsConnsMutex.Lock()
 	defer ts.tcpTlsConnsMutex.Unlock()
-	belogs.Debug("OnClose(): tcptlsserver server,tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), "   old len(tcpTlsConns): ", len(ts.tcpTlsConns))
+	belogs.Debug("OnClose(): tcptlsserver will new tcpTlsConns, tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), "   old len(tcpTlsConns): ", len(ts.tcpTlsConns))
 	newTlsTcpConns := make(map[string]*TcpTlsConn, len(ts.tcpTlsConns))
 	for i := range ts.tcpTlsConns {
 		if ts.tcpTlsConns[i] != tcpTlsConn {
@@ -296,5 +296,5 @@ func (ts *TcpTlsServer) OnClose(tcpTlsConn *TcpTlsConn) {
 	}
 	ts.tcpTlsConns = newTlsTcpConns
 
-	belogs.Info("OnClose(): tcptlsserver server,new len(tcpTlsConns): ", len(ts.tcpTlsConns), "  time(s):", time.Now().Sub(start).Seconds())
+	belogs.Info("OnClose(): tcptlsserver new len(tcpTlsConns): ", len(ts.tcpTlsConns), "  time(s):", time.Now().Sub(start).Seconds())
 }
