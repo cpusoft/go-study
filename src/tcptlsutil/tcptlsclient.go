@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net"
@@ -10,6 +11,7 @@ import (
 
 	belogs "github.com/cpusoft/goutil/belogs"
 	"github.com/cpusoft/goutil/jsonutil"
+	"github.com/cpusoft/goutil/osutil"
 )
 
 type TcpTlsClientSendMsg struct {
@@ -44,20 +46,35 @@ func NewTcpClient(tcpTlsClientProcessFunc TcpTlsClientProcessFunc) (tc *TcpTlsCl
 
 // server: 0.0.0.0:port
 func NewTlsClient(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileName string,
-	tcpTlsClientProcessFunc TcpTlsClientProcessFunc) (tc *TcpTlsClient) {
+	tcpTlsClientProcessFunc TcpTlsClientProcessFunc) (tc *TcpTlsClient, err error) {
 
-	belogs.Debug("NewTlsClient():tcpTlsClientProcessFunc:", tcpTlsClientProcessFunc)
+	belogs.Debug("NewTlsClient():tcpTlsClientProcessFunc:", &tcpTlsClientProcessFunc)
 	tc = &TcpTlsClient{}
 	tc.isTcpClient = false
 	tc.tcpTlsClientSendMsg = make(chan TcpTlsClientSendMsg)
 	tc.tcpTlsClientProcessFunc = tcpTlsClientProcessFunc
+	rootExists, _ := osutil.IsExists(tlsRootCrtFileName)
+	if !rootExists {
+		belogs.Error("NewTlsClient():root cer files not exists:", tlsRootCrtFileName)
+		return nil, errors.New("root cer file is not exists")
+	}
+	publicExists, _ := osutil.IsExists(tlsPublicCrtFileName)
+	if !publicExists {
+		belogs.Error("NewTlsClient():public cer files not exists:", tlsPublicCrtFileName)
+		return nil, errors.New("public cer file is not exists")
+	}
+	privateExists, _ := osutil.IsExists(tlsPrivateKeyFileName)
+	if !privateExists {
+		belogs.Error("NewTlsClient():private cer files not exists:", tlsPrivateKeyFileName)
+		return nil, errors.New("private cer file is not exists")
+	}
 
 	tc.tlsRootCrtFileName = tlsRootCrtFileName
 	tc.tlsPublicCrtFileName = tlsPublicCrtFileName
 	tc.tlsPrivateKeyFileName = tlsPrivateKeyFileName
 
-	belogs.Info("NewTlsClient():tc:", tc)
-	return tc
+	belogs.Info("NewTlsClient():tc:", &tc)
+	return tc, nil
 }
 
 // server: **.**.**.**:port

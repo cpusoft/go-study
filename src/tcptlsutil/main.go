@@ -41,7 +41,11 @@ func CreateTcpServer() {
 	serverProcessFunc := new(ServerProcessFunc)
 	ts := NewTcpServer(serverProcessFunc)
 	belogs.Debug("CreateTcpServer():", 9999)
-	ts.StartTcpServer("9999")
+	err := ts.StartTcpServer("9999")
+	if err != nil {
+		belogs.Error("CreateTcpServer(): StartTcpServer ts fail: ", &ts, err)
+		return
+	}
 	time.Sleep(2 * time.Second)
 	ts.ActiveSend(GetData(), "")
 }
@@ -54,8 +58,16 @@ func CreateTlsServer() {
 		"tlsPublicCrtFileName:", tlsPublicCrtFileName,
 		"tlsPrivateKeyFileName:", tlsPrivateKeyFileName)
 
-	ts := NewTlsServer(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileName, true, serverProcessFunc)
-	ts.StartTlsServer("9999")
+	ts, err := NewTlsServer(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileName, true, serverProcessFunc)
+	if err != nil {
+		belogs.Error("CreateTlsServer(): NewTlsServer ts fail: ", &ts, err)
+		return
+	}
+	err = ts.StartTlsServer("9999")
+	if err != nil {
+		belogs.Error("CreateTlsServer(): StartTlsServer ts fail: ", &ts, err)
+		return
+	}
 	time.Sleep(2 * time.Second)
 	ts.ActiveSend(GetData(), "")
 }
@@ -133,8 +145,8 @@ func CreateTcpClient() {
 	//CreateTcpClient("127.0.0.1:9999", ClientProcess1)
 	tc := NewTcpClient(clientProcessFunc)
 	err := tc.StartTcpClient("127.0.0.1:9999")
-	belogs.Debug("CreateTcpClient(): tc: ", tc, err)
 	if err != nil {
+		belogs.Error("CreateTcpClient(): StartTcpClient tc fail: ", &tc, err)
 		return
 	}
 	belogs.Debug("CreateTcpClient(): tcpclient will SendData")
@@ -155,16 +167,20 @@ func CreateTcpClient() {
 func CreateTlsClient() {
 	clientProcessFunc := new(ClientProcessFunc)
 	tlsRootCrtFileName := `ca.cer`
-	tlsPublicCrtFileName := `server.cer`
-	tlsPrivateKeyFileName := `serverkey.pem`
+	tlsPublicCrtFileName := `client.cer`
+	tlsPrivateKeyFileName := `clientkey.pem`
 	belogs.Debug("CreateTlsClient(): tlsRootCrtFileName:", tlsRootCrtFileName,
 		"tlsPublicCrtFileName:", tlsPublicCrtFileName,
 		"tlsPrivateKeyFileName:", tlsPrivateKeyFileName)
 	//CreateTcpClient("127.0.0.1:9999", ClientProcess1)
-	tc := NewTlsClient(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileName, clientProcessFunc)
-	err := tc.StartTcpClient("127.0.0.1:9999")
-	belogs.Debug("CreateTcpClient(): tc: ", tc, err)
+	tc, err := NewTlsClient(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileName, clientProcessFunc)
 	if err != nil {
+		belogs.Error("CreateTcpClient(): NewTlsClient tc fail: ", &tc, err)
+		return
+	}
+	err = tc.StartTlsClient("127.0.0.1:9999")
+	if err != nil {
+		belogs.Error("CreateTcpClient(): StartTlsClient tc fail: ", &tc, err)
 		return
 	}
 	belogs.Debug("CreateTcpClient(): tcpclient will SendData")

@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	belogs "github.com/cpusoft/goutil/belogs"
+	"github.com/cpusoft/goutil/osutil"
 )
 
 // core struct: Start/OnConnect/ReceiveAndSend....
@@ -38,7 +40,7 @@ func NewTcpServer(tcpTlsServerProcessFunc TcpTlsServerProcessFunc) (ts *TcpTlsSe
 	return ts
 }
 func NewTlsServer(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileName string, tlsVerifyClient bool,
-	tcpTlsServerProcessFunc TcpTlsServerProcessFunc) (ts *TcpTlsServer) {
+	tcpTlsServerProcessFunc TcpTlsServerProcessFunc) (ts *TcpTlsServer, err error) {
 
 	belogs.Debug("NewTcpServer():tlsRootCrtFileName:", tlsRootCrtFileName, "  tlsPublicCrtFileName:", tlsPublicCrtFileName,
 		"   tlsPrivateKeyFileName:", tlsPrivateKeyFileName, "   tlsVerifyClient:", tlsVerifyClient,
@@ -46,13 +48,30 @@ func NewTlsServer(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileNam
 	ts = &TcpTlsServer{}
 	ts.isTcpServer = false
 	ts.tcpTlsConns = make(map[string]*TcpTlsConn, 16)
+
+	rootExists, _ := osutil.IsExists(tlsRootCrtFileName)
+	if !rootExists {
+		belogs.Error("NewTcpServer():root cer files not exists:", tlsRootCrtFileName)
+		return nil, errors.New("root cer file is not exists")
+	}
+	publicExists, _ := osutil.IsExists(tlsPublicCrtFileName)
+	if !publicExists {
+		belogs.Error("NewTcpServer():public cer files not exists:", tlsPublicCrtFileName)
+		return nil, errors.New("public cer file is not exists")
+	}
+	privateExists, _ := osutil.IsExists(tlsPrivateKeyFileName)
+	if !privateExists {
+		belogs.Error("NewTcpServer():private cer files not exists:", tlsPrivateKeyFileName)
+		return nil, errors.New("private cer file is not exists")
+	}
+
 	ts.tlsRootCrtFileName = tlsRootCrtFileName
 	ts.tlsPublicCrtFileName = tlsPublicCrtFileName
 	ts.tlsPrivateKeyFileName = tlsPrivateKeyFileName
 	ts.tcpTlsServerProcessFunc = tcpTlsServerProcessFunc
 	ts.tlsVerifyClient = tlsVerifyClient
-	belogs.Debug("NewTlsServer():ts:", ts)
-	return ts
+	belogs.Debug("NewTlsServer():ts:", &ts)
+	return ts, nil
 }
 
 // port: `8888` --> `0.0.0.0:8888`
