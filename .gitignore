@@ -20,3 +20,8 @@ go.sum
 /src/tcptlsserver/server/server.cer
 /src/tcptlsserver/server/server.csr
 /src/tcptlsserver/server/serverkey.pem
+/src/tcpserverclient1/log/tcpserverclient1.2022-04-18.log
+/src/tcpserverclient1/tcpserverclient1.exe
+/src/tcpserverclient1/tcpserverclient1.exe~
+/src/cert/cert.exe
+/src/tcptlsserver.zip

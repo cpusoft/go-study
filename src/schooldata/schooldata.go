@@ -23,12 +23,12 @@ func (s StringList) Swap(i, j int) {
 }
 func (s StringList) Less(i, j int) bool {
 
-	iTmp := strings.Replace(s[i], `F:\share\我的坚果云\rongrong\20200220_学校数据抓取\html\华南理工大学研究生指导教师信息`, "", -1)
+	iTmp := strings.Replace(s[i], `\html\华南理工大学研究生指导教师信息`, "", -1)
 	iTmp = strings.Replace(iTmp, ".html", "", -1)
 	belogs.Debug("s[i]", s[i], " iTmp:", iTmp)
 	iInt, _ := strconv.Atoi(iTmp)
 
-	jTmp := strings.Replace(s[j], `F:\share\我的坚果云\rongrong\20200220_学校数据抓取\html\华南理工大学研究生指导教师信息`, "", -1)
+	jTmp := strings.Replace(s[j], `\html\华南理工大学研究生指导教师信息`, "", -1)
 	jTmp = strings.Replace(jTmp, ".html", "", -1)
 	belogs.Debug("s[j]", s[j], " jTmp:", jTmp)
 	jInt, _ := strconv.Atoi(jTmp)
@@ -81,7 +81,7 @@ func main() {
 }
 func getAllFiles() (files []string, err error) {
 
-	file := `F:\share\我的坚果云\rongrong\20200220_学校数据抓取\html\`
+	file := `\html\`
 	belogs.Debug("getAllFiles():input read file or path :", file)
 	file = strings.TrimSpace(file)
 

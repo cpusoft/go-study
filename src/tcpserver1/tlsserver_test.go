@@ -92,9 +92,9 @@ func (spf *ServerProcessFunc) ActiveSendProcess(conn net.Conn, sendData []byte) 
 
 func TestCreateTlsServer(t *testing.T) {
 	serverProcessFunc := new(ServerProcessFunc)
-	rootCrtFileName := `F:\share\我的坚果云\Go\go-study\data\ca\ca.cer`
-	publicCrtFileName := `F:\share\我的坚果云\Go\go-study\data\server\server.cer`
-	privateKeyFileName := `F:\share\我的坚果云\Go\go-study\data\server\serverkey.pem`
+	rootCrtFileName := `\go-study\data\ca\ca.cer`
+	publicCrtFileName := `\go-study\data\server\server.cer`
+	privateKeyFileName := `\go-study\data\server\serverkey.pem`
 
 	ts := NewTlsServer(serverProcessFunc, rootCrtFileName, publicCrtFileName, privateKeyFileName, true)
 	ts.Start("0.0.0.0:9999")

@@ -104,7 +104,7 @@ func (ts *TcpTlsServer) StartTlsServer(port string) (err error) {
 			"  tlsPublicCrtFileName, tlsPrivateKeyFileName:", ts.tlsPublicCrtFileName, ts.tlsPrivateKeyFileName, err)
 		return err
 	}
-	belogs.Debug("StartTlsServer(): tlsserver  cert:", cert)
+	belogs.Debug("StartTlsServer(): tlsserver  cert:", ts.tlsPublicCrtFileName, ts.tlsPrivateKeyFileName)
 
 	rootCrtBytes, err := ioutil.ReadFile(ts.tlsRootCrtFileName)
 	if err != nil {
@@ -153,7 +153,7 @@ func (ts *TcpTlsServer) StartTlsServer(port string) (err error) {
 		return err
 	}
 	defer listen.Close()
-	belogs.Debug("StartTlsServer(): tlsserver  create server ok, server is ", port, "  will accept client")
+	belogs.Debug("StartTlsServer(): tlsserver  create server ok, port is ", port, "  will accept client")
 	//var tlsConn tls.Conn
 	for {
 		conn, err := listen.Accept()
@@ -192,9 +192,11 @@ func (ts *TcpTlsServer) ReceiveAndSend(tcpTlsConn *TcpTlsConn) {
 	buffer := make([]byte, 2048)
 	// wait for new packet to read
 	for {
-		n, err := tcpTlsConn.Read(buffer)
 		start := time.Now()
-		belogs.Debug("ReceiveAndSend(): tcptlsserver read: Read n: ", tcpTlsConn.RemoteAddr().String(), n)
+		n, err := tcpTlsConn.Read(buffer)
+		//	if n == 0 {
+		//		continue
+		//	}
 		if err != nil {
 			if err == io.EOF {
 				// is not error, just client close
@@ -204,14 +206,11 @@ func (ts *TcpTlsServer) ReceiveAndSend(tcpTlsConn *TcpTlsConn) {
 			belogs.Error("ReceiveAndSend(): tcptlsserver Read fail, err ", tcpTlsConn.RemoteAddr().String(), err)
 			return
 		}
-		if n == 0 {
-			continue
-		}
 
 		// call process func OnReceiveAndSend
 		// copy to leftData
-		belogs.Debug("ReceiveAndSend(): tcptlsserver  will ReceiveAndSendProcess, server tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), "  n:", n,
-			" , will call process func: OnReceiveAndSend,  time(s):", time.Now().Sub(start))
+		belogs.Debug("ReceiveAndSend(): tcptlsserver tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(),
+			" , Read n:", n, "  time(s):", time.Now().Sub(start))
 		nextConnectPolicy, leftData, err := ts.tcpTlsServerProcessFunc.ReceiveAndSendProcess(tcpTlsConn, append(leftData, buffer[:n]...))
 		belogs.Debug("ReceiveAndSend(): tcptlsserver  after ReceiveAndSendProcess,server tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), " receive n: ", n,
 			"  len(leftData):", len(leftData), "  time(s):", time.Now().Sub(start))

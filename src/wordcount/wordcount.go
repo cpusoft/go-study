@@ -938,7 +938,7 @@ func main() {
 	//w := WordCount(s)
 	//fmt.Println(InvertMap(w))
 	/*
-		file := `F:\share\我的坚果云\Thesis\参考资料\ietf数据\experts_chairs.txt`
+		file := `experts_chairs.txt`
 		m, err := ReadFileAndWordCountByComma(file)
 		fmt.Println(m)
 		if err == nil {
@@ -950,7 +950,7 @@ func main() {
 		file = os.Args[1]
 	} else {
 		//file = `G:\Download\cert\cache\`
-		file = `F:\share\我的坚果云\Thesis\参考资料\ietf数据\experts_Ole_Troan.txt`
+		file = `experts_Ole_Troan.txt`
 	}
 
 	m, err := ReadFileAndWordCountByField(file, stopWords, expertsName)

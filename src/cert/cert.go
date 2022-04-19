@@ -330,8 +330,8 @@ func main() {
 		//file = `E:\Go\go-study\src\main\cert\err1.cer`
 		//file = `E:\Go\go-study\src\main\cert\H.cer`
 		//file = `E:\Go\go-study\src\main\secruity\1.cer`
-		//file = `E:\Go\go-study\src\main\secruity\range_ipv6.cer`
-		file = `F:\share\我的坚果云\Go\go-study\data\ca.cer`
+		file = `E:\Go\go-study\src\main\secruity\range_ipv6.cer`
+		file = `ca.cer`
 		//fmt.Println("usage: ./cert 1.cer")
 		//return
 	}

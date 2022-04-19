@@ -56,6 +56,6 @@ func main() {
 	value = conf2.String("db::name")
 	fmt.Println(value)
 
-	err = conf2.SaveConfigFile(`F:\share\我的坚果云\Go\go-study\src\conf\project.conf`)
+	err = conf2.SaveConfigFile(`src\conf\project.conf`)
 	fmt.Println(err)
 }

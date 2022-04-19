@@ -179,7 +179,7 @@ func (tc *TcpTlsClient) SendAndReceive(tcpTlsConn *TcpTlsConn) (err error) {
 			}
 			belogs.Debug("SendAndReceive(): tcptlsclient   Write to tcpTlsConn:", tcpTlsConn.RemoteAddr().String(),
 				"  len(sendData):", len(sendData), "  write n:", n, "   nextRwPolice:", nextRwPolice,
-				"  time(s):", time.Now().Sub(start).Seconds())
+				"  time(s):", time.Since(start))
 
 			// if wait receive, then wait next tcpTlsClientSendMsg
 			if nextRwPolice == NEXT_RW_POLICE_WAIT_READ {
@@ -189,12 +189,12 @@ func (tc *TcpTlsClient) SendAndReceive(tcpTlsConn *TcpTlsConn) (err error) {
 					belogs.Error("SendAndReceive(): tcptlsclient   Write fail:  tcpTlsConn:", tcpTlsConn.RemoteAddr().String(), err)
 					return err
 				}
-				belogs.Info("SendAndReceive(): tcptlsclient  shouldWaitReceive yes, tcpTlsConn:", tcpTlsConn.RemoteAddr().String(),
+				belogs.Info("SendAndReceive(): tcptlsclient NEXT_RW_POLICE_WAIT_READ, OnReceive, tcpTlsConn:", tcpTlsConn.RemoteAddr().String(),
 					"  len(sendData):", len(sendData), "  write n:", n,
-					"  time(s):", time.Now().Sub(start).Seconds())
+					"  time(s):", time.Since(start))
 				continue
 			} else {
-				belogs.Info("SendAndReceive(): tcptlsclient  OnReceive, shouldWaitReceive no, will return: ", tcpTlsConn.RemoteAddr().String())
+				belogs.Info("SendAndReceive(): tcptlsclient no NEXT_RW_POLICE_WAIT_READ, OnReceive, will return: ", tcpTlsConn.RemoteAddr().String())
 				continue
 			}
 		}
@@ -210,9 +210,11 @@ func (tc *TcpTlsClient) OnReceive(tcpTlsConn *TcpTlsConn) (err error) {
 	// wait for new packet to read
 
 	for {
-		n, err := tcpTlsConn.Read(buffer)
 		start := time.Now()
-		belogs.Debug("OnReceive(): tcptlsclient  client read: Read n: ", tcpTlsConn.RemoteAddr().String(), n)
+		n, err := tcpTlsConn.Read(buffer)
+		//	if n == 0 {
+		//		continue
+		//	}
 		if err != nil {
 			if err == io.EOF {
 				// is not error, just client close
@@ -222,12 +224,9 @@ func (tc *TcpTlsClient) OnReceive(tcpTlsConn *TcpTlsConn) (err error) {
 			belogs.Error("OnReceive(): tcptlsclient   Read fail, err ", tcpTlsConn.RemoteAddr().String(), err)
 			return err
 		}
-		if n == 0 {
-			continue
-		}
 
-		belogs.Debug("OnReceive(): tcptlsclient  client tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), "  n:", n,
-			" , will call process func: OnReceiveAndSend,  time(s):", time.Now().Sub(start))
+		belogs.Debug("OnReceive(): tcptlsclient, tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(),
+			"  Read n", n, "  time(s):", time.Now().Sub(start))
 		nextRwPolicy, leftData, err := tc.tcpTlsClientProcessFunc.OnReceiveProcess(tcpTlsConn, append(leftData, buffer[:n]...))
 		belogs.Info("OnReceive(): tcptlsclient  tcpTlsClientProcessFunc.OnReceiveProcess, tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), " receive n: ", n,
 			"  len(leftData):", len(leftData), "  nextRwPolicy:", nextRwPolicy, "  time(s):", time.Now().Sub(start))
