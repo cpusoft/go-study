@@ -141,10 +141,10 @@ const (
 
 func CreateTcpClient() {
 	clientProcessFunc := new(ClientProcessFunc)
-	belogs.Debug("CreateTcpClient():", "127.0.0.1:9999")
+	belogs.Debug("CreateTcpClient():", "192.168.83.139:9999")
 	//CreateTcpClient("127.0.0.1:9999", ClientProcess1)
 	tc := NewTcpClient(clientProcessFunc)
-	err := tc.StartTcpClient("127.0.0.1:9999")
+	err := tc.StartTcpClient("192.168.83.139:9999")
 	if err != nil {
 		belogs.Error("CreateTcpClient(): StartTcpClient tc fail: ", &tc, err)
 		return
@@ -172,13 +172,13 @@ func CreateTlsClient() {
 	belogs.Debug("CreateTlsClient(): tlsRootCrtFileName:", tlsRootCrtFileName,
 		"tlsPublicCrtFileName:", tlsPublicCrtFileName,
 		"tlsPrivateKeyFileName:", tlsPrivateKeyFileName)
-	//CreateTcpClient("127.0.0.1:9999", ClientProcess1)
+	//CreateTcpClient("192.168.83.139:9999", ClientProcess1)
 	tc, err := NewTlsClient(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileName, clientProcessFunc)
 	if err != nil {
 		belogs.Error("CreateTcpClient(): NewTlsClient tc fail: ", &tc, err)
 		return
 	}
-	err = tc.StartTlsClient("127.0.0.1:9999")
+	err = tc.StartTlsClient("192.168.83.139:9999")
 	if err != nil {
 		belogs.Error("CreateTcpClient(): StartTlsClient tc fail: ", &tc, err)
 		return
