@@ -27,6 +27,11 @@ type TcpTlsServer struct {
 	tlsPublicCrtFileName  string
 	tlsPrivateKeyFileName string
 	tlsVerifyClient       bool
+
+	// https://eli.thegreenplace.net/2020/graceful-shutdown-of-a-tcp-server-in-go/
+	// for close
+	tcpTlsListener *TcpTlsListener
+	closeGraceful  chan struct{}
 }
 
 //
@@ -37,6 +42,7 @@ func NewTcpServer(tcpTlsServerProcessFunc TcpTlsServerProcessFunc) (ts *TcpTlsSe
 	ts.isTcpServer = true
 	ts.tcpTlsConns = make(map[string]*TcpTlsConn, 16)
 	ts.tcpTlsServerProcessFunc = tcpTlsServerProcessFunc
+	ts.closeGraceful = make(chan struct{})
 	belogs.Debug("NewTcpServer():ts:", ts)
 	return ts
 }
@@ -49,6 +55,8 @@ func NewTlsServer(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileNam
 	ts = &TcpTlsServer{}
 	ts.isTcpServer = false
 	ts.tcpTlsConns = make(map[string]*TcpTlsConn, 16)
+	ts.closeGraceful = make(chan struct{})
+	ts.tcpTlsServerProcessFunc = tcpTlsServerProcessFunc
 
 	rootExists, _ := osutil.IsExists(tlsRootCrtFileName)
 	if !rootExists {
@@ -69,7 +77,6 @@ func NewTlsServer(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileNam
 	ts.tlsRootCrtFileName = tlsRootCrtFileName
 	ts.tlsPublicCrtFileName = tlsPublicCrtFileName
 	ts.tlsPrivateKeyFileName = tlsPrivateKeyFileName
-	ts.tcpTlsServerProcessFunc = tcpTlsServerProcessFunc
 	ts.tlsVerifyClient = tlsVerifyClient
 	belogs.Debug("NewTlsServer():ts:", &ts)
 	return ts, nil
@@ -88,14 +95,17 @@ func (ts *TcpTlsServer) StartTcpServer(port string) (err error) {
 		belogs.Error("StartTcpServer(): tcpserver  ListenTCP fail, port:", port, err)
 		return err
 	}
-	tcpTlsListener, err := NewFromTcpListener(listener)
+
+	// get tcpTlsListener
+	ts.tcpTlsListener, err = NewFromTcpListener(listener)
 	if err != nil {
 		belogs.Error("StartTcpServer(): tcpserver  NewFromTcpListener fail, port:", port, err)
 		return err
 	}
-	defer tcpTlsListener.Close()
 	belogs.Info("StartTcpServer(): tcpserver  create server ok, port:", port, "  will accept client")
-	ts.AcceptNewConn(tcpTlsListener)
+
+	// wait new conn
+	ts.AcceptNewConn()
 	return nil
 }
 
@@ -157,23 +167,34 @@ func (ts *TcpTlsServer) StartTlsServer(port string) (err error) {
 		belogs.Error("StartTlsServer(): tlsserver  Listen fail, port:", port, err)
 		return err
 	}
-	tcpTlsListener, err := NewFromTlsListener(listener)
+	// get tcpTlsListener
+	ts.tcpTlsListener, err = NewFromTlsListener(listener)
 	if err != nil {
 		belogs.Error("StartTlsServer(): tlsserver  NewFromTlsListener fail, port: ", port, err)
 		return err
 	}
-	defer tcpTlsListener.Close()
 	belogs.Info("StartTlsServer(): tlsserver  create server ok, port:", port, "  will accept client")
-	ts.AcceptNewConn(tcpTlsListener)
+
+	// wait new conn
+	ts.AcceptNewConn()
 	return nil
 }
 
-func (ts *TcpTlsServer) AcceptNewConn(tcpTlsListener *TcpTlsListener) {
+func (ts *TcpTlsServer) AcceptNewConn() {
+
+	defer ts.tcpTlsListener.Close()
 	for {
-		tcpTlsConn, err := tcpTlsListener.Accept()
+		tcpTlsConn, err := ts.tcpTlsListener.Accept()
 		if err != nil {
-			belogs.Error("AcceptNewConn(): Accept remote fail: ", err)
-			continue
+			select {
+			case <-ts.closeGraceful:
+				belogs.Error("AcceptNewConn(): Accept remote fail and closeGraceful, will return: ", err)
+				return
+			default:
+				belogs.Error("AcceptNewConn(): Accept remote fail: ", err)
+				continue
+			}
+
 		}
 		belogs.Info("AcceptNewConn():  Accept remote: ", tcpTlsConn.RemoteAddr().String())
 
@@ -193,36 +214,43 @@ func (ts *TcpTlsServer) ReceiveAndSend(tcpTlsConn *TcpTlsConn) {
 	buffer := make([]byte, 2048)
 	// wait for new packet to read
 	for {
-		start := time.Now()
-		n, err := tcpTlsConn.Read(buffer)
-		//	if n == 0 {
-		//		continue
-		//	}
-		if err != nil {
-			if err == io.EOF {
-				// is not error, just client close
-				belogs.Info("ReceiveAndSend(): tcptlsserver Read io.EOF, client close: ", tcpTlsConn.RemoteAddr().String(), err)
+		select {
+		case <-ts.closeGraceful:
+			belogs.Info("ReceiveAndSend(): tcptlsserver closeGraceful, will return: ", tcpTlsConn.RemoteAddr().String())
+			return
+		default:
+			start := time.Now()
+			n, err := tcpTlsConn.Read(buffer)
+			//	if n == 0 {
+			//		continue
+			//	}
+			if err != nil {
+				if err == io.EOF {
+					// is not error, just client close
+					belogs.Info("ReceiveAndSend(): tcptlsserver Read io.EOF, client close: ", tcpTlsConn.RemoteAddr().String(), err)
+					return
+				}
+				belogs.Error("ReceiveAndSend(): tcptlsserver Read fail, err ", tcpTlsConn.RemoteAddr().String(), err)
 				return
 			}
-			belogs.Error("ReceiveAndSend(): tcptlsserver Read fail, err ", tcpTlsConn.RemoteAddr().String(), err)
-			return
-		}
 
-		// call process func OnReceiveAndSend
-		// copy to leftData
-		belogs.Debug("ReceiveAndSend(): tcptlsserver tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(),
-			" , Read n:", n, "  time(s):", time.Now().Sub(start))
-		nextConnectPolicy, leftData, err := ts.tcpTlsServerProcessFunc.ReceiveAndSendProcess(tcpTlsConn, append(leftData, buffer[:n]...))
-		belogs.Debug("ReceiveAndSend(): tcptlsserver  after ReceiveAndSendProcess,server tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), " receive n: ", n,
-			"  len(leftData):", len(leftData), "  time(s):", time.Now().Sub(start))
-		if err != nil {
-			belogs.Error("ReceiveAndSend(): tcptlsserver ReceiveAndSendProcess fail ,will remove this tcpTlsConn : ", tcpTlsConn.RemoteAddr().String(), err)
-			return
-		}
-		if nextConnectPolicy == NEXT_CONNECT_POLICE_CLOSE_GRACEFUL ||
-			nextConnectPolicy == NEXT_CONNECT_POLICE_CLOSE_FORCIBLE {
-			belogs.Info("ReceiveAndSend(): tcptlsserver  nextConnectPolicy return : ", tcpTlsConn.RemoteAddr().String(), nextConnectPolicy)
-			return
+			// call process func OnReceiveAndSend
+			// copy to leftData
+			belogs.Debug("ReceiveAndSend(): tcptlsserver tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(),
+				" , Read n:", n, "  time(s):", time.Now().Sub(start))
+			nextConnectPolicy, leftData, err := ts.tcpTlsServerProcessFunc.ReceiveAndSendProcess(tcpTlsConn, append(leftData, buffer[:n]...))
+			belogs.Debug("ReceiveAndSend(): tcptlsserver  after ReceiveAndSendProcess,server tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), " receive n: ", n,
+				"  len(leftData):", len(leftData), "  time(s):", time.Now().Sub(start))
+			if err != nil {
+				belogs.Error("ReceiveAndSend(): tcptlsserver ReceiveAndSendProcess fail ,will remove this tcpTlsConn : ", tcpTlsConn.RemoteAddr().String(), err)
+				return
+			}
+
+			if nextConnectPolicy == NEXT_CONNECT_POLICE_CLOSE_GRACEFUL ||
+				nextConnectPolicy == NEXT_CONNECT_POLICE_CLOSE_FORCIBLE {
+				belogs.Info("ReceiveAndSend(): tcptlsserver  nextConnectPolicy return : ", tcpTlsConn.RemoteAddr().String(), nextConnectPolicy)
+				return
+			}
 		}
 	}
 }
@@ -309,5 +337,19 @@ func (ts *TcpTlsServer) OnClose(tcpTlsConn *TcpTlsConn) {
 }
 
 func (ts *TcpTlsServer) CloseGraceful() {
+	// send channel, and wait listener and conns end itself process and close loop
+	belogs.Info("CloseGraceful(): will close graceful")
+	close(ts.closeGraceful)
+}
+
+func (ts *TcpTlsServer) CloseForceful() {
+	belogs.Info("CloseForceful(): will close forceful")
+	// close listener/conns loop
+	go ts.CloseGraceful()
+	// ignore conns's writing/reading, just close
+	ts.tcpTlsListener.Close()
+	for i := range ts.tcpTlsConns {
+		ts.tcpTlsConns[i].Close()
+	}
 
 }

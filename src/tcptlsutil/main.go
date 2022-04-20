@@ -48,6 +48,9 @@ func CreateTcpServer() {
 	}
 	time.Sleep(2 * time.Second)
 	ts.ActiveSend(GetData(), "")
+
+	time.Sleep(5 * time.Second)
+	ts.CloseGraceful()
 }
 func CreateTlsServer() {
 	serverProcessFunc := new(ServerProcessFunc)
