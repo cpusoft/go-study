@@ -21,6 +21,7 @@ type TcpTlsServer struct {
 	tcpTlsConns             map[string]*TcpTlsConn // map[addr]*net.TCPConn
 	tcpTlsConnsMutex        sync.RWMutex
 	tcpTlsServerProcessFunc TcpTlsServerProcessFunc
+
 	// for tls
 	tlsRootCrtFileName    string
 	tlsPublicCrtFileName  string
@@ -78,39 +79,24 @@ func NewTlsServer(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileNam
 func (ts *TcpTlsServer) StartTcpServer(port string) (err error) {
 	tcpServer, err := net.ResolveTCPAddr("tcp", "0.0.0.0:"+port)
 	if err != nil {
-		belogs.Error("StartTcpServer(): tcpserver  ResolveTCPAddr fail: ", port, err)
+		belogs.Error("StartTcpServer(): tcpserver  ResolveTCPAddr fail, port:", port, err)
 		return err
 	}
 
-	listen, err := net.ListenTCP("tcp", tcpServer)
+	listener, err := net.ListenTCP("tcp", tcpServer)
 	if err != nil {
-		belogs.Error("StartTcpServer(): tcpserver  ListenTCP fail: ", port, err)
+		belogs.Error("StartTcpServer(): tcpserver  ListenTCP fail, port:", port, err)
 		return err
 	}
-	defer listen.Close()
-	belogs.Debug("StartTcpServer(): tcpserver  create server ok, server is ", port, "  will accept client")
-
-	for {
-		tcpConn, err := listen.AcceptTCP()
-		belogs.Info("StartTcpServer(): tcpserver  Accept remote: ", tcpConn.RemoteAddr().String())
-		if tcpConn == nil {
-			belogs.Error("StartTcpServer(): tcpserver AcceptTCP tcpConn is nil: ", port)
-			continue
-		}
-		if err != nil {
-			belogs.Error("StartTcpServer(): tcpserver  AcceptTCP remote fail: ", port, tcpConn.RemoteAddr().String(), err)
-			continue
-		}
-		tcpConn.SetKeepAlive(true)
-		tcpConn.SetKeepAlivePeriod(time.Second * 300)
-		tcpTlsConn := NewFromTcpConn(tcpConn)
-		ts.OnConnect(tcpTlsConn)
-
-		// call func to process tcpTlsConn
-		go ts.ReceiveAndSend(tcpTlsConn)
-
+	tcpTlsListener, err := NewFromTcpListener(listener)
+	if err != nil {
+		belogs.Error("StartTcpServer(): tcpserver  NewFromTcpListener fail, port:", port, err)
+		return err
 	}
-
+	defer tcpTlsListener.Close()
+	belogs.Info("StartTcpServer(): tcpserver  create server ok, port:", port, "  will accept client")
+	ts.AcceptNewConn(tcpTlsListener)
+	return nil
 }
 
 // port: `8888` --> `:8888`
@@ -166,40 +152,36 @@ func (ts *TcpTlsServer) StartTlsServer(port string) (err error) {
 		InsecureSkipVerify: false,
 		GetConfigForClient: setTCPKeepAlive,
 	}
-	listen, err := tls.Listen("tcp", ":"+port, config)
+	listener, err := tls.Listen("tcp", ":"+port, config)
 	if err != nil {
-		belogs.Error("StartTlsServer(): tlsserver  Listen fail: ", port, err)
+		belogs.Error("StartTlsServer(): tlsserver  Listen fail, port:", port, err)
 		return err
 	}
-	defer listen.Close()
-	belogs.Debug("StartTlsServer(): tlsserver  create server ok, port is ", port, "  will accept client")
-	//var tlsConn tls.Conn
+	tcpTlsListener, err := NewFromTlsListener(listener)
+	if err != nil {
+		belogs.Error("StartTlsServer(): tlsserver  NewFromTlsListener fail, port: ", port, err)
+		return err
+	}
+	defer tcpTlsListener.Close()
+	belogs.Info("StartTlsServer(): tlsserver  create server ok, port:", port, "  will accept client")
+	ts.AcceptNewConn(tcpTlsListener)
+	return nil
+}
+
+func (ts *TcpTlsServer) AcceptNewConn(tcpTlsListener *TcpTlsListener) {
 	for {
-		conn, err := listen.Accept()
-		belogs.Info("StartTlsServer(): tlsserver  Accept remote: ", conn.RemoteAddr().String())
-		if conn == nil {
-			belogs.Error("StartTlsServer(): tlsserver  Accept conn is nil fail: ", port)
-			continue
-		}
+		tcpTlsConn, err := tcpTlsListener.Accept()
 		if err != nil {
-			belogs.Error("StartTlsServer(): tlsserver  Accept remote fail: ", port, conn.RemoteAddr().String(), err)
+			belogs.Error("AcceptNewConn(): Accept remote fail: ", err)
 			continue
 		}
+		belogs.Info("AcceptNewConn():  Accept remote: ", tcpTlsConn.RemoteAddr().String())
 
-		tlsConn, ok := conn.(*tls.Conn)
-		if !ok {
-			belogs.Error("Start(): tlsserver  conn cannot conver to tlsConn: ", port, conn.RemoteAddr().String(), err)
-			continue
-		}
-
-		tcpTlsConn := NewFromTlsConn(tlsConn)
 		ts.OnConnect(tcpTlsConn)
-
-		// call func to process tlsConn
+		// call func to process tcpTlsConn
 		go ts.ReceiveAndSend(tcpTlsConn)
 
 	}
-
 }
 
 func (ts *TcpTlsServer) ReceiveAndSend(tcpTlsConn *TcpTlsConn) {
@@ -302,7 +284,7 @@ func (ts *TcpTlsServer) OnClose(tcpTlsConn *TcpTlsConn) {
 	// close in the end
 	defer func() {
 		tcpTlsConn.Close()
-		tcpTlsConn.SetNil()
+		//tcpTlsConn.SetNil()
 	}()
 	start := time.Now()
 
@@ -324,4 +306,8 @@ func (ts *TcpTlsServer) OnClose(tcpTlsConn *TcpTlsConn) {
 	ts.tcpTlsConns = newTlsTcpConns
 
 	belogs.Info("OnClose(): tcptlsserver new len(tcpTlsConns): ", len(ts.tcpTlsConns), "  time(s):", time.Now().Sub(start).Seconds())
+}
+
+func (ts *TcpTlsServer) CloseGraceful() {
+
 }

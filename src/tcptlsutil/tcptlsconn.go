@@ -7,16 +7,20 @@ import (
 )
 
 type TcpTlsConn struct {
-	tcpConn *net.TCPConn
-	tlsConn *tls.Conn
-
+	// tcp: true
+	// tls: false
 	isTcpConn bool
+	tcpConn   *net.TCPConn
+	tlsConn   *tls.Conn
+
+	nextConnectPolicy int
 }
 
 func NewFromTcpConn(tcpConn *net.TCPConn) (c *TcpTlsConn) {
 	c = &TcpTlsConn{}
 	c.tcpConn = tcpConn
 	c.isTcpConn = true
+	c.nextConnectPolicy = NEXT_CONNECT_POLICE_KEEP
 	return c
 }
 
@@ -24,6 +28,7 @@ func NewFromTlsConn(tlsConn *tls.Conn) (c *TcpTlsConn) {
 	c = &TcpTlsConn{}
 	c.tlsConn = tlsConn
 	c.isTcpConn = false
+	c.nextConnectPolicy = NEXT_CONNECT_POLICE_KEEP
 	return c
 }
 
