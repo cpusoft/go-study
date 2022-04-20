@@ -213,19 +213,26 @@ func (ts *TcpTlsServer) ReceiveAndSend(tcpTlsConn *TcpTlsConn) {
 	// one packet
 	buffer := make([]byte, 2048)
 	// wait for new packet to read
+	//https://eli.thegreenplace.net/2020/graceful-shutdown-of-a-tcp-server-in-go/
+	//https://stackoverflow.com/questions/66755407/cancelling-a-net-listener-via-context-in-golang
+ReadLoop:
 	for {
 		select {
 		case <-ts.closeGraceful:
 			belogs.Info("ReceiveAndSend(): tcptlsserver closeGraceful, will return: ", tcpTlsConn.RemoteAddr().String())
 			return
 		default:
+			tcpTlsConn.SetDeadline(time.Now().Add(500 * time.Millisecond))
 			start := time.Now()
 			n, err := tcpTlsConn.Read(buffer)
 			//	if n == 0 {
 			//		continue
 			//	}
 			if err != nil {
-				if err == io.EOF {
+				if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
+					belogs.Debug("ReceiveAndSend(): tcptlsserver Timeout,err:", opErr) //should //
+					continue ReadLoop
+				} else if err == io.EOF {
 					// is not error, just client close
 					belogs.Info("ReceiveAndSend(): tcptlsserver Read io.EOF, client close: ", tcpTlsConn.RemoteAddr().String(), err)
 					return
@@ -237,10 +244,10 @@ func (ts *TcpTlsServer) ReceiveAndSend(tcpTlsConn *TcpTlsConn) {
 			// call process func OnReceiveAndSend
 			// copy to leftData
 			belogs.Debug("ReceiveAndSend(): tcptlsserver tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(),
-				" , Read n:", n, "  time(s):", time.Now().Sub(start))
+				" , Read n:", n, "  time(s):", time.Since(start))
 			nextConnectPolicy, leftData, err := ts.tcpTlsServerProcessFunc.ReceiveAndSendProcess(tcpTlsConn, append(leftData, buffer[:n]...))
 			belogs.Debug("ReceiveAndSend(): tcptlsserver  after ReceiveAndSendProcess,server tcpTlsConn: ", tcpTlsConn.RemoteAddr().String(), " receive n: ", n,
-				"  len(leftData):", len(leftData), "  time(s):", time.Now().Sub(start))
+				"  len(leftData):", len(leftData), "  time(s):", time.Since(start))
 			if err != nil {
 				belogs.Error("ReceiveAndSend(): tcptlsserver ReceiveAndSendProcess fail ,will remove this tcpTlsConn : ", tcpTlsConn.RemoteAddr().String(), err)
 				return
@@ -338,12 +345,12 @@ func (ts *TcpTlsServer) OnClose(tcpTlsConn *TcpTlsConn) {
 
 func (ts *TcpTlsServer) CloseGraceful() {
 	// send channel, and wait listener and conns end itself process and close loop
-	belogs.Info("CloseGraceful(): will close graceful")
+	belogs.Info("CloseGraceful(): tcptlsserver will close graceful")
 	close(ts.closeGraceful)
 }
 
 func (ts *TcpTlsServer) CloseForceful() {
-	belogs.Info("CloseForceful(): will close forceful")
+	belogs.Info("CloseForceful(): tcptlsserver will close forceful")
 	// close listener/conns loop
 	go ts.CloseGraceful()
 	// ignore conns's writing/reading, just close

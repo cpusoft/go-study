@@ -30,6 +30,9 @@ type TcpTlsClient struct {
 	tlsRootCrtFileName    string
 	tlsPublicCrtFileName  string
 	tlsPrivateKeyFileName string
+
+	// for close
+	tcpTlsConn *TcpTlsConn
 }
 
 // server: 0.0.0.0:port
@@ -53,6 +56,7 @@ func NewTlsClient(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileNam
 	tc.isTcpClient = false
 	tc.tcpTlsClientSendMsg = make(chan TcpTlsClientSendMsg)
 	tc.tcpTlsClientProcessFunc = tcpTlsClientProcessFunc
+
 	rootExists, _ := osutil.IsExists(tlsRootCrtFileName)
 	if !rootExists {
 		belogs.Error("NewTlsClient():root cer files not exists:", tlsRootCrtFileName)
@@ -81,25 +85,38 @@ func NewTlsClient(tlsRootCrtFileName, tlsPublicCrtFileName, tlsPrivateKeyFileNam
 func (tc *TcpTlsClient) StartTcpClient(server string) (err error) {
 	belogs.Debug("StartTcpClient(): create client, server is  ", server)
 
-	tcpServer, err := net.ResolveTCPAddr("tcp", server)
+	conn, err := net.DialTimeout("tcp", server, 60*time.Second)
 	if err != nil {
-		belogs.Error("StartTcpClient():  ResolveTCPAddr fail: ", server, err)
+		belogs.Error("StartTcpClient(): DialTimeout fail, server:", server, err)
 		return err
 	}
-	belogs.Debug("StartTcpClient(): create client, server is  ", server, "  tcpServer:", tcpServer)
+	tcpConn, ok := conn.(*net.TCPConn)
+	if !ok {
+		belogs.Error("StartTcpClient(): conn cannot conver to tcpConn: ", conn.RemoteAddr().String(), err)
+		return err
+	}
+	/*
+		tcpServer, err := net.ResolveTCPAddr("tcp", server)
+		if err != nil {
+			belogs.Error("StartTcpClient():  ResolveTCPAddr fail: ", server, err)
+			return err
+		}
+		belogs.Debug("StartTcpClient(): create client, server is  ", server, "  tcpServer:", tcpServer)
 
-	tcpConn, err := net.DialTCP("tcp4", nil, tcpServer)
-	if err != nil {
-		belogs.Error("StartTcpClient():  Dial fail, server:", server, "  tcpServer:", tcpServer, err)
-		return err
-	}
-	tcpTlsConn := NewFromTcpConn(tcpConn)
-	tc.OnConnect(tcpTlsConn)
-	belogs.Info("StartTcpClient(): OnConnect, server is  ", server, "  tcpTlsConn:", tcpTlsConn.RemoteAddr().String())
+
+		tcpConn, err := net.DialTCP("tcp", nil, tcpServer)
+		if err != nil {
+			belogs.Error("StartTcpClient(): Dial fail, server:", server, "  tcpServer:", tcpServer, err)
+			return err
+		}
+	*/
+	tc.tcpTlsConn = NewFromTcpConn(tcpConn)
+	tc.OnConnect(tc.tcpTlsConn)
+	belogs.Info("StartTcpClient(): OnConnect, server is  ", server, "  tcpTlsConn:", tc.tcpTlsConn.RemoteAddr().String())
 
 	//active send to server, and receive from server, loop
-	go tc.SendAndReceive(tcpTlsConn)
-	belogs.Debug("StartTcpClient(): SendAndReceive, server:", server, "   tcpTlsConn:", tcpTlsConn.RemoteAddr().String())
+	go tc.SendAndReceive(tc.tcpTlsConn)
+	belogs.Debug("StartTcpClient(): SendAndReceive, server:", server, "   tcpTlsConn:", tc.tcpTlsConn.RemoteAddr().String())
 	return nil
 }
 
@@ -131,19 +148,26 @@ func (tc *TcpTlsClient) StartTlsClient(server string) (err error) {
 		RootCAs:            rootCertPool,
 		InsecureSkipVerify: false,
 	}
-
-	tlsConn, err := tls.Dial("tcp", server, config)
+	dialer := &net.Dialer{Timeout: time.Duration(60) * time.Second}
+	tlsConn, err := tls.DialWithDialer(dialer, "tcp", server, config)
 	if err != nil {
-		belogs.Error("StartTlsClient(): Dial fail, server:", server, err)
+		belogs.Error("StartTlsClient(): DialWithDialer fail, server:", server, err)
 		return err
 	}
-	tcpTlsConn := NewFromTlsConn(tlsConn)
-	tc.OnConnect(tcpTlsConn)
-	belogs.Info("StartTlsClient(): OnConnect, server is  ", server, "  tcpTlsConn:", tcpTlsConn.RemoteAddr().String())
+	/*
+		tlsConn, err := tls.Dial("tcp", server, config)
+		if err != nil {
+			belogs.Error("StartTlsClient(): Dial fail, server:", server, err)
+			return err
+		}
+	*/
+	tc.tcpTlsConn = NewFromTlsConn(tlsConn)
+	tc.OnConnect(tc.tcpTlsConn)
+	belogs.Info("StartTlsClient(): OnConnect, server is  ", server, "  tcpTlsConn:", tc.tcpTlsConn.RemoteAddr().String())
 
 	//active send to server, and receive from server, loop
-	go tc.SendAndReceive(tcpTlsConn)
-	belogs.Debug("StartTlsClient(): SendAndReceive, server:", server, "   tcpTlsConn:", tcpTlsConn.RemoteAddr().String())
+	go tc.SendAndReceive(tc.tcpTlsConn)
+	belogs.Debug("StartTlsClient(): SendAndReceive, server:", server, "   tcpTlsConn:", tc.tcpTlsConn.RemoteAddr().String())
 	return nil
 }
 
@@ -157,7 +181,6 @@ func (tc *TcpTlsClient) OnClose(tcpTlsConn *TcpTlsConn) {
 	// close in the end
 	belogs.Info("OnClose(): tcptlsclient , tcpTlsConn: ", tcpTlsConn.RemoteAddr().String())
 	tcpTlsConn.Close()
-	tcpTlsConn.SetNil()
 }
 
 func (tc *TcpTlsClient) SendMsg(tcpTlsClientSendMsg *TcpTlsClientSendMsg) {
@@ -227,6 +250,8 @@ func (tc *TcpTlsClient) OnReceive(tcpTlsConn *TcpTlsConn) (err error) {
 	// wait for new packet to read
 
 	for {
+
+		tcpTlsConn.SetDeadline(time.Now().Add(500 * time.Millisecond))
 		start := time.Now()
 		n, err := tcpTlsConn.Read(buffer)
 		//	if n == 0 {
@@ -255,6 +280,24 @@ func (tc *TcpTlsClient) OnReceive(tcpTlsConn *TcpTlsConn) (err error) {
 			belogs.Debug("OnReceive(): tcptlsclient  nextRwPolicy, will end this write/read loop: ", tcpTlsConn.RemoteAddr().String())
 			return nil
 		}
+
 	}
 
+}
+
+func (tc *TcpTlsClient) CloseGraceful() {
+	// send channel, and wait listener and conns end itself process and close loop
+	belogs.Info("CloseGraceful(): tcptlsclient will close graceful")
+	tcpClientSendMsg := &TcpTlsClientSendMsg{
+		NextConnectClosePolicy: NEXT_CONNECT_POLICE_CLOSE_GRACEFUL,
+		SendData:               nil,
+	}
+	tc.SendMsg(tcpClientSendMsg)
+
+}
+
+func (tc *TcpTlsClient) CloseForceful() {
+	belogs.Info("CloseForceful(): tcptlsclient will close forceful")
+	go tc.CloseGraceful()
+	tc.OnClose(tc.tcpTlsConn)
 }

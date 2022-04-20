@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"net"
+	"time"
 )
 
 type TcpTlsConn struct {
@@ -74,4 +75,13 @@ func (c *TcpTlsConn) SetNil() {
 	} else if c.tlsConn != nil {
 		c.tlsConn = nil
 	}
+}
+
+func (c *TcpTlsConn) SetDeadline(t time.Time) error {
+	if c.isTcpConn && c.tcpConn != nil {
+		return c.tcpConn.SetDeadline(t)
+	} else if c.tlsConn != nil {
+		return c.tlsConn.SetDeadline(t)
+	}
+	return errors.New("is not conn")
 }

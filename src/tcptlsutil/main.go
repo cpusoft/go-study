@@ -66,13 +66,12 @@ func CreateTlsServer() {
 		belogs.Error("CreateTlsServer(): NewTlsServer ts fail: ", &ts, err)
 		return
 	}
-	err = ts.StartTlsServer("9999")
-	if err != nil {
-		belogs.Error("CreateTlsServer(): StartTlsServer ts fail: ", &ts, err)
-		return
-	}
-	time.Sleep(2 * time.Second)
+	go ts.StartTlsServer("9999")
+
+	time.Sleep(5 * time.Second)
 	ts.ActiveSend(GetData(), "")
+	time.Sleep(8 * time.Second)
+	ts.CloseGraceful()
 }
 func RtrProcess(receiveData []byte) (sendData []byte, err error) {
 	buf := bytes.NewReader(receiveData)
@@ -161,9 +160,7 @@ func CreateTcpClient() {
 	time.Sleep(60 * time.Second)
 
 	belogs.Debug("CreateTcpClient(): tcpclient will stop")
-	tcpClientSendMsg.NextConnectClosePolicy = NEXT_CONNECT_POLICE_CLOSE_GRACEFUL
-	tcpClientSendMsg.SendData = nil
-	tc.SendMsg(tcpClientSendMsg)
+	tc.CloseGraceful()
 
 }
 
