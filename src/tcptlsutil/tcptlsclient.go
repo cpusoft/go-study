@@ -250,8 +250,6 @@ func (tc *TcpTlsClient) OnReceive() (err error) {
 	// wait for new packet to read
 
 	for {
-
-		tc.tcpTlsConn.SetDeadline(time.Now().Add(500 * time.Millisecond))
 		start := time.Now()
 		n, err := tc.tcpTlsConn.Read(buffer)
 		//	if n == 0 {
