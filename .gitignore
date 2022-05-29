@@ -25,3 +25,9 @@ go.sum
 /src/tcpserverclient1/tcpserverclient1.exe~
 /src/cert/cert.exe
 /src/tcptlsserver.zip
+/src/tcptlsutil/client/bin/*.cer
+*.cer
+*.exe
+*.pem
+*.log
+*.zip

@@ -3,10 +3,12 @@ module go-study
 go 1.16
 
 require (
+	github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2
 	github.com/PromonLogicalis/asn1 v0.0.0-20190312173541-d60463189a56
 	github.com/PuerkitoBio/goquery v1.6.0
 	github.com/ant0ine/go-json-rest v3.3.2+incompatible
 	github.com/beego/beego/v2 v2.0.2
+	github.com/bwesterb/go-zonefile v1.0.0
 	github.com/chemikadze/asn1go v0.0.0-20180813044444-884e30ce6a93
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/cpusoft/asn1 v0.0.0-20211219134713-811a9e9348d1
@@ -29,6 +31,7 @@ require (
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/square/certigo v1.12.1
 	github.com/urfave/cli v1.22.5 // indirect
+	github.com/wenzhenxi/gorsa v0.0.0-20220418014903-15feec0f05a6
 	github.com/yumaojun03/dmidecode v0.1.4
 	github.com/zcalusic/sysinfo v0.9.5
 	github.com/zpatrick/go-config v0.0.0-20191118215128-80ba6b3e54f6

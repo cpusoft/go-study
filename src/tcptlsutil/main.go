@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	t := `tcpServer`
+	t := `tlsServer`
 	if len(os.Args) > 1 {
 		t = os.Args[1]
 	}

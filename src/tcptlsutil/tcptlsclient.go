@@ -122,7 +122,8 @@ func (tc *TcpTlsClient) StartTcpClient(server string) (err error) {
 
 // server: **.**.**.**:port
 func (tc *TcpTlsClient) StartTlsClient(server string) (err error) {
-	belogs.Debug("StartTlsClient(): create client, server is  ", server)
+	belogs.Debug("StartTlsClient(): create client, server is  ", server,
+		"  tlsPublicCrtFileName:", tc.tlsPublicCrtFileName)
 
 	cert, err := tls.LoadX509KeyPair(tc.tlsPublicCrtFileName, tc.tlsPrivateKeyFileName)
 	if err != nil {
