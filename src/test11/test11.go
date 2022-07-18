@@ -16,4 +16,9 @@ func main() {
 
 	rrName = strings.TrimSuffix(rrName, ".")
 	fmt.Println(rrName)
+
+	test := ""
+	t := []byte(test)
+	var tt []byte
+	fmt.Println(t, tt)
 }
