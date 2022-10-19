@@ -1,3 +1,5 @@
 {
-    "go.inferGopath": false
+    "go.inferGopath": false,
+    "output.smartScroll.enabled": false,
+    "explorer.autoReveal": true
 }

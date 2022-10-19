@@ -1,16 +1,6 @@
 package main
 
-import (
-	"bytes"
-	"net"
-	"time"
-
-	belogs "github.com/cpusoft/goutil/belogs"
-	"github.com/cpusoft/goutil/convert"
-	tcpserver "github.com/cpusoft/goutil/tcpserverclient/tcpserver"
-	tcputil "github.com/cpusoft/goutil/tcpserverclient/util"
-)
-
+/*
 func CreateTcpServer() {
 	serverProcessFunc := new(ServerProcessFunc)
 	ts := tcpserver.NewTcpServer(serverProcessFunc)
@@ -79,3 +69,4 @@ const (
 	PDU_TYPE_LENGTH_START = 4
 	PDU_TYPE_LENGTH_END   = 8
 )
+*/

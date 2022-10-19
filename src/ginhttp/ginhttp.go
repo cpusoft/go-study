@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -30,6 +32,7 @@ func main() {
 		name := c.Param("name")
 		action := c.Param("action")
 		message := name + " is " + action
+		fmt.Println(message)
 		c.String(http.StatusOK, message)
 	})
 

@@ -1,15 +1,6 @@
 package main
 
-import (
-	"net"
-	"time"
-
-	belogs "github.com/cpusoft/goutil/belogs"
-	"github.com/cpusoft/goutil/convert"
-	tcpclient "github.com/cpusoft/goutil/tcpserverclient/tcpclient"
-	tcputil "github.com/cpusoft/goutil/tcpserverclient/util"
-)
-
+/*
 type ClientProcessFunc struct {
 }
 
@@ -50,3 +41,4 @@ func CreateTcpClient() {
 	tc.SendMsg(tcpClientMsg)
 	time.Sleep(60 * time.Second)
 }
+*/
