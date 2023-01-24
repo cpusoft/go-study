@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "./";
+
+package helloworld;
+
+
+
+message HelloWorldRequest {
+  string greeting = 1;
+  map<string, string> infos  = 2;
+}
+
+message HelloWorldResponse {
+  string reply = 1;
+  repeated string details = 2;
+}
+
+service HelloWorldService {
+  rpc SayHelloWorld(HelloWorldRequest) returns (HelloWorldResponse){}
+}

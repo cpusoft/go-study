@@ -16,5 +16,9 @@ func main() {
 	bb, _ := convert.IntToBytes(b)
 	fmt.Println(aa, len(aa))
 	fmt.Println(bb, len(bb))
-
+	vrp_binary_pfx := `0001111111222222223333334444`
+	for i, charRune := range vrp_binary_pfx {
+		char := string(charRune)
+		fmt.Println(i, char)
+	}
 }
