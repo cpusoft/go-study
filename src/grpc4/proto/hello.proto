@@ -16,3 +16,7 @@ message HelloReply {
 }
 
 
+/* 
+protoc --go_out=. *.proto
+protoc --plugin=protoc-gen-go="D:\Program Files\GoExt\bin\protoc-gen-go-grpc.exe"  --go_out .  .\*.proto
+*/
