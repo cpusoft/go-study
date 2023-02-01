@@ -31,5 +31,12 @@ go.sum
 *.pem
 *.log
 *.zip
+*.xls
+*.roa
+*.cer
+*.roa
+*.crl
+*.mft
 /src/grpc3/cert
 /src/grpc4/cert
+/.vscode
