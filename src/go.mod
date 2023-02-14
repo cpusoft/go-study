@@ -7,17 +7,17 @@ require (
 	github.com/PromonLogicalis/asn1 v0.0.0-20190312173541-d60463189a56
 	github.com/PuerkitoBio/goquery v1.6.0
 	github.com/ant0ine/go-json-rest v3.3.2+incompatible
-	github.com/beego/beego/v2 v2.0.2
+	github.com/beego/beego/v2 v2.0.7
 	github.com/bwesterb/go-zonefile v1.0.0
 	github.com/chemikadze/asn1go v0.0.0-20180813044444-884e30ce6a93
 	github.com/cpusoft/asn1 v0.0.0-20211219134713-811a9e9348d1
 	github.com/cpusoft/beego/v2 v2.0.4
 	github.com/cpusoft/go-json-rest v4.0.0+incompatible
-	github.com/cpusoft/goutil v1.0.33-0.20221231144517-5258441c359b
+	github.com/cpusoft/goutil v1.0.33-0.20230206082835-76a50f67d85a
 	github.com/derekparker/trie v0.0.0-20200317170641-1fdf38b7b0e9
 	github.com/gin-contrib/sessions v0.0.6-0.20220613080705-828f9855fb30
 	github.com/gin-gonic/gin v1.8.2
-	github.com/go-sql-driver/mysql v1.6.0
+	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.5.2
 	github.com/guregu/null v4.0.0+incompatible
@@ -32,7 +32,7 @@ require (
 	github.com/yumaojun03/dmidecode v0.1.4
 	github.com/zcalusic/sysinfo v0.9.5
 	github.com/zpatrick/go-config v0.0.0-20191118215128-80ba6b3e54f6
-	golang.org/x/net v0.5.0
+	golang.org/x/net v0.6.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	google.golang.org/protobuf v1.28.2-0.20220920080600-7a48e2b66218
 	gopkg.in/tylerb/graceful.v1 v1.2.15
@@ -78,11 +78,11 @@ require (
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/toelsiba/date v0.0.0-20161003175125-b370c9dd06cb // indirect
-	github.com/ugorji/go/codec v1.2.8 // indirect
+	github.com/ugorji/go/codec v1.2.9 // indirect
 	github.com/urfave/cli v1.22.5 // indirect
-	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
