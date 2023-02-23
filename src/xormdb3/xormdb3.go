@@ -8,7 +8,6 @@ import (
 	"github.com/cpusoft/goutil/iputil"
 	"github.com/cpusoft/goutil/jsonutil"
 	_ "github.com/go-sql-driver/mysql"
-	model "labscm.zdns.cn/rpstir2-mod/rpstir2-model"
 	"xorm.io/xorm"
 )
 
@@ -90,7 +89,20 @@ func main() {
 		SlurmLogId     uint64        `json:"slurmLogId" xorm:"slurmLogId int"`
 		SlurmLogFileId uint64        `json:"slurmLogFileId" xorm:"slurmLogFileId int"`
 	}
-	filterSlurms := make([]model.EffectSlurmToRtrFullLog, 0)
+
+	type EffectSlurmToRtrFullLog struct {
+		Id             uint64        `json:"id" xorm:"id int"`
+		Style          string        `json:"style" xorm:"style varchar(128)"`
+		Asn            sql.NullInt64 `json:"asn" xorm:"asn int"`
+		Address        string        `json:"address" xorm:"address varchar(256)"`
+		PrefixLength   uint64        `json:"prefixLength" xorm:"prefixLength int"`
+		MaxLength      uint64        `json:"maxLength" xorm:"maxLength int"`
+		SlurmId        uint64        `json:"slurmId" xorm:"slurmId int"`
+		SlurmLogId     uint64        `json:"slurmLogId" xorm:"slurmLogId int"`
+		SlurmLogFileId uint64        `json:"slurmLogFileId" xorm:"slurmLogFileId int"`
+		SourceFromJson string        `json:"sourceFromJson" xorm:"sourceFromJson json"`
+	}
+	filterSlurms := make([]EffectSlurmToRtrFullLog, 0)
 	err = eng.Cols("asn,address,prefixLength,maxLength").Find(&filterSlurms)
 	if err != nil {
 		fmt.Println("getEffectSlurmsFromSlurmDb(): get lab_rpki_rtr_full_log fail:", err)

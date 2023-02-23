@@ -3,13 +3,36 @@ package main
 import (
 	_ "database/sql"
 	"fmt"
+	"time"
 
 	"github.com/cpusoft/goutil/dnsutil"
 	"github.com/cpusoft/goutil/jsonutil"
-	_ "github.com/go-sql-driver/mysql"
-	"labscm.zdns.cn/dns-mod/dns-model/rr"
+	"github.com/guregu/null"
+
 	"xorm.io/xorm"
 )
+
+// for mysql, zonefile
+type RrModel struct {
+	Id       uint64 `json:"id" xorm:"id int"`
+	OriginId uint64 `json:"originId" xorm:"originId int"`
+
+	// not have "." in the end
+	Origin string `json:"origin" xorm:"origin varchar"` // lower
+	// is host/subdomain, not have "." int the end
+	// if no subdomain, is "", not "@"
+	RrName string `json:"rrName" xorm:"rrName varchar"` // lower
+	// == rrName+.+Origin
+	RrFullDomain string `json:"rrFullDomain" xorm:"rrFullDomain varchar"` // lower: rrName+"."+Origin[-"."]
+
+	RrType  string `json:"rrType" xorm:"rrType varchar"`   // upper
+	RrClass string `json:"rrClass" xorm:"rrClass varchar"` // upper
+	// null.NewInt(0, false) or null.NewInt(i64, true)
+	RrTtl  null.Int `json:"rrTtl" xorm:"rrTtl int"`
+	RrData string   `json:"rrData" xorm:"rrData varchar"`
+
+	UpdateTime time.Time `json:"updateTime" xorm:"updateTime datetime"`
+}
 
 func main() {
 	//DB, err = sql.Open("mysql", "rpstir:Rpstir-123@tcp(202.173.9.21:13306)/rpstir")
@@ -48,7 +71,7 @@ func main() {
 
 	rrType := "A"
 	rrFullDomain := "dns1.example.com"
-	resultRrModels := make([]*rr.RrModel, 0)
+	resultRrModels := make([]*RrModel, 0)
 	fmt.Println("queryDb(): rrType:", rrType, "  rrFullDomain:", rrFullDomain)
 	if rrType == dnsutil.DNS_TYPE_STR_ANY {
 		sql := `select o.origin, r.rrName, r.rrFullDomain, r.rrType, r.rrClass, IFNULL(r.rrTtl,o.ttl) as rrTtl, r.rrData  
