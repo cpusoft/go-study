@@ -29,7 +29,7 @@ require (
 	github.com/wendal/errors v0.0.0-20130201093226-f66c77a7882b // indirect
 	github.com/wenzhenxi/gorsa v0.0.0-20220418014903-15feec0f05a6 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.2 // indirect
-	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
+	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	google.golang.org/grpc v1.44.0 // indirect
