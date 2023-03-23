@@ -20,7 +20,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.5.3
-	github.com/gorilla/websocket v0.0.0-20170926233335-4201258b820c
+	github.com/gorilla/websocket v1.5.0
 	github.com/guregu/null v4.0.0+incompatible
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/mattn/go-sqlite3 v1.14.16
