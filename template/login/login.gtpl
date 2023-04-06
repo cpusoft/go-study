@@ -16,7 +16,7 @@
 <input class="btn " id="login" type="button" value="登录" onclick="javascript:loginSubmit();">  
 
 
-<script type="text/javascript" src="/static/js/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery-3.6.4.min.js"></script>
 <script type="text/javascript" src="/static/js/login/login.js"></script>
 
 
