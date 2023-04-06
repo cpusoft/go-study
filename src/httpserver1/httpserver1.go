@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -40,7 +41,8 @@ func uploadFile(w rest.ResponseWriter, req *rest.Request) {
 		return
 	}
 	defer file.Close()
-	f, err := os.OpenFile("./"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	tmpFile, _ := ioutil.TempFile("", handler.Filename+"-*.tmp")
+	f, err := os.OpenFile(tmpFile.Name(), os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		belogs.Error("uploadFile(): OpenFile: err:", err)
 		rest.Error(w, err.Error(), http.StatusNoContent)

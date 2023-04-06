@@ -7,6 +7,8 @@ import (
 	_ "log"
 	"net/http"
 	_ "strings"
+
+	"github.com/cpusoft/goutil/convert"
 )
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -44,13 +46,12 @@ func loginQuery(w http.ResponseWriter, r *http.Request) {
 
 func loginSubmit(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	username := r.Form["username"]
-	password := r.Form["password"]
-	fmt.Println(username, password)
+	u := r.Form["u"]
+	p := r.Form["p"]
 
 	mp := make(map[string]string)
 	mp["result"] = "ok"
-
+	mp[convert.ToString(u)] = convert.ToString(p)
 	fmt.Println(mp)
 	bb, _ := json.Marshal(mp)
 	fmt.Println(string(bb))

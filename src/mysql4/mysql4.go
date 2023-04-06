@@ -36,7 +36,6 @@ func main() {
 	openSql := user + ":" + password + "@tcp(" + server + ")/" + database
 	//params := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=true", "root", "root", "localhost:3306", "go")
 	//连接数据库
-	fmt.Println(openSql)
 	engine, err := xorm.NewEngine("mysql", openSql)
 	if err != nil {
 		fmt.Println(err)
