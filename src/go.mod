@@ -1,6 +1,6 @@
 module go-study
 
-go 1.18
+go 1.19
 
 require (
 	github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2
@@ -25,6 +25,7 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/onsi/gomega v1.10.5
+	github.com/orcaman/concurrent-map/v2 v2.0.1
 	github.com/parnurzeal/gorequest v0.2.17-0.20200918112808-3a0cb377f571
 	github.com/seriousben/go-asn1 v0.0.0-20180415115313-ed46d10b7393
 	github.com/square/certigo v1.12.1

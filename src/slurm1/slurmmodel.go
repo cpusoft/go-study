@@ -29,15 +29,20 @@ type BgpsecFilters struct {
 }
 
 type AspaFilters struct {
-	CustomerAsn  uint64         `json:"customerAsn"`
-	ProviderAsns []ProviderAsns `json:"providerAsns"`
+	CustomerAsn  null.Int       `json:"customerAsid"`
+	ProviderAsns []ProviderAsns `json:"providers"`
+	Comment      string         `json:"comment"`
 }
 
 type ProviderAsns struct {
-	AddressFamily null.Int `json:"addressFamily"`
-	ProviderAsn   uint64   `json:"providerAsn"`
-	Comment       string   `json:"comment"`
+	ProviderAsn   null.Int `json:"providerAsid"`
+	AddressFamily string   `json:"afiLimit"` //IPv4 IPV6
 }
+
+const (
+	SLURM_PROVIDER_ASNS_ADDRESS_FAMILY_IPV4 = "IPv4"
+	SLURM_PROVIDER_ASNS_ADDRESS_FAMILY_IPV6 = "IPv6"
+)
 
 type ValidationOutputFilters struct {
 	PrefixFilters []PrefixFilters `json:"prefixFilters"`
@@ -46,8 +51,7 @@ type ValidationOutputFilters struct {
 }
 
 // assertion
-// FormatPrefix, MaxPrefixLength and PrefixLength are not in json
-// set asn==-1 means asn is empty
+// set !asn.Valid means asn is empty
 // TreatLevel: critical/major/normal
 type PrefixAssertions struct {
 	Asn             null.Int `json:"asn"`
@@ -72,8 +76,9 @@ type LocallyAddedAssertions struct {
 }
 
 type AspaAssertions struct {
-	CustomerAsn  uint64         `json:"customerAsn"`
-	ProviderAsns []ProviderAsns `json:"providerAsns"`
+	CustomerAsn  null.Int       `json:"customerAsid"`
+	ProviderAsns []ProviderAsns `json:"providers"`
+	Comment      string         `json:"comment"`
 }
 
 type Slurm struct {

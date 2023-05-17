@@ -9,41 +9,52 @@ import (
 func main() {
 	content := `
 	{
-		"slurmVersion": 1,
+		"slurmVersion": 2,
 		"validationOutputFilters": {
 			"prefixFilters": [
 				{
 					"asn": 398109,
 					"prefix": "173.139.139/24",
+					"maxPrefixLength": 0,
 					"comment": "test prefix 9"
 				},
 				{
 					"asn": 398100,
 					"prefix": "173.139.130/24",
+					"maxPrefixLength": 0,
 					"comment": "test prefix 0"
 				}
 			],
+			"bgpsecFilters": null,
 			"aspaFilters": [
 				{
-					"customerAsn": 64495,
-					"comment": "Ignore ASPA(s) that have 64496 as Customer ASID"
+					"customerAsid": 64496,
+					"comment": "Filter out all VAPs that have 64496 as Customer ASID"
 				},
 				{
-					"customerASID": 64696,
-					"providerAsns": [
+					"customerAsid": 64497,
+					"providers": [
 						{
-							"providerAsn": 64697
+							"providerAsid": 64498
 						},
 						{
-							"addressFamily": 1,
-							"providerAsn": 64698
+							"providerAsid": 64499,
+							"afiLimit": "IPv4"
 						},
 						{
-							"addressFamily": 2,
-							"providerAsn": 64699
+							"providerAsid": 64500,
+							"afiLimit": "IPv6"
 						}
 					],
-					"comment": "Ignore ASPA(s) that have 64696 as Customer ASID, and have 64697 or 64698 or 64699 as Provider ASID"
+					"comment": "Filter some providers with 64497 as Customer ASID"
+				},
+				{
+					"providers": [
+						{
+							"providerAsid": 65001
+						}
+					],
+					"comment": "Never accept 65001 as a valid provider."
 				}
 			]
 		},
@@ -52,36 +63,41 @@ func main() {
 				{
 					"asn": 64406,
 					"prefix": "198.51.100.6/24",
-					"comment": "test assertion ipv4"
+					"maxPrefixLength": 0,
+					"comment": "test assertionipv4",
+					"treatLevel": ""
 				},
 				{
 					"asn": 64406,
 					"prefix": "2001:DB6::/32",
 					"maxPrefixLength": 48,
-					"comment": "test assertion ipv6"
+					"comment": "test assertion ipv6",
+					"treatLevel": ""
 				}
 			],
+			"bgpsecAssertions": null,
 			"aspaAssertions": [
 				{
-					"customerAsn": 64416,
-					"providerAsns": [
+					"customerAsid": 64496,
+					"providers": [
 						{
-							"providerAsn": 64617
+							"providerAsid": 64498
 						},
 						{
-							"addressFamily": 1,
-							"providerAsn": 64618
+							"providerAsid": 64499,
+							"afiLimit": "IPv4"
 						},
 						{
-							"addressFamily": 2,
-							"providerAsn": 64619
+							"providerAsid": 64500,
+							"afiLimit": "IPv6"
 						}
 					],
-					"comment": "Pretend 64617,64618 and 64619 are upstream for 64416"
+					"comment": "Authorize additional providers for customer AS 64496"
 				}
 			]
 		}
 	}
+	
 		
 	`
 	fmt.Println("main():content:", content)
