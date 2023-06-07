@@ -12,10 +12,10 @@ require (
 	github.com/chemikadze/asn1go v0.0.0-20180813044444-884e30ce6a93
 	github.com/cpusoft/asn1 v0.0.0-20211219134713-811a9e9348d1
 	github.com/cpusoft/beego/v2 v2.0.4
+	github.com/cpusoft/gin-contrib-sessions v0.0.0-20230602020338-f48f3b418fc6
 	github.com/cpusoft/go-json-rest v4.0.0+incompatible
-	github.com/cpusoft/goutil v1.0.33-0.20230601060226-55d2114fc276
+	github.com/cpusoft/goutil v1.0.33-0.20230605103854-cb87b624cae4
 	github.com/derekparker/trie v0.0.0-20200317170641-1fdf38b7b0e9
-	github.com/gin-contrib/sessions v0.0.6-0.20230209004628-189b96f7cac2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -23,7 +23,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/guregu/null v4.0.0+incompatible
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/mattn/go-sqlite3 v1.14.16
+	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/onsi/gomega v1.10.5
 	github.com/orcaman/concurrent-map/v2 v2.0.1
 	github.com/parnurzeal/gorequest v0.2.17-0.20200918112808-3a0cb377f571
@@ -55,7 +55,7 @@ require (
 	github.com/go-ini/ini v1.62.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.14.0 // indirect
+	github.com/go-playground/validator/v10 v10.14.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
@@ -64,7 +64,7 @@ require (
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
