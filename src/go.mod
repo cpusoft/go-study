@@ -14,7 +14,7 @@ require (
 	github.com/cpusoft/beego/v2 v2.0.4
 	github.com/cpusoft/gin-contrib-sessions v0.0.0-20230602020338-f48f3b418fc6
 	github.com/cpusoft/go-json-rest v4.0.0+incompatible
-	github.com/cpusoft/goutil v1.0.33-0.20230605103854-cb87b624cae4
+	github.com/cpusoft/goutil v1.0.33-0.20230720041005-5ca59e5b2204
 	github.com/derekparker/trie v0.0.0-20200317170641-1fdf38b7b0e9
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.7.1
@@ -34,9 +34,9 @@ require (
 	github.com/yumaojun03/dmidecode v0.1.4
 	github.com/zcalusic/sysinfo v0.9.5
 	github.com/zpatrick/go-config v0.0.0-20191118215128-80ba6b3e54f6
-	golang.org/x/net v0.10.0
+	golang.org/x/net v0.12.0
 	golang.org/x/sync v0.1.0
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/protobuf v1.31.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
 	xorm.io/xorm v1.3.2
 )
@@ -44,8 +44,9 @@ require (
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/andybalholm/cascadia v1.1.0 // indirect
-	github.com/bytedance/sonic v1.9.1 // indirect
-	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
+	github.com/bytedance/sonic v1.10.0-rc2 // indirect
+	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
+	github.com/chenzhuoyu/iasm v0.9.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/creack/pty v1.1.17 // indirect
 	github.com/digitalocean/go-smbios v0.0.0-20180907143718-390a4f403a8e // indirect
@@ -70,11 +71,10 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.9 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
-	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b // indirect
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/smartystreets/assertions v1.0.0 // indirect
@@ -83,10 +83,10 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/urfave/cli v1.22.5 // indirect
-	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.9.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/arch v0.4.0 // indirect
+	golang.org/x/crypto v0.11.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
