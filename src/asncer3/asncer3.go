@@ -186,6 +186,128 @@ type IpBlock struct {
 	IPAddressRange []asn1.RawValue //[]IPMaxMin
 }
 
+func decodeAddressPrefixAndMinMax(ipFamily int, len int, unusedByte []byte, address []byte, ipAddressType string) (ipAddress string, err error) {
+	unusedBitLen := int(convert.Bytes2Uint64(unusedByte))
+	fmt.Println("decodeAddressPrefixAndMinMax(): ipFamily:", ipFamily, "  len:", len, "  unusedBitLen:", unusedBitLen,
+		"   address:", address)
+	if ipFamily == 1 {
+		// ipv4 ipaddress prefx
+		ipv4Address := ""
+		if ipAddressType == "min" {
+			if unusedBitLen > 0 {
+				leastZeroByte := bitutil.LeftAndFillZero(uint8(unusedBitLen - 1))
+				fmt.Println("min: before address:", address[addressLen-1], "  leastZeroByte:", leastZeroByte)
+				address[addressLen-1] = address[addressLen-1] & leastZeroByte
+				fmt.Println("min: after address:", address[addressLen-1], "  address:", address)
+			}
+			for i := 0; i < 4; i++ {
+				if i < len(address) {
+					ipv4Address += fmt.Sprintf("%d", address[i])
+				} else {
+					ipv4Address += fmt.Sprintf("%d", 0)
+				}
+				if i < 3 {
+					ipv4Address += "."
+				}
+			}
+			fmt.Println("ipAddress min ipv4:", ipv4Address)
+		} else if ipAddressType == "max" {
+			if unusedBitLen > 0 {
+				leastOneByte := bitutil.LeftAndFillOne(uint8(unusedBitLen - 1))
+				fmt.Println("max: before address:", address[addressLen-1], "  leastOneByte:", leastOneByte)
+				address[addressLen-1] = address[addressLen-1] | leastOneByte
+				fmt.Println("max: after address:", address[addressLen-1], "  address:", address)
+			}
+			for i := 0; i < 4; i++ {
+				if i < len(address) {
+					ipv4Address += fmt.Sprintf("%d", address[i])
+				} else {
+					ipv4Address += fmt.Sprintf("%d", 0xff)
+				}
+				if i < 3 {
+					ipv4Address += "."
+				}
+			}
+			fmt.Println("ipAddress max ipv4:", ipv4Address)
+		}
+
+	} else if ipFamily == 2 {
+
+		ipv6Address := ""
+		if ipAddressType == "min" {
+			if unusedBitLen > 0 {
+				var leastZeroByte uint8 = bitutil.LeftAndFillZero(uint8(unusedBitLen - 1))
+				//		fmt.Printf("min: leastZeroByte:%x,%d,%b\n", leastZeroByte, leastZeroByte, leastZeroByte)
+				address[addressLen-1] = address[addressLen-1] & leastZeroByte
+				//		fmt.Printf("min: address: %x,%d,%b\n", address[addressLen-1], address[addressLen-1], address[addressLen-1])
+			}
+			var i int
+			for i = 0; i < 16; i++ {
+				//	fmt.Printf("min: %d,%d\n", i, addressLen)
+				// 2a01:8::
+				if i < addressLen {
+					ipv6Address += fmt.Sprintf("%02x", address[i])
+					//		fmt.Printf("min: ipv6Address:%d, %s\n", i, ipv6Address)
+					if i%2 == 1 {
+						ipv6Address += ":"
+						//			fmt.Printf("min: ipv6Address +: %d, %s\n", i, ipv6Address)
+					}
+				} else {
+					break
+				}
+			}
+			// end with ::
+			if i == len(address) {
+				ipv6Address += ":"
+			}
+			fmt.Printf("ipAddress min Ipv6:%s\n", ipAddress)
+		} else if ipAddressType == "max" {
+			if unusedBitLen > 0 {
+				var leastOneByte uint8 = bitutil.LeftAndFillOne(uint8(unusedBitLen - 1))
+				//		fmt.Printf("max: leastOneByte:%x,%d,%b\n", leastOneByte, leastOneByte, leastOneByte)
+				address[addressLen-1] = address[addressLen-1] | leastOneByte
+				//		fmt.Printf("max: address: %x,%d,%b\n", address[addressLen-1], address[addressLen-1], address[addressLen-1])
+			}
+			for i := 0; i < 16; i++ {
+				//2a01:17:ffff:ffff:ffff:ffff:ffff:ffff
+				if i < len(address) {
+					ipv6Address += fmt.Sprintf("%02x", address[i])
+					if i%2 == 1 {
+						ipv6Address += ":"
+					}
+				} else {
+					ipv6Address += "ff"
+					if i%2 == 1 && i < 15 {
+						ipv6Address += ":"
+					}
+				}
+			}
+			fmt.Printf("ipAddress max Ipv6:%s\n", ipAddress)
+		} else if ipAddressType == "ipPrefix" {
+			// ipv6 ipaddress prefx
+			prefix := 8*(addressShouldLen-1) - unusedBitLen
+			//	fmt.Println("prefix :=  8*(addressShouldLen-1) - unusedBitLen:  %d := 8 *(%d-1)-  %d \r\n",
+			//		prefix, addressShouldLen, unusedBitLen)
+
+			//printBytes("address:", address)
+
+			for i := 0; i < len(address); i++ {
+				ipv6Address += fmt.Sprintf("%02x", address[i])
+				if i%2 == 1 && i < len(address) {
+					ipv6Address += ":"
+				}
+			}
+			//Complement digit
+			if len(address)%2 == 1 {
+				ipv6Address += "00"
+			}
+			ipv6Address += "/" + fmt.Sprintf("%d", prefix)
+			fmt.Printf("ipAddress ipPrefix Ipv6:%s\n", ipv6Address)
+		}
+	}
+	return
+}
+
 // ipFamily: ipv4:1, ipv6:2
 // ipAddressType: min, max, ipPrefix
 func decodeAddressPrefix(ipFamily int, addressShouldLenByte []byte, unusedByte []byte, address []byte, ipAddressType string) (ipAddress string, err error) {
