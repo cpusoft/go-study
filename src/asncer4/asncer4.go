@@ -8,9 +8,11 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/cpusoft/goutil/asn1util/asn1cert"
 	"github.com/cpusoft/goutil/bitutil"
 	"github.com/cpusoft/goutil/convert"
 	"github.com/cpusoft/goutil/fileutil"
+	"github.com/cpusoft/goutil/jsonutil"
 )
 
 type Certificate struct {
@@ -534,17 +536,26 @@ func GetIpBlocks(value []byte) (ip IpBlock, err error) {
 				ipMaxMin := IPMaxMin{}
 				_, err = asn1.Unmarshal(ipAddressRaw.FullBytes, &ipMaxMin)
 				fmt.Println("-----get ipMaxMin:", ipMaxMin)
-				/*
-					ipAddressMin := ipAddressMinMax[0]
-					fmt.Println("    ipAddressMin:", ipAddressMin, "   Bytes:", ipAddressMin.Bytes, " BitLength:", ipAddressMin.BitLength)
-					min, _ := decodeAddressPrefixAndMinMax(1, ipAddressMin.Bytes[0:1], ipAddressMin.Bytes[1:2], ipAddressMin.Bytes[2:], "min")
-					fmt.Println("    min:", min)
 
-					ipAddressMax := ipAddressMinMax[1]
-					fmt.Println("    ipAddressMax:", ipAddressMax, "   Bytes:", ipAddressMax.Bytes, " BitLength:", ipAddressMax.BitLength)
-					max, _ := decodeAddressPrefixAndMinMax(1, ipAddressMax.Bytes[0:1], ipAddressMax.Bytes[1:2], ipAddressMax.Bytes[2:], "max")
-					fmt.Println("    max:", max)
-				*/
+				ipAddressMin := ipMaxMin.IpMin
+				unusedLenMin := (len(ipAddressMin.Bytes))*8 - ipAddressMin.BitLength
+				fillZero := bitutil.LeftAndFillZero(uint8(4*8 - len(ipAddressMin.Bytes)*8 + unusedLenMin))
+				min := ipAddressMin.Bytes // & fillZero
+				fmt.Println("    ipAddressMin:", ipAddressMin, "   unusedLenMin:", unusedLenMin,
+					"   Bytes:", ipAddressMin.Bytes, " BitLength:", ipAddressMin.BitLength,
+					"   fillZero:", fillZero, "   min:", min)
+				//min, _ := decodeAddressPrefixAndMinMax(1, ipAddressMin.Bytes[0:1], ipAddressMin.Bytes[1:2], ipAddressMin.Bytes[2:], "min")
+
+				ipAddressMax := ipMaxMin.IpMax
+				unusedLenMax := (len(ipAddressMax.Bytes))*8 - ipAddressMax.BitLength
+				fillOne := bitutil.LeftAndFillOne(uint8(4*8 - len(ipAddressMin.Bytes)*8 + unusedLenMax))
+				max := ipAddressMax.Bytes // | fillZero
+				fmt.Println("    ipAddressMax:", ipAddressMax, "   unusedLenMax:", unusedLenMax,
+					"   Bytes:", ipAddressMax.Bytes, " BitLength:", ipAddressMax.BitLength,
+					"   fillOne:", fillOne, "   max:", max)
+				//max, _ := decodeAddressPrefixAndMinMax(1, ipAddressMax.Bytes[0:1], ipAddressMax.Bytes[1:2], ipAddressMax.Bytes[2:], "max")
+				//fmt.Println("    max:", max)
+
 			}
 		}
 
@@ -638,30 +649,79 @@ type AsnOrAsnRange struct {
 	AsnRange []int `asn1:"optional`
 }
 
+type AsnBlock struct {
+	Asn []asn1.RawValue
+}
+type AsnInt struct {
+	Asns []uint64
+}
+
 func GetAsns(value []byte) {
-	asn := Asn{}
-	_, err := asn1.Unmarshal(value, &asn)
-	fmt.Println("asn:", convert.PrintBytes(asn.AsnOrAsnRange.Bytes, 8), err)
+	fmt.Println("GetAsns(): value:", convert.PrintBytesOneLine(value))
 
-	asnOrAsnRanges := make([]asn1.RawValue, 0)
-	_, err = asn1.Unmarshal(asn.AsnOrAsnRange.Bytes, &asnOrAsnRanges)
-	//fmt.Println("asnOrAsnRanges:", asnOrAsnRanges, err)
-	for i := range asnOrAsnRanges {
-		//fmt.Println("asn, i:", i, asnOrAsnRanges[i].Class, asnOrAsnRanges[i].Tag, asnOrAsnRanges[i].IsCompound, convert.PrintBytes(asnOrAsnRanges[i].Bytes, 8))
-		if !asnOrAsnRanges[i].IsCompound {
-			asn := convert.Bytes2Uint64(asnOrAsnRanges[i].Bytes)
-			fmt.Println("asn:", asn)
-
+	asnRaws := make([]asn1.RawValue, 0)
+	_, err := asn1.Unmarshal(value, &asnRaws)
+	fmt.Println("GetAsns(): asn1 Unmarshal asnRaws:", asnRaws, " asnRoaws:", jsonutil.MarshalJson(asnRaws),
+		"  len(asnRaws):", len(asnRaws), err)
+	for i, asnRawi := range asnRaws {
+		fmt.Println("GetAsns(): range asnRaws, i:", i, " asnRawi:", asnRawi, jsonutil.MarshalJson(asnRawi), err)
+		if !asnRawi.IsCompound {
+			var asn int
+			_, err = asn1.Unmarshal(asnRawi.Bytes, &asn)
+			fmt.Println("GetAsns(): not IsCompound, range asnRaws, i:", i, " asn:", asn, jsonutil.MarshalJson(asn), err)
 		} else {
-			asns := make([]asn1.RawValue, 0)
-			_, err = asn1.Unmarshal(asnOrAsnRanges[i].FullBytes, &asns)
-			//	fmt.Println("len(asns):", len(asns), err)
-			for j := range asns {
-				asn := convert.Bytes2Uint64(asns[j].Bytes)
-				fmt.Println("asns:", asn)
+			if asnRawi.Class != 2 {
+				asns := make([]int, 0)
+				_, err = asn1.Unmarshal(asnRawi.Bytes, &asns)
+				fmt.Println("GetAsns(): IsCompound, Class!=2, range asnRaws, i:", i, " asns:", asns, jsonutil.MarshalJson(asns), err)
+			} else {
+				asnRawis := make([]asn1.RawValue, 0)
+				_, err = asn1.Unmarshal(asnRawi.Bytes, &asnRawis)
+				fmt.Println("GetAsns():  Class==2, range asnRaws, i:", i, " asnRawis:", asnRawis, jsonutil.MarshalJson(asnRawis), err)
+				for j, asnRawj := range asnRawis {
+					fmt.Println("\r\nGetAsns(): get asnRawj:", asnRawj, jsonutil.MarshalJson(asnRawj))
+					if asnRawj.IsCompound {
+						asns := make([]uint64, 0)
+						_, err = asn1.Unmarshal(asnRawj.Bytes, &asns)
+						fmt.Println("GetAsns(): IsCompound, i:", i, " j:", j, " asns:", asns, jsonutil.MarshalJson(asns), err)
+					} else {
+						var asn AsnInt
+						_, err = asn1.Unmarshal(asnRawj.Bytes, &asn)
+						fmt.Println("GetAsns(): not IsCompound, i:", i, " j:", j, " asn:", asn, jsonutil.MarshalJson(asn), err)
+
+					}
+				}
 			}
 		}
 	}
+
+	asnBlocks := make([]AsnBlock, 0)
+	_, err = asn1.Unmarshal(value, &asnBlocks)
+	fmt.Println("GetAsns(): asn1 Unmarshal asnBlocks:", jsonutil.MarshalJson(asnBlocks), err)
+	for _, asnBlock := range asnBlocks {
+		fmt.Println("GetAsns(): range asnBlocks, asnBlock:", jsonutil.MarshalJson(asnBlock))
+	}
+	/*
+		asnOrAsnRanges := make([]asn1.RawValue, 0)
+		_, err = asn1.Unmarshal(value, &asnOrAsnRanges)
+		//fmt.Println("asnOrAsnRanges:", asnOrAsnRanges, err)
+		for i := range asnOrAsnRanges {
+			//fmt.Println("asn, i:", i, asnOrAsnRanges[i].Class, asnOrAsnRanges[i].Tag, asnOrAsnRanges[i].IsCompound, convert.PrintBytes(asnOrAsnRanges[i].Bytes, 8))
+			if !asnOrAsnRanges[i].IsCompound {
+				asn := convert.Bytes2Uint64(asnOrAsnRanges[i].Bytes)
+				fmt.Println("asn:", asn)
+
+			} else {
+				asns := make([]asn1.RawValue, 0)
+				_, err = asn1.Unmarshal(asnOrAsnRanges[i].FullBytes, &asns)
+				//	fmt.Println("len(asns):", len(asns), err)
+				for j := range asns {
+					asn := convert.Bytes2Uint64(asns[j].Bytes)
+					fmt.Println("asns:", asn)
+				}
+			}
+		}
+	*/
 	return
 }
 
@@ -698,6 +758,7 @@ func main() {
 	file = `F:\share\我的坚果云\Go\common\go-study\src\asncer4\00Z.cer`
 	file = `F:\share\我的坚果云\Go\common\go-study\src\asncer4\c8c59.cer`
 	file = `F:\share\我的坚果云\Go\common\go-study\src\asncer4\75414d.cer`
+	file = `F:\share\我的坚果云\Go\common\go-study\src\asncer4\034644.cer`
 	b, err := fileutil.ReadFileToBytes(file)
 	if err != nil {
 		fmt.Println(file, err)
@@ -781,8 +842,9 @@ func main() {
 			fmt.Println("2.5.29.32:", seqs, err)
 		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.7" {
 			// cRLDistributionPoints
-			seqs, err := GetIpBlocks(extension.Value)
-			fmt.Println("1.3.6.1.5.5.7.1.7:", seqs, err)
+			//seqs, err := GetIpBlocks(extension.Value)
+			ipAddrBlocks, err := asn1cert.ParseToIpAddressBlocks(extension.Value)
+			fmt.Println("1.3.6.1.5.5.7.1.7:", jsonutil.MarshalJson(ipAddrBlocks), err)
 		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.8" {
 			// cRLDistributionPoints
 			fmt.Println("1.3.6.1.5.5.7.1.8:")
