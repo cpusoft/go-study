@@ -36,7 +36,7 @@ require (
 	github.com/zpatrick/go-config v0.0.0-20191118215128-80ba6b3e54f6
 	golang.org/x/net v0.17.0
 	golang.org/x/sync v0.3.0
-	google.golang.org/grpc v1.53.0
+	google.golang.org/grpc v1.56.3
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
 	xorm.io/xorm v1.3.2
@@ -88,7 +88,7 @@ require (
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	google.golang.org/genproto v0.0.0-20230320184635-7606e756e683 // indirect
+	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
