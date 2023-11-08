@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cpusoft/goutil/grpcutil/proto"
+	"grpcutil/proto"
 )
 
 func TestGrpcClient(t *testing.T) {
