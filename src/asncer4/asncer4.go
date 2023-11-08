@@ -194,7 +194,8 @@ func decodeAddressPrefixAndMinMax(ipFamily int, addressShouldLenByte []byte, unu
 		ipv4Address := ""
 		if ipAddressType == "min" {
 			if unusedBitLen > 0 {
-				leastZeroByte := bitutil.LeftAndFillZero(uint8(unusedBitLen - 1))
+				//leastZeroByte := bitutil.LeftAndFillZero(uint8(unusedBitLen - 1))
+				leastZeroByte := bitutil.Shift0xffLeftFillZero(uint8(unusedBitLen - 1))
 				fmt.Println("min: before address:", address[addressLen-1], "  leastZeroByte:", leastZeroByte)
 				address[addressLen-1] = address[addressLen-1] & leastZeroByte
 				fmt.Println("min: after address:", address[addressLen-1], "  address:", address)
@@ -212,7 +213,8 @@ func decodeAddressPrefixAndMinMax(ipFamily int, addressShouldLenByte []byte, unu
 			fmt.Println("ipAddress min ipv4:", ipv4Address)
 		} else if ipAddressType == "max" {
 			if unusedBitLen > 0 {
-				leastOneByte := bitutil.LeftAndFillOne(uint8(unusedBitLen - 1))
+				//leastOneByte := bitutil.LeftAndFillOne(uint8(unusedBitLen - 1))
+				leastOneByte := bitutil.Shift0x00LeftFillOne(uint8(unusedBitLen - 1))
 				fmt.Println("max: before address:", address[addressLen-1], "  leastOneByte:", leastOneByte)
 				address[addressLen-1] = address[addressLen-1] | leastOneByte
 				fmt.Println("max: after address:", address[addressLen-1], "  address:", address)
@@ -235,7 +237,8 @@ func decodeAddressPrefixAndMinMax(ipFamily int, addressShouldLenByte []byte, unu
 		ipv6Address := ""
 		if ipAddressType == "min" {
 			if unusedBitLen > 0 {
-				var leastZeroByte uint8 = bitutil.LeftAndFillZero(uint8(unusedBitLen - 1))
+				//var leastZeroByte uint8 = bitutil.LeftAndFillZero(uint8(unusedBitLen - 1))
+				var leastZeroByte uint8 = bitutil.Shift0xffLeftFillZero(uint8(unusedBitLen - 1))
 				//		fmt.Printf("min: leastZeroByte:%x,%d,%b\n", leastZeroByte, leastZeroByte, leastZeroByte)
 				address[addressLen-1] = address[addressLen-1] & leastZeroByte
 				//		fmt.Printf("min: address: %x,%d,%b\n", address[addressLen-1], address[addressLen-1], address[addressLen-1])
@@ -262,7 +265,8 @@ func decodeAddressPrefixAndMinMax(ipFamily int, addressShouldLenByte []byte, unu
 			fmt.Printf("ipAddress min Ipv6:%s\n", ipAddress)
 		} else if ipAddressType == "max" {
 			if unusedBitLen > 0 {
-				var leastOneByte uint8 = bitutil.LeftAndFillOne(uint8(unusedBitLen - 1))
+				//var leastOneByte uint8 = bitutil.LeftAndFillOne(uint8(unusedBitLen - 1))
+				var leastOneByte uint8 = bitutil.Shift0x00LeftFillOne(uint8(unusedBitLen - 1))
 				//		fmt.Printf("max: leastOneByte:%x,%d,%b\n", leastOneByte, leastOneByte, leastOneByte)
 				address[addressLen-1] = address[addressLen-1] | leastOneByte
 				//		fmt.Printf("max: address: %x,%d,%b\n", address[addressLen-1], address[addressLen-1], address[addressLen-1])
@@ -321,7 +325,8 @@ func decodeAddressPrefix(ipFamily int, addressShouldLenByte []byte, unusedByte [
 		ipv4Address := ""
 		if ipAddressType == "min" {
 			if unusedBitLen > 0 {
-				var leastZeroByte uint8 = bitutil.LeftAndFillZero(uint8(unusedBitLen - 1))
+				//var leastZeroByte uint8 = bitutil.LeftAndFillZero(uint8(unusedBitLen - 1))
+				var leastZeroByte uint8 = bitutil.Shift0xffLeftFillZero(uint8(unusedBitLen - 1))
 				//		fmt.Printf("min: leastZeroByte:%x,%d,%b\n", leastZeroByte, leastZeroByte, leastZeroByte)
 				address[addressLen-1] = address[addressLen-1] & leastZeroByte
 				//		fmt.Printf("min: address: %x,%d,%b\n", address[addressLen-1], address[addressLen-1], address[addressLen-1])
@@ -339,7 +344,8 @@ func decodeAddressPrefix(ipFamily int, addressShouldLenByte []byte, unusedByte [
 			fmt.Printf("ipAddress min ipv4:%s\n", ipv4Address)
 		} else if ipAddressType == "max" {
 			if unusedBitLen > 0 {
-				var leastOneByte uint8 = bitutil.LeftAndFillOne(uint8(unusedBitLen - 1))
+				//var leastOneByte uint8 = bitutil.LeftAndFillOne(uint8(unusedBitLen - 1))
+				var leastOneByte uint8 = bitutil.Shift0x00LeftFillOne(uint8(unusedBitLen - 1))
 				fmt.Printf("max: leastOneByte:%x,%d,%b\n", leastOneByte, leastOneByte, leastOneByte)
 				address[addressLen-1] = address[addressLen-1] | leastOneByte
 				fmt.Printf("max: address: %x,%d,%b\n", address[addressLen-1], address[addressLen-1], address[addressLen-1])
@@ -375,7 +381,8 @@ func decodeAddressPrefix(ipFamily int, addressShouldLenByte []byte, unusedByte [
 		ipv6Address := ""
 		if ipAddressType == "min" {
 			if unusedBitLen > 0 {
-				var leastZeroByte uint8 = bitutil.LeftAndFillZero(uint8(unusedBitLen - 1))
+				//var leastZeroByte uint8 = bitutil.LeftAndFillZero(uint8(unusedBitLen - 1))
+				var leastZeroByte uint8 = bitutil.Shift0xffLeftFillZero(uint8(unusedBitLen - 1))
 				//		fmt.Printf("min: leastZeroByte:%x,%d,%b\n", leastZeroByte, leastZeroByte, leastZeroByte)
 				address[addressLen-1] = address[addressLen-1] & leastZeroByte
 				//		fmt.Printf("min: address: %x,%d,%b\n", address[addressLen-1], address[addressLen-1], address[addressLen-1])
@@ -402,7 +409,8 @@ func decodeAddressPrefix(ipFamily int, addressShouldLenByte []byte, unusedByte [
 			fmt.Printf("ipAddress min Ipv6:%s\n", ipAddress)
 		} else if ipAddressType == "max" {
 			if unusedBitLen > 0 {
-				var leastOneByte uint8 = bitutil.LeftAndFillOne(uint8(unusedBitLen - 1))
+				//var leastOneByte uint8 = bitutil.LeftAndFillOne(uint8(unusedBitLen - 1))
+				var leastOneByte uint8 = bitutil.Shift0x00LeftFillOne(uint8(unusedBitLen - 1))
 				//		fmt.Printf("max: leastOneByte:%x,%d,%b\n", leastOneByte, leastOneByte, leastOneByte)
 				address[addressLen-1] = address[addressLen-1] | leastOneByte
 				//		fmt.Printf("max: address: %x,%d,%b\n", address[addressLen-1], address[addressLen-1], address[addressLen-1])
@@ -539,7 +547,8 @@ func GetIpBlocks(value []byte) (ip IpBlock, err error) {
 
 				ipAddressMin := ipMaxMin.IpMin
 				unusedLenMin := (len(ipAddressMin.Bytes))*8 - ipAddressMin.BitLength
-				fillZero := bitutil.LeftAndFillZero(uint8(4*8 - len(ipAddressMin.Bytes)*8 + unusedLenMin))
+				//fillZero := bitutil.LeftAndFillZero(uint8(4*8 - len(ipAddressMin.Bytes)*8 + unusedLenMin))
+				fillZero := bitutil.Shift0xffLeftFillZero(uint8(4*8 - len(ipAddressMin.Bytes)*8 + unusedLenMin))
 				min := ipAddressMin.Bytes // & fillZero
 				fmt.Println("    ipAddressMin:", ipAddressMin, "   unusedLenMin:", unusedLenMin,
 					"   Bytes:", ipAddressMin.Bytes, " BitLength:", ipAddressMin.BitLength,
@@ -548,7 +557,8 @@ func GetIpBlocks(value []byte) (ip IpBlock, err error) {
 
 				ipAddressMax := ipMaxMin.IpMax
 				unusedLenMax := (len(ipAddressMax.Bytes))*8 - ipAddressMax.BitLength
-				fillOne := bitutil.LeftAndFillOne(uint8(4*8 - len(ipAddressMin.Bytes)*8 + unusedLenMax))
+				//fillOne := bitutil.LeftAndFillOne(uint8(4*8 - len(ipAddressMin.Bytes)*8 + unusedLenMax))
+				fillOne := bitutil.Shift0x00LeftFillOne(uint8(4*8 - len(ipAddressMin.Bytes)*8 + unusedLenMax))
 				max := ipAddressMax.Bytes // | fillZero
 				fmt.Println("    ipAddressMax:", ipAddressMax, "   unusedLenMax:", unusedLenMax,
 					"   Bytes:", ipAddressMax.Bytes, " BitLength:", ipAddressMax.BitLength,
@@ -754,102 +764,105 @@ const (
 )
 */
 func main() {
-	var file string
-	file = `F:\share\我的坚果云\Go\common\go-study\src\asncer4\00Z.cer`
-	file = `F:\share\我的坚果云\Go\common\go-study\src\asncer4\c8c59.cer`
-	file = `F:\share\我的坚果云\Go\common\go-study\src\asncer4\75414d.cer`
-	file = `F:\share\我的坚果云\Go\common\go-study\src\asncer4\034644.cer`
-	b, err := fileutil.ReadFileToBytes(file)
-	if err != nil {
-		fmt.Println(file, err)
-		return
+	files := []string{
+		`F:\share\我的坚果云\Go\common\go-study\src\asncer4\00Z.cer`,
+		`F:\share\我的坚果云\Go\common\go-study\src\asncer4\c8c59.cer`,
+		`F:\share\我的坚果云\Go\common\go-study\src\asncer4\75414d.cer`,
+		`F:\share\我的坚果云\Go\common\go-study\src\asncer4\034644.cer`,
 	}
-	certificate := Certificate{}
-	_, err = asn1.Unmarshal(b, &certificate)
-	//fmt.Println("certificate:", jsonutil.MarshallJsonIndent(certificate), len(res), err)
-	//fmt.Println(len(certificate.TBSCertificate.Extensions))
-	for i := range certificate.TBSCertificate.Extensions {
-		extension := &certificate.TBSCertificate.Extensions[i]
-		fmt.Println(extension.Oid.String())
-		if extension.Oid.String() == "2.5.29.14" {
-			// subjectKeyIdentifier
-			fmt.Println("2.5.29.14:")
-			fmt.Println(GetOctectString(extension.Value))
-		} else if extension.Oid.String() == "2.5.29.35" {
-			// authorityKeyIdentifier
-			fmt.Println("2.5.29.35:")
-			fmt.Println(GetOctectStringSequenceString(extension.Value))
-		} else if extension.Oid.String() == "2.5.29.19" {
-			// basicConstraints
-			fmt.Println("2.5.29.19:", extension.Critical)
-			fmt.Println("2.5.29.19:")
-			fmt.Println(GetOctectStringSequenceBool(extension.Value))
-		} else if extension.Oid.String() == "2.5.29.15" {
-			// keyUsage
-			fmt.Println("2.5.29.15", extension.Critical)
+	for _, file := range files {
+		b, err := fileutil.ReadFileToBytes(file)
+		if err != nil {
+			fmt.Println(file, err)
+			return
+		}
+		certificate := Certificate{}
+		_, err = asn1.Unmarshal(b, &certificate)
+		//fmt.Println("certificate:", jsonutil.MarshallJsonIndent(certificate), len(res), err)
+		//fmt.Println(len(certificate.TBSCertificate.Extensions))
+		for i := range certificate.TBSCertificate.Extensions {
+			extension := &certificate.TBSCertificate.Extensions[i]
+			fmt.Println(extension.Oid.String())
+			if extension.Oid.String() == "2.5.29.14" {
+				// subjectKeyIdentifier
+				fmt.Println("2.5.29.14:")
+				fmt.Println(GetOctectString(extension.Value))
+			} else if extension.Oid.String() == "2.5.29.35" {
+				// authorityKeyIdentifier
+				fmt.Println("2.5.29.35:")
+				fmt.Println(GetOctectStringSequenceString(extension.Value))
+			} else if extension.Oid.String() == "2.5.29.19" {
+				// basicConstraints
+				fmt.Println("2.5.29.19:", extension.Critical)
+				fmt.Println("2.5.29.19:")
+				fmt.Println(GetOctectStringSequenceBool(extension.Value))
+			} else if extension.Oid.String() == "2.5.29.15" {
+				// keyUsage
+				fmt.Println("2.5.29.15", extension.Critical)
 
-			usageValue, err := GetOctectStringBitString(extension.Value)
-			fmt.Println("2.5.29.15:", usageValue, err)
+				usageValue, err := GetOctectStringBitString(extension.Value)
+				fmt.Println("2.5.29.15:", usageValue, err)
 
-			var tmp int
-			// usageValue: 0000011
-			// 从左边开始数，从0开始计数，即第5,6位为1, 则对应KeyUsageCertSign  KeyUsageCRLSign
-			for i := 0; i < 9; i++ {
-				//当为1时挪动，即看是第几个进行挪动
-				//fmt.Println(i, usageValue.At(i))
-				if usageValue.At(i) != 0 {
-					tmp |= 1 << uint(i)
+				var tmp int
+				// usageValue: 0000011
+				// 从左边开始数，从0开始计数，即第5,6位为1, 则对应KeyUsageCertSign  KeyUsageCRLSign
+				for i := 0; i < 9; i++ {
+					//当为1时挪动，即看是第几个进行挪动
+					//fmt.Println(i, usageValue.At(i))
+					if usageValue.At(i) != 0 {
+						tmp |= 1 << uint(i)
+					}
 				}
-			}
-			// 先写死吧
-			usage := int(tmp)
-			usageStr := "Certificate Sign, CRL Sign"
-			fmt.Println(usage)
-			fmt.Println(usageStr)
-			/*
-				fmt.Println(x509.KeyUsageDigitalSignature)
-				fmt.Println(x509.KeyUsageContentCommitment)
-				fmt.Println(x509.KeyUsageKeyEncipherment)
-				fmt.Println(x509.KeyUsageDataEncipherment)
-				fmt.Println(x509.KeyUsageKeyAgreement)
-				fmt.Println(x509.KeyUsageCertSign)
-				fmt.Println(x509.KeyUsageCRLSign)
-				fmt.Println(x509.KeyUsageEncipherOnly)
-				fmt.Println(x509.KeyUsageDecipherOnly)
-			*/
+				// 先写死吧
+				usage := int(tmp)
+				usageStr := "Certificate Sign, CRL Sign"
+				fmt.Println(usage)
+				fmt.Println(usageStr)
+				/*
+					fmt.Println(x509.KeyUsageDigitalSignature)
+					fmt.Println(x509.KeyUsageContentCommitment)
+					fmt.Println(x509.KeyUsageKeyEncipherment)
+					fmt.Println(x509.KeyUsageDataEncipherment)
+					fmt.Println(x509.KeyUsageKeyAgreement)
+					fmt.Println(x509.KeyUsageCertSign)
+					fmt.Println(x509.KeyUsageCRLSign)
+					fmt.Println(x509.KeyUsageEncipherOnly)
+					fmt.Println(x509.KeyUsageDecipherOnly)
+				*/
 
-		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.1" {
-			// authorityInfoAccess
-			seqs, err := GetOctectStringSequenceOidString(extension.Value)
-			fmt.Println("1.3.6.1.5.5.7.1.1:", len(seqs), err)
-			for i := range seqs {
-				fmt.Println(seqs[i].Oid, string(seqs[i].Value))
-			}
-		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.11" {
-			// subjectInfoAccess
-			seqs, err := GetOctectStringSequenceOidString(extension.Value)
-			fmt.Println("1.3.6.1.5.5.7.1.11:", len(seqs), err)
-			for i := range seqs {
-				fmt.Println(seqs[i].Oid, string(seqs[i].Value))
-			}
-		} else if extension.Oid.String() == "2.5.29.31" {
-			// cRLDistributionPoints
-			seqs, err := GetCrldp(extension.Value)
-			fmt.Println("2.5.29.31:", seqs, err)
-		} else if extension.Oid.String() == "2.5.29.32" {
-			// cRLDistributionPoints
-			seqs, err := GetPolicies(extension.Value)
-			fmt.Println("2.5.29.32:", seqs, err)
-		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.7" {
-			// cRLDistributionPoints
-			//seqs, err := GetIpBlocks(extension.Value)
-			ipAddrBlocks, err := asn1cert.ParseToIpAddressBlocks(extension.Value)
-			fmt.Println("1.3.6.1.5.5.7.1.7:", jsonutil.MarshalJson(ipAddrBlocks), err)
-		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.8" {
-			// cRLDistributionPoints
-			fmt.Println("1.3.6.1.5.5.7.1.8:")
-			GetAsns(extension.Value)
+			} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.1" {
+				// authorityInfoAccess
+				seqs, err := GetOctectStringSequenceOidString(extension.Value)
+				fmt.Println("1.3.6.1.5.5.7.1.1:", len(seqs), err)
+				for i := range seqs {
+					fmt.Println(seqs[i].Oid, string(seqs[i].Value))
+				}
+			} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.11" {
+				// subjectInfoAccess
+				seqs, err := GetOctectStringSequenceOidString(extension.Value)
+				fmt.Println("1.3.6.1.5.5.7.1.11:", len(seqs), err)
+				for i := range seqs {
+					fmt.Println(seqs[i].Oid, string(seqs[i].Value))
+				}
+			} else if extension.Oid.String() == "2.5.29.31" {
+				// Crl
+				seqs, err := GetCrldp(extension.Value)
+				fmt.Println("2.5.29.31:", seqs, err)
+			} else if extension.Oid.String() == "2.5.29.32" {
+				// Policies
+				seqs, err := GetPolicies(extension.Value)
+				fmt.Println("2.5.29.32:", seqs, err)
+			} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.7" {
+				// IpBlocks
+				//seqs, err := GetIpBlocks(extension.Value)
+				ipAddrBlocks, err := asn1cert.ParseToIpAddressBlocks(extension.Value)
+				fmt.Println("1.3.6.1.5.5.7.1.7:", jsonutil.MarshalJson(ipAddrBlocks), err)
+			} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.8" {
+				// Asns
+				fmt.Println("1.3.6.1.5.5.7.1.8:")
+				GetAsns(extension.Value)
 
+			}
 		}
 	}
 	/*
