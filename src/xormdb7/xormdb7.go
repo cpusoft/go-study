@@ -64,7 +64,7 @@ func getFromDb(syncLogFileModelCh chan *SyncLogFileModel, endCh chan bool) {
 	//DB, err = sql.Open("mysql", "rpstir:Rpstir-123@tcp(202.173.9.21:13306)/rpstir")
 	user := "rpstir2"
 	password := "Rpstir-123"
-	server := "10.1.135.104:13306"
+	server := "10.1.135.22:13306"
 	database := "rpstir2"
 	maxidleconns := 50
 	maxopenconns := 50
