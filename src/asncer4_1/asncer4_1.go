@@ -119,10 +119,7 @@ func GetCrldp(value []byte) ([]string, error) {
 
 func main() {
 	files := []string{
-		`F:\share\我的坚果云\Go\common\go-study\src\asncer4\00Z.cer`,
-		//`F:\share\我的坚果云\Go\common\go-study\src\asncer4\c8c59.cer`,
-		//`F:\share\我的坚果云\Go\common\go-study\src\asncer4\75414d.cer`,
-		//`F:\share\我的坚果云\Go\common\go-study\src\asncer4\034644.cer`,
+		`asncer4\00Z.cer`,
 	}
 	for _, file := range files {
 		b, err := fileutil.ReadFileToBytes(file)

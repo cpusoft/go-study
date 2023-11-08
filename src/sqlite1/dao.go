@@ -14,7 +14,7 @@ var (
 
 func init() {
 	var err error
-	Engine, err = xorm.NewEngine("sqlite3", `F:\share\我的坚果云\Go\go-study\src\sqlite1\test.db`)
+	Engine, err = xorm.NewEngine("sqlite3", `sqlite1\test.db`)
 	if err != nil {
 		fmt.Println(err)
 	}
