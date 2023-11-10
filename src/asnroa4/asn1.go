@@ -29,8 +29,6 @@ import (
 	"time"
 	"unicode/utf16"
 	"unicode/utf8"
-
-	"github.com/cpusoft/goutil/convert"
 )
 
 // A StructuralError suggests that the ASN.1 data is valid, but the Go type
@@ -539,8 +537,8 @@ func parseTagAndLength(bytes []byte, initOffset int) (ret tagAndLength, offset i
 	ret.class = int(b >> 6)
 	ret.isCompound = b&0x20 == 0x20
 	ret.tag = int(b & 0x1f)
-	fmt.Println("parseTagAndLength(): b:", fmt.Sprintf("%x", b), "  offset:", offset,
-		"  ret.class:", ret.class, "  ret.isCompound:", ret.isCompound, "  ret.tag:", ret.tag)
+	//	fmt.Println("parseTagAndLength(): b:", fmt.Sprintf("%x", b), "  offset:", offset,
+	//		"  ret.class:", ret.class, "  ret.isCompound:", ret.isCompound, "  ret.tag:", ret.tag)
 
 	// If the bottom five bits are set, then the tag number is actually base 128
 	// encoded afterwards
@@ -612,22 +610,22 @@ func parseSequenceOf(bytes []byte, sliceType reflect.Type, elemType reflect.Type
 		err = StructuralError{"unknown Go type for slice"}
 		return
 	}
-	fmt.Println("parseSequenceOf(): bytes:", convert.PrintBytesOneLine(bytes), "  matchAny:", matchAny,
-		"  expectedTag:", expectedTag, "  compoundType:", compoundType, "   ok:", ok)
+	//	fmt.Println("parseSequenceOf(): bytes:", convert.PrintBytesOneLine(bytes), "  matchAny:", matchAny,
+	//		"  expectedTag:", expectedTag, "  compoundType:", compoundType, "   ok:", ok)
 	// First we iterate over the input and count the number of elements,
 	// checking that the types are correct in each case.
 	numElements := 0
 	for offset := 0; offset < len(bytes); {
 		var t tagAndLength
-		fmt.Println("parseSequenceOf(): offset:", offset)
+		//fmt.Println("parseSequenceOf(): offset:", offset)
 		t, offset, err = parseTagAndLength(bytes, offset)
 		if err != nil {
 			return
 		}
-		fmt.Println("parseSequenceOf(): t.tag:", t.tag, "  expectedTag:", expectedTag,
-			"  t.class:", t.class, "  ClassUniversal:", ClassUniversal,
-			"  t.isCompound:", t.isCompound, "  compoundType:", compoundType,
-			"  offset:", offset)
+		//fmt.Println("parseSequenceOf(): t.tag:", t.tag, "  expectedTag:", expectedTag,
+		//	"  t.class:", t.class, "  ClassUniversal:", ClassUniversal,
+		//		"  t.isCompound:", t.isCompound, "  compoundType:", compoundType,
+		//		"  offset:", offset)
 
 		switch t.tag {
 		case TagIA5String, TagGeneralString, TagT61String, TagUTF8String, TagNumericString, TagBMPString:
@@ -686,7 +684,7 @@ func invalidLength(offset, length, sliceLength int) bool {
 func parseField(v reflect.Value, bytes []byte, initOffset int, params fieldParameters) (offset int, err error) {
 	offset = initOffset
 	fieldType := v.Type()
-	fmt.Println("parseField(): fieldType:", fieldType,"  params:",params, "  bytes:", convert.PrintBytesOneLine(bytes))
+	//fmt.Println("parseField(): fieldType:", fieldType,"  params:",params, "  bytes:", convert.PrintBytesOneLine(bytes))
 	// If we have run out of data, it may be that there are optional elements at the end.
 	if offset == len(bytes) {
 		if !setDefaultValue(v, params) {
@@ -702,7 +700,7 @@ func parseField(v reflect.Value, bytes []byte, initOffset int, params fieldParam
 		if err != nil {
 			return
 		}
-		fmt.Println("parseField(): ifaceType.Kind():", ifaceType.Kind(), "  t.tag:", t.tag)
+		//fmt.Println("parseField(): ifaceType.Kind():", ifaceType.Kind(), "  t.tag:", t.tag)
 
 		if invalidLength(offset, t.length, len(bytes)) {
 			err = SyntaxError{"data truncated"}
@@ -754,8 +752,8 @@ func parseField(v reflect.Value, bytes []byte, initOffset int, params fieldParam
 	if err != nil {
 		return
 	}
-	fmt.Println("parseField(): after parseTagAndLength, t.class:", t.class, " t.tag:",
-		t.tag, "  t.isCompound:", t.isCompound, "  params.explicit:", params.explicit)
+	//fmt.Println("parseField(): after parseTagAndLength, t.class:", t.class, " t.tag:",
+	//	t.tag, "  t.isCompound:", t.isCompound, "  params.explicit:", params.explicit)
 
 	if params.explicit {
 		expectedClass := ClassContextSpecific
@@ -799,8 +797,8 @@ func parseField(v reflect.Value, bytes []byte, initOffset int, params fieldParam
 		err = StructuralError{fmt.Sprintf("unknown Go type: %v", fieldType)}
 		return
 	}
-	fmt.Println("parseField(): after getUniversalType, fieldType:", fieldType, "  matchAny:", matchAny,
-		"   universalTag:", universalTag, "  compoundType:", compoundType)
+	//fmt.Println("parseField(): after getUniversalType, fieldType:", fieldType, "  matchAny:", matchAny,
+	//	"   universalTag:", universalTag, "  compoundType:", compoundType)
 	// Special case for strings: all the ASN.1 string types map to the Go
 	// type string. getUniversalType returns the tag for PrintableString
 	// when it sees a string, so if we see a different string type on the
@@ -829,8 +827,8 @@ func parseField(v reflect.Value, bytes []byte, initOffset int, params fieldParam
 	matchAnyClassAndTag := matchAny
 	expectedClass := ClassUniversal
 	expectedTag := universalTag
-	fmt.Println("parseField(): params.explicit:", params.explicit, "  params.tag:", params.tag,
-		"  params.application:", params.application, "  params.private:", params.private)
+	//fmt.Println("parseField(): params.explicit:", params.explicit, "  params.tag:", params.tag,
+	//	"  params.application:", params.application, "  params.private:", params.private)
 	if !params.explicit && params.tag != nil {
 		expectedClass = ClassContextSpecific
 		expectedTag = *params.tag
@@ -848,10 +846,10 @@ func parseField(v reflect.Value, bytes []byte, initOffset int, params fieldParam
 		expectedTag = *params.tag
 		matchAnyClassAndTag = false
 	}
-	fmt.Println("parseField(): matchAnyClassAndTag:", matchAnyClassAndTag, "  t.class:", t.class,
-		"   expectedClass:", expectedClass, "  t.tag :", t.tag, "  expectedTag:", expectedTag,
-		"  matchAny:", matchAny, "  t.isCompound:", t.isCompound, "  compoundType:", compoundType,
-		"  bytes:", convert.PrintBytesOneLine(bytes), "  bytes[offset]:", convert.PrintBytesOneLine(bytes[offset:offset+t.length]))
+	//fmt.Println("parseField(): matchAnyClassAndTag:", matchAnyClassAndTag, "  t.class:", t.class,
+	//	"   expectedClass:", expectedClass, "  t.tag :", t.tag, "  expectedTag:", expectedTag,
+	//	"  matchAny:", matchAny, "  t.isCompound:", t.isCompound, "  compoundType:", compoundType,
+	//	"  bytes:", convert.PrintBytesOneLine(bytes), "  bytes[offset]:", convert.PrintBytesOneLine(bytes[offset:offset+t.length]))
 	// We have unwrapped any explicit tagging at this point.
 	if !matchAnyClassAndTag && (t.class != expectedClass || t.tag != expectedTag) ||
 		(!matchAny && t.isCompound != compoundType) {
@@ -936,7 +934,7 @@ func parseField(v reflect.Value, bytes []byte, initOffset int, params fieldParam
 
 		for i := 0; i < structType.NumField(); i++ {
 			if !structType.Field(i).IsExported() {
-				fmt.Println("parseField(): !IsExported:", structType.Field(i).IsExported())
+				//fmt.Println("parseField(): !IsExported:", structType.Field(i).IsExported())
 				err = StructuralError{"struct contains unexported fields"}
 				return
 			}
