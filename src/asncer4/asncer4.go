@@ -163,8 +163,14 @@ func GetCrldp(value []byte) ([]string, error) {
 
 // RFC 5280 4.2.1.4
 type policy struct {
-	Policy asn1.ObjectIdentifier
+	Policy   asn1.ObjectIdentifier
+	Policy2s []Policy2
 	// policyQualifiers omitted
+}
+
+type Policy2 struct {
+	Policy asn1.ObjectIdentifier
+	Url    string
 }
 
 func GetPolicies(value []byte) ([]string, error) {
@@ -765,10 +771,10 @@ const (
 */
 func main() {
 	files := []string{
-		`asncer4\00Z.cer`,
-		`asncer4\c8c59.cer`,
-		`asncer4\75414d.cer`,
-		`asncer4\034644.cer`,
+		//	`asncer4\00Z.cer`,
+		//	`asncer4\c8c59.cer`,
+		//	`asncer4\75414d.cer`,
+		`F:\share\我的坚果云\Go\common\go-study\src\asncer4\034644.cer`,
 	}
 	for _, file := range files {
 		b, err := fileutil.ReadFileToBytes(file)
@@ -850,8 +856,11 @@ func main() {
 				fmt.Println("2.5.29.31:", seqs, err)
 			} else if extension.Oid.String() == "2.5.29.32" {
 				// Policies
+				fmt.Println("\n\n\n\n===========================")
 				seqs, err := GetPolicies(extension.Value)
 				fmt.Println("2.5.29.32:", seqs, err)
+				fmt.Println("===========================\n\n\n\n")
+				return
 			} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.7" {
 				// IpBlocks
 				//seqs, err := GetIpBlocks(extension.Value)

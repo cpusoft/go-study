@@ -6,14 +6,17 @@ import (
 	"net"
 	"time"
 
+	"github.com/cpusoft/goutil/byteutil"
 	"github.com/cpusoft/goutil/convert"
 	"github.com/cpusoft/goutil/fileutil"
 	"github.com/cpusoft/goutil/jsonutil"
+	model "labscm.zdns.cn/rpstir2-mod/rpstir2-model"
+	parsevalidateasn1 "labscm.zdns.cn/rpstir2-mod/rpstir2-parsevalidate-asn1"
 )
 
 type ContentInfo struct {
-	ContentType ObjectIdentifier
-	Seqs        []RawValue `asn1:"optional,explicit,default:0,tag:0""`
+	ContentType ObjectIdentifier `json:"contentType"`
+	Seqs        []RawValue       `json:"seqs" asn1:"optional,explicit,default:0,tag:0"`
 }
 type RoaSignedData struct {
 	Version             uint64   `json:"version"`
@@ -318,10 +321,10 @@ type RoaOctetString struct {
 
 func main() {
 	files := []string{
-		`F:\share\我的坚果云\Go\common\go-study\src\asnroa1\1.roa`,
-		`F:\share\我的坚果云\Go\common\go-study\src\asnroa1\asn0.roa`,
+		//	`F:\share\我的坚果云\Go\common\go-study\src\asnroa1\1.roa`,
+		//	`F:\share\我的坚果云\Go\common\go-study\src\asnroa1\asn0.roa`,
 		`F:\share\我的坚果云\Go\common\go-study\src\asnroa1\ok.roa`,
-		`F:\share\我的坚果云\Go\common\go-study\src\asnroa1\fail1.roa`,
+		//	`F:\share\我的坚果云\Go\common\go-study\src\asnroa1\fail1.roa`,
 	}
 
 	for _, file := range files {
@@ -343,7 +346,7 @@ func main() {
 
 		roaSignedData := RoaSignedData{}
 		for _, seq := range contentInfo.Seqs {
-			//fmt.Println("seq:", jsonutil.MarshallJsonIndent(seq))
+			fmt.Println("seq.Tag:", seq.Tag, "  seq.Class:", seq.Class, "  seq.IsCompound:", seq.IsCompound)
 
 			if seq.Class == 0 && seq.Tag == 2 && !seq.IsCompound {
 				// version:       version CMSVersion INTEGER 3
@@ -406,8 +409,17 @@ func main() {
 					}
 					fmt.Println("file len(ipAddrBlock.Addresses):", file, len(ipAddrBlock.Addresses))
 				}
-				//fmt.Println("roaIpAddressModels:", jsonutil.MarshalJson(roaIpAddressModels))
+			} else if seq.Class == 2 && seq.Tag == 0 && seq.IsCompound {
+				fmt.Println("\n\n\n----------")
+				fmt.Println("len(seq.Bytes):", len(seq.Bytes))
+				var cerModel model.CerModel
+				err = parsevalidateasn1.ParseCerModelByAsn1(seq.Bytes, &cerModel)
+				fmt.Println("cerModel:", jsonutil.MarshalJson(cerModel), err)
+				startIndex, endIndex, err := byteutil.IndexStartAndEnd(b, seq.Bytes)
+				fmt.Println("startIndex:", startIndex, "  endIndex:", endIndex, err)
+				fmt.Println("----------\n\n\n")
 			}
+			//fmt.Println("roaIpAddressModels:", jsonutil.MarshalJson(roaIpAddressModels))
 		}
 		fmt.Println("file roaSignedData:", file, jsonutil.MarshalJson(roaSignedData))
 		fmt.Println("\n\n\n\n")
