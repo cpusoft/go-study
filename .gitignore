@@ -19,3 +19,5 @@
 /src/grpc3/cert
 /src/grpc4/cert
 /.vscode
+/src/asnroa3/roa0.result
+/src/asncer4/asncer4.rar

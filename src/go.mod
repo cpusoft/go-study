@@ -14,7 +14,7 @@ require (
 	github.com/cpusoft/beego/v2 v2.0.4
 	github.com/cpusoft/gin-contrib-sessions v0.0.0-20230602020338-f48f3b418fc6
 	github.com/cpusoft/go-json-rest v4.0.0+incompatible
-	github.com/cpusoft/goutil v1.0.33-0.20231115143834-88e1a5a25c13
+	github.com/cpusoft/goutil v1.0.33-0.20231116105115-8cf461c90b8b
 	github.com/derekparker/trie v0.0.0-20200317170641-1fdf38b7b0e9
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.7.1

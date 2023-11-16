@@ -35,10 +35,10 @@ type Sha256 struct {
 
 func main() {
 	var file string
-	file = `F:\share\我的坚果云\Go\common\go-study\src\asnroa2\1.roa`
-	file = `F:\share\我的坚果云\Go\common\go-study\src\asnroa2\asn0.roa`
-	file = `F:\share\我的坚果云\Go\common\go-study\src\asnroa2\ok.roa`
-	file = `F:\share\我的坚果云\Go\common\go-study\src\asnroa2\fail1.roa`
+	file = `G:\Download\cert\asnroa2\1.roa`
+	file = `G:\Download\cert\asnroa2\asn0.roa`
+	file = `G:\Download\cert\asnroa2\ok.roa`
+	file = `G:\Download\cert\asnroa2\fail1.roa`
 	b, err := fileutil.ReadFileToBytes(file)
 	if err != nil {
 		fmt.Println(file, err)

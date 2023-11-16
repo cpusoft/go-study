@@ -238,7 +238,7 @@ func ParseSignatureInnerAlgorithmByAsn1(signatureAlgorithm AlgorithmIdentifier) 
 
 func main() {
 	files := []string{
-		`F:\share\我的坚果云\Go\common\go-study\src\asncer4_1\sx.cer`,
+		`G:\Download\cert\asncer4_1\sx.cer`,
 	}
 	for _, file := range files {
 		b, err := fileutil.ReadFileToBytes(file)

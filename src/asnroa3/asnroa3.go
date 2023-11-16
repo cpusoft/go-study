@@ -6,17 +6,14 @@ import (
 	"net"
 	"time"
 
-	"github.com/cpusoft/goutil/byteutil"
 	"github.com/cpusoft/goutil/convert"
 	"github.com/cpusoft/goutil/fileutil"
 	"github.com/cpusoft/goutil/jsonutil"
-	model "labscm.zdns.cn/rpstir2-mod/rpstir2-model"
-	parsevalidateasn1 "labscm.zdns.cn/rpstir2-mod/rpstir2-parsevalidate-asn1"
 )
 
 type ContentInfo struct {
-	ContentType ObjectIdentifier `json:"contentType"`
-	Seqs        []RawValue       `json:"seqs" asn1:"optional,explicit,default:0,tag:0"`
+	ContentType ObjectIdentifier
+	Seqs        []RawValue `asn1:"optional,explicit,default:0,tag:0""`
 }
 type RoaSignedData struct {
 	Version             uint64   `json:"version"`
@@ -219,6 +216,40 @@ type CrldpModel struct {
 	Critical bool     `json:"critical"`
 }
 
+//////////////////////////////////////////////
+
+// asID as in rfc6482
+type RouteOriginAttestation struct {
+	AsID         ASID                 `json:"asID"`
+	IpAddrBlocks []ROAIPAddressFamily `json:"ipAddrBlocks"`
+}
+type ASID int64
+type ROAIPAddressFamily struct {
+	AddressFamily []byte         `json:"addressFamily"`
+	Addresses     []ROAIPAddress `json:"addresses"`
+}
+type ROAIPAddress struct {
+	Address   BitString `json:"address"`
+	MaxLength int       `asn1:"optional,default:-1" json:"maxLength"`
+}
+
+/*
+Version          int
+DigestAlgorighms AlgorithmIdentifier
+EncapContentInfo EncapsulatedContentInfo
+TbsCertificate   TBSCertificate
+SignerInfos      RawValue
+*/
+
+type EncapsulatedContentInfo struct {
+	EContentType string     `json:"eContentType"`
+	EContent     []RawValue `asn1:"optional,explicit,default:0,tag:0""`
+}
+type OctString []byte
+
+type SignerInfos struct {
+}
+
 type Certificate struct {
 	TBSCertificate     TBSCertificate
 	SignatureAlgorithm AlgorithmIdentifier
@@ -277,152 +308,193 @@ type Extension struct {
 	Value    []byte
 }
 
-//////////////////////////////////////////////
-
-// asID as in rfc6482
-type RouteOriginAttestation struct {
-	AsID         ASID                 `json:"asID"`
-	IpAddrBlocks []ROAIPAddressFamily `json:"ipAddrBlocks"`
-}
-type ASID int64
-type ROAIPAddressFamily struct {
-	AddressFamily []byte         `json:"addressFamily"`
-	Addresses     []ROAIPAddress `json:"addresses"`
-}
-type ROAIPAddress struct {
-	Address   BitString `json:"address"`
-	MaxLength int       `asn1:"optional,default:-1" json:"maxLength"`
-}
-
-/*
-Version          int
-DigestAlgorighms AlgorithmIdentifier
-EncapContentInfo EncapsulatedContentInfo
-TbsCertificate   TBSCertificate
-SignerInfos      RawValue
-*/
-
-type EncapsulatedContentInfo struct {
-	EContentType string     `json:"eContentType"`
-	EContent     []RawValue `asn1:"optional,explicit,default:0,tag:0""`
-}
-type OctString []byte
-
 type Sha256 struct {
 	Oid  ObjectIdentifier
 	Null RawValue
 }
 
+type RoaRaw struct {
+	RoaRaw1 RoaRaw1 `asn1:"tag:0"`
+}
+type RoaRaw1 struct {
+	RoaRaw2 RoaRaw2 `asn1:"tag:0"`
+}
+type RoaRaw2 struct {
+	RoaRaw3 RoaRaw3 `asn1:"tag:0"`
+}
+type RoaRaw3 struct {
+	RouteOriginAttestation RouteOriginAttestation `asn1:"explicit,tag:0"`
+}
 type OctetString []byte
 type RoaOctetString struct {
 	EContentType ObjectIdentifier
 	OctetString  OctetString `asn1:"tag:0,explicit,optional"`
 }
+type RoaOctetString1 struct {
+	OctetString OctString `asn1:"tag:0,explicit,optional"`
+}
+
+type ROA struct {
+	OID      ObjectIdentifier
+	EContent RawValue `asn1:"tag:0,explicit,optional"`
+}
 
 func main() {
-	files := []string{
-		//	`G:\Download\cert\asnroa1\1.roa`,
-		//	`G:\Download\cert\asnroa1\asn0.roa`,
-		`G:\Download\cert\roa\1.roa`,
-		//	`G:\Download\cert\asnroa1\fail1.roa`,
+	var file string
+	file = `G:\Download\cert\asnroa1\1.roa`
+	file = `G:\Download\cert\asnroa1\asn0.roa`
+	file = `G:\Download\cert\asnroa1\ok.roa`
+	//file = `G:\Download\cert\asnroa1\fail1.roa`
+	b, err := fileutil.ReadFileToBytes(file)
+	if err != nil {
+		fmt.Println(file, err)
+		return
 	}
 
-	for _, file := range files {
-		fmt.Println("file:", file)
-		b, err := fileutil.ReadFileToBytes(file)
-		if err != nil {
-			fmt.Println("!!!!!!ReadFileToBytes fail:", file, err)
-			continue
-		}
+	contentInfo := ContentInfo{}
+	_, err = Unmarshal(b, &contentInfo)
+	if err != nil {
+		fmt.Println("file:", file, err)
+		return
+	}
+	contentTypeOid := contentInfo.ContentType.String()
+	fmt.Println("contentTypeOid:", contentTypeOid)
 
-		contentInfo := ContentInfo{}
-		_, err = Unmarshal(b, &contentInfo)
-		if err != nil {
-			fmt.Println("!!!!!!Unmarshal contentInfo, file:", file, err)
-			continue
-		}
-		contentTypeOid := contentInfo.ContentType.String()
-		fmt.Println("file contentTypeOid:", file, contentTypeOid)
+	roaSignedData := RoaSignedData{}
+	for _, seq := range contentInfo.Seqs {
+		fmt.Println("seq:", jsonutil.MarshallJsonIndent(seq))
 
-		roaSignedData := RoaSignedData{}
-		for _, seq := range contentInfo.Seqs {
-			fmt.Println("seq.Tag:", seq.Tag, "  seq.Class:", seq.Class, "  seq.IsCompound:", seq.IsCompound)
-
-			if seq.Class == 0 && seq.Tag == 2 && !seq.IsCompound {
-				// version:       version CMSVersion INTEGER 3
-				roaSignedData.Version = convert.Bytes2Uint64(seq.Bytes)
-			} else if seq.Class == 0 && seq.Tag == 17 && seq.IsCompound && len(seq.Bytes) < 100 {
-				// digestAlgorithms DigestAlgorithmIdentifiers or signerInfos SignerInfos SET (1 elem)
-				var algorithmIdentifier AlgorithmIdentifier
-				_, err = Unmarshal(seq.Bytes, &algorithmIdentifier)
-				if err != nil {
-					fmt.Println("!!!!!!algorithmIdentifier fail:", err)
-					continue
-				}
+		if seq.Class == 0 && seq.Tag == 2 && !seq.IsCompound {
+			// version:       version CMSVersion INTEGER 3
+			roaSignedData.Version = convert.Bytes2Uint64(seq.Bytes)
+		} else if seq.Class == 0 && seq.Tag == 17 && seq.IsCompound && len(seq.Bytes) < 100 {
+			// digestAlgorithms DigestAlgorithmIdentifiers or signerInfos SignerInfos SET (1 elem)
+			var algorithmIdentifier AlgorithmIdentifier
+			_, err = Unmarshal(seq.Bytes, &algorithmIdentifier)
+			if err != nil {
+				fmt.Println("algorithmIdentifier fail:", err)
+			} else {
 				roaSignedData.AlgorithmIdentifier = algorithmIdentifier.Algorithm.String()
-
-			} else if seq.Class == 0 && seq.Tag == 16 && seq.IsCompound {
-				//  encapContentInfo EncapsulatedContentInfo
-				var roaOctetString RoaOctetString
-				_, err = Unmarshal(seq.FullBytes, &roaOctetString)
-				if err != nil {
-					fmt.Println("!!!!!Unmarshal roaOctetString fail:", err)
-					continue
-				}
-				//fmt.Println("roaOctetString, EContentType:", roaOctetString.EContentType, " len(OctetString):", len(roaOctetString.OctetString))
-
-				routeOriginAttestation := RouteOriginAttestation{}
-				_, err = Unmarshal([]byte(roaOctetString.OctetString), &routeOriginAttestation)
-				if err != nil {
-					fmt.Println("!!!!!!Unmarshal routeOriginAttestation fail:", err)
-					continue
-				}
-				//fmt.Println("RoaOctetString: routeOriginAttestation", jsonutil.MarshalJson(routeOriginAttestation))
-
-				roaSignedData.RoaModel.Asn = int64(routeOriginAttestation.AsID)
-				//roaIpAddressModels := make([]RoaIpAddressModel, 0)
-				for i := range routeOriginAttestation.IpAddrBlocks {
-					ipAddrBlock := routeOriginAttestation.IpAddrBlocks[i]
-					addressFamily := convert.BytesToBigInt(ipAddrBlock.AddressFamily)
-					//fmt.Println("addressFamily:", addressFamily)
-					var size int
-					if addressFamily.Uint64() == 1 {
-						size = 4
-					} else if addressFamily.Uint64() == 2 {
-						size = 16
-					}
-
-					for j := range ipAddrBlock.Addresses {
-						fmt.Println("file Address:", file, ipAddrBlock.Addresses[j].Address)
-
-						ipAddr := make([]byte, size)
-						copy(ipAddr, ipAddrBlock.Addresses[j].Address.Bytes)
-						mask := net.CIDRMask(ipAddrBlock.Addresses[j].Address.BitLength, size*8)
-						//fmt.Println("ipAddr:", convert.PrintBytesOneLine(ipAddr),	jsonutil.MarshalJson(ipAddr),"  mask:", mask)
-						ipNet := net.IPNet{
-							IP:   net.IP(ipAddr),
-							Mask: mask,
-						}
-						maxlength := ipAddrBlock.Addresses[j].MaxLength
-						roaPrefixAddress := ipNet.String()
-						//fmt.Println("file:roaPrefixAddress:", file, roaPrefixAddress, "  maxlength:", maxlength)
-						fmt.Sprintf("%s,%d", roaPrefixAddress, maxlength)
-					}
-					fmt.Println("file len(ipAddrBlock.Addresses):", file, len(ipAddrBlock.Addresses))
-				}
-			} else if seq.Class == 2 && seq.Tag == 0 && seq.IsCompound {
-				fmt.Println("\n\n\n----------")
-				fmt.Println("len(seq.Bytes):", len(seq.Bytes))
-				var cerModel model.CerModel
-				err = parsevalidateasn1.ParseCerModelByAsn1(seq.Bytes, &cerModel)
-				fmt.Println("cerModel:", jsonutil.MarshalJson(cerModel), err)
-				startIndex, endIndex, err := byteutil.IndexStartAndEnd(b, seq.Bytes)
-				fmt.Println("startIndex:", startIndex, "  endIndex:", endIndex, err)
-				fmt.Println("----------\n\n\n")
 			}
-			//fmt.Println("roaIpAddressModels:", jsonutil.MarshalJson(roaIpAddressModels))
+
+		} else if seq.Class == 0 && seq.Tag == 16 && seq.IsCompound {
+			//  encapContentInfo EncapsulatedContentInfo
+			fmt.Println("EncapContentInfo(): bytes:", convert.PrintBytesOneLine(seq.Bytes))
+			eContentType := ObjectIdentifier{} //make([]asn1.RawValue, 0)
+			reset, err := Unmarshal(seq.Bytes, &eContentType)
+			if err != nil {
+				fmt.Println("Unmarshal eContentType fail:", err)
+			}
+			roaOid := eContentType.String()
+			fmt.Println("roaOid:", roaOid)
+
+			/*
+					fmt.Println("RoaRaw start----------------------------------\n\n")
+					roaRaw := RoaRaw{}
+					_, err = Unmarshal(reset, &roaRaw)
+					if err != nil {
+						fmt.Println("Unmarshal roaRaw fail:", err)
+					} else {
+						fmt.Println("roaRaw:", roaRaw)
+					}
+					fmt.Println("RoaRaw end----------------------------------\n\n")
+
+
+				fmt.Println("\n\nRoaOctetString start----------------------------------")
+				var octString OctString
+				_, err = Unmarshal(reset, &octString)
+				if err != nil {
+					fmt.Println("Unmarshal octString fail:", err)
+				} else {
+					fmt.Println("octString:", octString)
+				}
+			*/
+
+			fmt.Println("\n\nRoaOctetString start-----okokok-----------------------------")
+			var roaOctetString RoaOctetString
+			_, err = Unmarshal(seq.FullBytes, &roaOctetString)
+			if err != nil {
+				fmt.Println("Unmarshal roaOctetString fail:", err)
+			} else {
+				fmt.Println("roaOctetString:", roaOctetString)
+			}
+			routeOriginAttestation1 := RouteOriginAttestation{}
+			_, err = Unmarshal([]byte(roaOctetString.OctetString), &routeOriginAttestation1)
+			if err != nil {
+				fmt.Println("Unmarshal routeOriginAttestation1 fail:", err)
+			}
+			fmt.Println("RoaOctetString: routeOriginAttestation1", jsonutil.MarshallJsonIndent(routeOriginAttestation1))
+			fmt.Println("RoaOctetString end----------------------------------\n\n\n\n")
+
+			fmt.Println("\n\n\n\nROA start------ok----------------------------")
+			var rawroa ROA
+			_, err = Unmarshal(seq.FullBytes, &rawroa)
+			if err != nil {
+				fmt.Println("Unmarshal FullBytes ROA fail:", err)
+			} else {
+				fmt.Println("FullBytes ROA:", rawroa)
+			}
+
+			fmt.Println("ROA end----------------------------------\n\n")
+
+			//fmt.Println("\n\nRawValue start----------------------------------")
+			raw := RawValue{}
+			_, err = Unmarshal(reset, &raw)
+			if err != nil {
+				fmt.Println("get Roa: Unmarshal reset fail:", err)
+			}
+			fmt.Println("get raw: Unmarshal reset: raw.Tag:", raw.Tag, "  raw.Class:", raw.Class,
+				" raw.IsCompound:", raw.IsCompound)
+
+			raw1 := RawValue{}
+			_, err = Unmarshal(raw.Bytes, &raw1)
+			if err != nil {
+				fmt.Println("Unmarshal raw.Bytes fail:", err)
+			}
+			fmt.Println("get raw1: Unmarshal reset: raw1.Tag:", raw1.Tag, "  raw1.Class:", raw1.Class,
+				" raw1.IsCompound:", raw1.IsCompound)
+
+			//fmt.Println("RawValue end----------------------------------\n\n")
+
+			routeOriginAttestation := RouteOriginAttestation{}
+			_, err = Unmarshal(raw1.Bytes, &routeOriginAttestation)
+			if err != nil {
+				fmt.Println("Unmarshal routeOriginAttestation fail:", err)
+			}
+
+			fmt.Println("roa:", jsonutil.MarshallJsonIndent(routeOriginAttestation))
+
+			roaSignedData.RoaModel.Version = int(routeOriginAttestation.AsID)
+			roaIpAddressModels := make([]RoaIpAddressModel, 0)
+			for i := range routeOriginAttestation.IpAddrBlocks {
+				ipAddrBlock := routeOriginAttestation.IpAddrBlocks[i]
+				addressFamily := convert.BytesToBigInt(ipAddrBlock.AddressFamily)
+				fmt.Println("addressFamily:", addressFamily)
+				var size int
+				if addressFamily.Uint64() == 1 {
+					size = 4
+				} else if addressFamily.Uint64() == 2 {
+					size = 16
+				}
+
+				for j := range ipAddrBlock.Addresses {
+
+					ipAddr := make([]byte, size)
+					copy(ipAddr, ipAddrBlock.Addresses[j].Address.Bytes)
+					mask := net.CIDRMask(ipAddrBlock.Addresses[j].Address.BitLength, size*8)
+					fmt.Println("ipAddr:", convert.PrintBytesOneLine(ipAddr),
+						jsonutil.MarshalJson(ipAddr), "  mask:", mask)
+					ipNet := net.IPNet{
+						IP:   net.IP(ipAddr),
+						Mask: mask,
+					}
+					maxlength := ipAddrBlock.Addresses[j].MaxLength
+					fmt.Println("ipNet:", ipNet.String(), "  maxlength:", maxlength)
+				}
+			}
+			fmt.Println("roaIpAddressModels:", jsonutil.MarshallJsonIndent(roaIpAddressModels))
 		}
-		fmt.Println("file roaSignedData:", file, jsonutil.MarshalJson(roaSignedData))
-		fmt.Println("\n\n\n\n")
 	}
+	fmt.Println("roaSignedData:", jsonutil.MarshallJsonIndent(roaSignedData))
+
 }
