@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/x509/pkix"
 	"encoding/asn1"
 	"errors"
 	"fmt"
@@ -57,6 +58,7 @@ type RevokedCertificate struct {
 }
 
 func GetOctetStringSequenceString(value []byte) (string, error) {
+	belogs.Debug("value:", convert.PrintBytesOneLine(value))
 	raws := make([]asn1.RawValue, 0)
 	_, err := asn1.Unmarshal(value, &raws)
 	if err != nil {
@@ -79,26 +81,28 @@ func GetOctetUint64(value []byte) (uint64, error) {
 
 func main() {
 	var file string
-	file = `E:\Go\go-study\src\asncrl1\1.crl`
-	file = `E:\Go\go-study\src\asncrl1\2.crl`
+	file = `G:\Download\cert\asncrl2\1.crl`
+	//file = `G:\Download\cert\asncrl2\2.crl`
 	b, err := fileutil.ReadFileToBytes(file)
 	if err != nil {
 		fmt.Println(file, err)
 		return
 	}
-	certificate := CertificateList{}
+	certificate := pkix.CertificateList{}
 	asn1.Unmarshal(b, &certificate)
 	fmt.Println("certificate:", jsonutil.MarshallJsonIndent(certificate))
 	fmt.Println(len(certificate.TBSCertList.Extensions))
 	for i := range certificate.TBSCertList.Extensions {
 		extension := &certificate.TBSCertList.Extensions[i]
-		fmt.Println(extension.Oid.String())
-		if extension.Oid.String() == "2.5.29.35" {
+		fmt.Println(extension.Id.String())
+		if extension.Id.String() == "2.5.29.35" {
 			// authorityKeyIdentifier
-			fmt.Println(GetOctetStringSequenceString(extension.Value))
-		} else if extension.Oid.String() == "2.5.29.20" {
-			// subjectKeyIdentifier
-			fmt.Println(GetOctetUint64(extension.Value))
+			aki, err := GetOctetStringSequenceString(extension.Value)
+			fmt.Println("aki:", aki, err)
+		} else if extension.Id.String() == "2.5.29.20" {
+			// clrNumber
+			crlNumber, err := GetOctetUint64(extension.Value)
+			fmt.Println("clrNumber:", crlNumber, err)
 		}
 	}
 }

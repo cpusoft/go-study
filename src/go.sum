@@ -104,8 +104,6 @@ github.com/cpusoft/gin-contrib-sessions v0.0.0-20230602020338-f48f3b418fc6 h1:e8
 github.com/cpusoft/gin-contrib-sessions v0.0.0-20230602020338-f48f3b418fc6/go.mod h1:Z92Q9I48r07nRHL86u5f965Nm+HCcE3xxXds5XMoB/Q=
 github.com/cpusoft/go-json-rest v4.0.0+incompatible h1:ea3mUSNUzSHbk20eaGIjqta3jS1444KTESjxXtRaCzc=
 github.com/cpusoft/go-json-rest v4.0.0+incompatible/go.mod h1:KbhqyR5gXpDzS28O0H5eEI9qkuzHmH3o3kS2bHFmoEE=
-github.com/cpusoft/goutil v1.0.33-0.20231115143834-88e1a5a25c13 h1:vdCgKalBFa7xPHjriokjjypgKfsZ8i1J/HU6wfpYl2w=
-github.com/cpusoft/goutil v1.0.33-0.20231115143834-88e1a5a25c13/go.mod h1:eoC17PREvH+7nKVEvdoLIW/G6lqVnHJ+qLS4mwgiMI4=
 github.com/cpusoft/goutil v1.0.33-0.20231116105115-8cf461c90b8b h1:36bWvq8LnCra0fwao/wtkaiyHRIXAO/P9NbEy41dqj0=
 github.com/cpusoft/goutil v1.0.33-0.20231116105115-8cf461c90b8b/go.mod h1:eoC17PREvH+7nKVEvdoLIW/G6lqVnHJ+qLS4mwgiMI4=
 github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7DoTY=

@@ -51,7 +51,7 @@ type Extension struct {
 	Value    []byte
 }
 
-func GetOctectString(value []byte) (string, error) {
+func GetOctetString(value []byte) (string, error) {
 	tmp := make([]byte, 0)
 	_, err := asn1.Unmarshal(value, &tmp)
 	if err != nil {
@@ -59,7 +59,7 @@ func GetOctectString(value []byte) (string, error) {
 	}
 	return convert.Bytes2String(tmp), nil
 }
-func GetOctectStringSequenceString(value []byte) (string, error) {
+func GetOctetStringSequenceString(value []byte) (string, error) {
 	raws := make([]asn1.RawValue, 0)
 	_, err := asn1.Unmarshal(value, &raws)
 	if err != nil {
@@ -72,7 +72,7 @@ func GetOctectStringSequenceString(value []byte) (string, error) {
 	}
 }
 
-func GetOctectStringSequenceBool(value []byte) (bool, error) {
+func GetOctetStringSequenceBool(value []byte) (bool, error) {
 	bools := make([]bool, 0)
 	_, err := asn1.Unmarshal(value, &bools)
 	if err != nil {
@@ -84,7 +84,7 @@ func GetOctectStringSequenceBool(value []byte) (bool, error) {
 		return false, errors.New("it is no sequence of []bool")
 	}
 }
-func GetOctectStringBitString(value []byte) (asn1.BitString, error) {
+func GetOctetStringBitString(value []byte) (asn1.BitString, error) {
 	bitString := asn1.BitString{}
 	_, err := asn1.Unmarshal(value, &bitString)
 	if err != nil {
@@ -101,7 +101,7 @@ type SeqExtension struct {
 	//Value string `asn1:"implicit,tag:6"`
 }
 
-func GetOctectStringSequenceOidString(value []byte) ([]SeqExtension, error) {
+func GetOctetStringSequenceOidString(value []byte) ([]SeqExtension, error) {
 
 	seqExtensions := make([]SeqExtension, 0)
 	_, err := asn1.Unmarshal(value, &seqExtensions)

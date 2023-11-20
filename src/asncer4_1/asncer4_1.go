@@ -256,8 +256,6 @@ func main() {
 		publickKey := certificate.TBSCertificate.PublicKey
 		fmt.Println("publickKey:", jsonutil.MarshalJson(publickKey))
 
-		return
-
 		//fmt.Println("certificate:", jsonutil.MarshallJsonIndent(certificate), len(res), err)
 		//fmt.Println(len(certificate.TBSCertificate.Extensions))
 		for i := range certificate.TBSCertificate.Extensions {
@@ -305,6 +303,7 @@ func main() {
 			} else if extension.Oid.String() == "2.5.29.32" {
 				// Policies
 				fmt.Println("\n\n\n\n===========================")
+				fmt.Println(convert.PrintBytesOneLine(extension.Value))
 				GetPolicies(extension.Value)
 				fmt.Println("===========================\n\n\n\n")
 				return

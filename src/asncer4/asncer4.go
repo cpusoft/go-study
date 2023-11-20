@@ -53,7 +53,7 @@ type Extension struct {
 	Value    []byte
 }
 
-func GetOctectString(value []byte) (string, error) {
+func GetOctetString(value []byte) (string, error) {
 	tmp := make([]byte, 0)
 	_, err := asn1.Unmarshal(value, &tmp)
 	if err != nil {
@@ -61,7 +61,7 @@ func GetOctectString(value []byte) (string, error) {
 	}
 	return convert.Bytes2String(tmp), nil
 }
-func GetOctectStringSequenceString(value []byte) (string, error) {
+func GetOctetStringSequenceString(value []byte) (string, error) {
 	raws := make([]asn1.RawValue, 0)
 	_, err := asn1.Unmarshal(value, &raws)
 	if err != nil {
@@ -74,7 +74,7 @@ func GetOctectStringSequenceString(value []byte) (string, error) {
 	}
 }
 
-func GetOctectStringSequenceBool(value []byte) (bool, error) {
+func GetOctetStringSequenceBool(value []byte) (bool, error) {
 	bools := make([]bool, 0)
 	_, err := asn1.Unmarshal(value, &bools)
 	if err != nil {
@@ -86,7 +86,7 @@ func GetOctectStringSequenceBool(value []byte) (bool, error) {
 		return false, errors.New("it is no sequence of []bool")
 	}
 }
-func GetOctectStringBitString(value []byte) (asn1.BitString, error) {
+func GetOctetStringBitString(value []byte) (asn1.BitString, error) {
 	bitString := asn1.BitString{}
 	_, err := asn1.Unmarshal(value, &bitString)
 	if err != nil {
@@ -103,7 +103,7 @@ type SeqExtension struct {
 	//Value string `asn1:"implicit,tag:6"`
 }
 
-func GetOctectStringSequenceOidString(value []byte) ([]SeqExtension, error) {
+func GetOctetStringSequenceOidString(value []byte) ([]SeqExtension, error) {
 
 	seqExtensions := make([]SeqExtension, 0)
 	_, err := asn1.Unmarshal(value, &seqExtensions)
@@ -792,21 +792,21 @@ func main() {
 			if extension.Oid.String() == "2.5.29.14" {
 				// subjectKeyIdentifier
 				fmt.Println("2.5.29.14:")
-				fmt.Println(GetOctectString(extension.Value))
+				fmt.Println(GetOctetString(extension.Value))
 			} else if extension.Oid.String() == "2.5.29.35" {
 				// authorityKeyIdentifier
 				fmt.Println("2.5.29.35:")
-				fmt.Println(GetOctectStringSequenceString(extension.Value))
+				fmt.Println(GetOctetStringSequenceString(extension.Value))
 			} else if extension.Oid.String() == "2.5.29.19" {
 				// basicConstraints
 				fmt.Println("2.5.29.19:", extension.Critical)
 				fmt.Println("2.5.29.19:")
-				fmt.Println(GetOctectStringSequenceBool(extension.Value))
+				fmt.Println(GetOctetStringSequenceBool(extension.Value))
 			} else if extension.Oid.String() == "2.5.29.15" {
 				// keyUsage
 				fmt.Println("2.5.29.15", extension.Critical)
 
-				usageValue, err := GetOctectStringBitString(extension.Value)
+				usageValue, err := GetOctetStringBitString(extension.Value)
 				fmt.Println("2.5.29.15:", usageValue, err)
 
 				var tmp int
@@ -838,14 +838,14 @@ func main() {
 
 			} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.1" {
 				// authorityInfoAccess
-				seqs, err := GetOctectStringSequenceOidString(extension.Value)
+				seqs, err := GetOctetStringSequenceOidString(extension.Value)
 				fmt.Println("1.3.6.1.5.5.7.1.1:", len(seqs), err)
 				for i := range seqs {
 					fmt.Println(seqs[i].Oid, string(seqs[i].Value))
 				}
 			} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.11" {
 				// subjectInfoAccess
-				seqs, err := GetOctectStringSequenceOidString(extension.Value)
+				seqs, err := GetOctetStringSequenceOidString(extension.Value)
 				fmt.Println("1.3.6.1.5.5.7.1.11:", len(seqs), err)
 				for i := range seqs {
 					fmt.Println(seqs[i].Oid, string(seqs[i].Value))

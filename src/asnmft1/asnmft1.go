@@ -27,11 +27,6 @@ type FileAndHashParse struct {
 	Hash asn1.BitString `json:"hash"`
 }
 
-type Sha256 struct {
-	Oid  asn1.ObjectIdentifier
-	Null asn1.RawValue
-}
-
 func main() {
 	var file string
 	file = `E:\Go\go-study\src\asnmft1\1.mft`
@@ -81,19 +76,19 @@ func main() {
 		if extension.Oid.String() == "2.5.29.14" {
 			// subjectKeyIdentifier
 			fmt.Print("ski:")
-			fmt.Println(GetOctectString(extension.Value))
+			fmt.Println(GetOctetString(extension.Value))
 		} else if extension.Oid.String() == "2.5.29.35" {
 			// authorityKeyIdentifier
 			fmt.Print("aki:")
-			fmt.Println(GetOctectStringSequenceString(extension.Value))
+			fmt.Println(GetOctetStringSequenceString(extension.Value))
 		} else if extension.Oid.String() == "2.5.29.19" {
 			// basicConstraints
 
 			fmt.Print("basic constraints:", extension.Critical)
-			fmt.Println(GetOctectStringSequenceBool(extension.Value))
+			fmt.Println(GetOctetStringSequenceBool(extension.Value))
 		} else if extension.Oid.String() == "2.5.29.15" {
 			// keyUsage
-			usageValue, err := GetOctectStringBitString(extension.Value)
+			usageValue, err := GetOctetStringBitString(extension.Value)
 			fmt.Println("keyUsage:", extension.Critical, usageValue, err)
 
 			var tmp int
@@ -125,14 +120,14 @@ func main() {
 
 		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.1" {
 			// authorityInfoAccess
-			seqs, err := GetOctectStringSequenceOidString(extension.Value)
+			seqs, err := GetOctetStringSequenceOidString(extension.Value)
 			fmt.Println("aia:", err)
 			for i := range seqs {
 				fmt.Println(seqs[i].Oid, string(seqs[i].Value))
 			}
 		} else if extension.Oid.String() == "1.3.6.1.5.5.7.1.11" {
 			// subjectInfoAccess
-			seqs, err := GetOctectStringSequenceOidString(extension.Value)
+			seqs, err := GetOctetStringSequenceOidString(extension.Value)
 			fmt.Println("sia:", err)
 			for i := range seqs {
 				fmt.Println(seqs[i].Oid, string(seqs[i].Value))
