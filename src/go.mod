@@ -34,7 +34,7 @@ require (
 	github.com/yumaojun03/dmidecode v0.1.4
 	github.com/zcalusic/sysinfo v0.9.5
 	github.com/zpatrick/go-config v0.0.0-20191118215128-80ba6b3e54f6
-	golang.org/x/net v0.18.0
+	golang.org/x/net v0.19.0
 	golang.org/x/sync v0.3.0
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
@@ -85,9 +85,9 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/urfave/cli v1.22.5 // indirect
-	golang.org/x/arch v0.5.0 // indirect
-	golang.org/x/crypto v0.15.0 // indirect
-	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/arch v0.6.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
