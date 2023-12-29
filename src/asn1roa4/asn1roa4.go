@@ -10,8 +10,8 @@ import (
 	"github.com/cpusoft/goutil/convert"
 	"github.com/cpusoft/goutil/fileutil"
 	"github.com/cpusoft/goutil/jsonutil"
-	model "labscm.zdns.cn/rpstir2-mod/rpstir2-model"
-	parsevalidateasn1 "labscm.zdns.cn/rpstir2-mod/rpstir2-parsevalidate-asn1"
+	//model "labscm.zdns.cn/rpstir2-mod/rpstir2-model"
+	//parsevalidateasn1 "labscm.zdns.cn/rpstir2-mod/rpstir2-parsevalidate-asn1"
 )
 
 type ContentInfo struct {
@@ -413,9 +413,9 @@ func main() {
 			} else if seq.Class == 2 && seq.Tag == 0 && seq.IsCompound {
 				fmt.Println("\n\n\n----------")
 				fmt.Println("len(seq.Bytes):", len(seq.Bytes))
-				var cerModel model.CerModel
-				err = parsevalidateasn1.ParseCerModelByAsn1(seq.Bytes, &cerModel)
-				fmt.Println("cerModel:", jsonutil.MarshalJson(cerModel), err)
+				//var cerModel model.CerModel
+				//err = parsevalidateasn1.ParseCerModelByAsn1(seq.Bytes, &cerModel)
+				//fmt.Println("cerModel:", jsonutil.MarshalJson(cerModel), err)
 				startIndex, endIndex, err := byteutil.IndexStartAndEnd(b, seq.Bytes)
 				fmt.Println("startIndex:", startIndex, "  endIndex:", endIndex, err)
 				fmt.Println("----------\n\n\n")
