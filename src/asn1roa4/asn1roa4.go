@@ -10,8 +10,6 @@ import (
 	"github.com/cpusoft/goutil/convert"
 	"github.com/cpusoft/goutil/fileutil"
 	"github.com/cpusoft/goutil/jsonutil"
-	//model "labscm.zdns.cn/rpstir2-mod/rpstir2-model"
-	//parsevalidateasn1 "labscm.zdns.cn/rpstir2-mod/rpstir2-parsevalidate-asn1"
 )
 
 type ContentInfo struct {

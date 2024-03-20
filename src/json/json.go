@@ -12,7 +12,7 @@ type DD struct {
 	Test *string `json:"test"  gencodec:"required" default:"111"`
 }
 
-//slurm head , 这里特殊处理，相当于每组只会有一个
+// slurm head , 这里特殊处理，相当于每组只会有一个
 type SlurmTarget struct {
 	Asn      uint64 `json:"asn,omitempty"`
 	Hostname string `json:"hostname,omitempty"`

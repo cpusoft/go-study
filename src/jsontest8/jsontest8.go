@@ -27,6 +27,9 @@ func main() {
 	fmt.Println(s)
 	v := b.FillBytes(make([]byte, 32))
 	fmt.Println(hex.EncodeToString(v))
+	b2 := big.NewInt(0)
+	b2.SetBytes(v)
+	fmt.Println(b2)
 
 	s = `{"asn":99,"subtree_identifier":512409557484068888888832,"encoded_subtree":199}`
 	err := jsonutil.UnmarshalJson(s, &h)

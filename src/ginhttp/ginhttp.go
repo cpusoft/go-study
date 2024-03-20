@@ -39,6 +39,10 @@ func main() {
 	router.GET("/users/:name/*action", action)
 	router.Run(":8080")
 }
+
+// action
+//
+//	@param c
 func action(c *gin.Context) {
 	name := c.Param("name")
 	action := c.Param("action")

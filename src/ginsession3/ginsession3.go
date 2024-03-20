@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cpusoft/gin-contrib-sessions"
+	sessions "github.com/cpusoft/gin-contrib-sessions"
 	"github.com/cpusoft/gin-contrib-sessions/memstore"
 	"github.com/gin-gonic/gin"
 )
@@ -84,19 +84,19 @@ func AuthMiddleWare(ignorePaths []string) gin.HandlerFunc {
 }
 
 /*
-func login(c *gin.Context) {
-	//cookieSession := sessions.DefaultContextKey("cookieKey", c)
-	//cookieSession.Set("test@cookie.com", "test.access.cookie")
-	//cookieSession.Save()
-	//fmt.Println("login and save cookie")
+	func login(c *gin.Context) {
+		//cookieSession := sessions.DefaultContextKey("cookieKey", c)
+		//cookieSession.Set("test@cookie.com", "test.access.cookie")
+		//cookieSession.Save()
+		//fmt.Println("login and save cookie")
 
-	memSession := sessions.DefaultContextKey("memKey", c)
-	memSession.Set("test@mem.com", "test.access.mem")
-	memSession.Save()
-	fmt.Println("login and save mem")
+		memSession := sessions.DefaultContextKey("memKey", c)
+		memSession.Set("test@mem.com", "test.access.mem")
+		memSession.Save()
+		fmt.Println("login and save mem")
 
-	c.JSON(http.StatusOK, nil)
-}
+		c.JSON(http.StatusOK, nil)
+	}
 */
 func login(c *gin.Context) {
 
