@@ -17,7 +17,7 @@ function loginQuery(){
 					var username = data.username;
 					var password = data.password;
 					console.log(username)
-					console.log(password)
+
 					$("#username").attr("value",username);
 					$("#password").attr("value",password);
 				
@@ -33,7 +33,7 @@ function loginSubmit(){
 	var username = $("#username").val();
 	var password = $("#password").val();
 	console.log(username)
-	console.log(password)
+
 			
 	$.ajax({
 			url:'/loginSubmit',
