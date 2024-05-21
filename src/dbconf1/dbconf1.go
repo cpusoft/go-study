@@ -1,12 +1,6 @@
 package main
 
-import (
-	"fmt"
-
-	"github.com/cpusoft/goutil/dbconf"
-	"github.com/cpusoft/goutil/xormdb"
-)
-
+/*
 func main() {
 	xormdb.InitMySql()
 	dbconf.InitDbConf("lab_rpki_conf")
@@ -23,3 +17,4 @@ func main() {
 	err := dbconf.SetString("lab_rpki_conf", "s2", "myKey2", "newValue2")
 	fmt.Println(err)
 }
+*/
