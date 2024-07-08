@@ -279,7 +279,6 @@ func parseCrl(file string) error {
 }
 
 /*
-
 manifest.asn
 https://datatracker.ietf.org/doc/rfc6486/
 
@@ -290,30 +289,31 @@ https://datatracker.ietf.org/doc/rfc6486/
 DEFINITIONS IMPLICIT TAGS ::=
 -- imports
 IMPORTS AlgorithmIdentifier FROM Algorithms IN Algorithms.asn,
-        Extensions IPAddressOrRangeA Attribute FROM extensions IN extensions.asn,
-        Certificate Version FROM certificate IN certificate.asn,
-        Name FROM name IN name.asn;
+
+	Extensions IPAddressOrRangeA Attribute FROM extensions IN extensions.asn,
+	Certificate Version FROM certificate IN certificate.asn,
+	Name FROM name IN name.asn;
 
 -- Manifest Specification
 
-   Manifest ::= SEQUENCE
-    {
-    version         [0] Manifestversion DEFAULT v1,
-    manifestNumber  INTEGER,
-    thisUpdate      GeneralizedTime,
-    nextUpdate      GeneralizedTime,
-    fileHashAlg     OBJECT IDENTIFIER,
-    fileList        SEQUENCE SIZE (0..MAX) OF FileAndHash
-    }
+	Manifest ::= SEQUENCE
+	 {
+	 version         [0] Manifestversion DEFAULT v1,
+	 manifestNumber  INTEGER,
+	 thisUpdate      GeneralizedTime,
+	 nextUpdate      GeneralizedTime,
+	 fileHashAlg     OBJECT IDENTIFIER,
+	 fileList        SEQUENCE SIZE (0..MAX) OF FileAndHash
+	 }
 
-    Manifestversion ::= INTEGER { v1(0) } (v1)
+	 Manifestversion ::= INTEGER { v1(0) } (v1)
 
 FileAndHash ::= SEQUENCE
-    {
-    file        IA5String,
-    hash        BIT STRING
-    }
 
+	{
+	file        IA5String,
+	hash        BIT STRING
+	}
 */
 func parseMft(file string) error {
 
