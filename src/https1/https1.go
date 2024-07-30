@@ -6,14 +6,14 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strings"
 	"time"
 )
 
-//https://github.com/golang/go/issues/21900
+// https://github.com/golang/go/issues/21900
 func verifyPeerCerts(serverName string, rawCerts [][]byte, verifiedChains [][]*x509.Certificate) (err error) {
 	fmt.Println("verifyPeerCerts():serverName,", serverName)
 
@@ -86,6 +86,6 @@ func main() {
 	}
 
 	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
-	fmt.Println(string(body))
+	body, err := io.ReadAll(response.Body)
+	fmt.Println(string(body), err)
 }

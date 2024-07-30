@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 )
@@ -24,10 +23,10 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Printf("FileName=[%s], FormName=[%s]\n", part.FileName(), part.FormName())
 		if part.FileName() == "" { // this is FormData
-			data, _ := ioutil.ReadAll(part)
+			data, _ := io.ReadAll(part)
 			fmt.Printf("FormData=[%s]\n", string(data))
 		} else { // This is FileData
-			tmpFile, _ := ioutil.TempFile("", part.FileName()+"-*.tmp")
+			tmpFile, _ := os.CreateTemp("", part.FileName()+"-*.tmp")
 			dst, _ := os.Create(tmpFile.Name() + ".upload")
 			defer dst.Close()
 			io.Copy(dst, part)
