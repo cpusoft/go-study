@@ -957,6 +957,8 @@ honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc/go.mod h1:rf3lG4BRIbNafJWh
 honnef.co/go/tools v0.0.1-2019.2.3/go.mod h1:a3bituU0lyd329TUQxRnasdCoJDkEUEAqEt0JzvZhAg=
 labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240817141732-f2033f41d4cb h1:eXw6odh7jd37RONCpWeUEC/yn8Za7YaE2LLB148/XzE=
 labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240817141732-f2033f41d4cb/go.mod h1:7V1rqC+NQF3Eq0UEj3dBykPeIxZxZRqfehrQNTz61A0=
+labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240821021602-4869a118585c h1:pyJnofDQGQRmR3VB4U2auLGVSD1aoEwv4I5nFQrZPzw=
+labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240821021602-4869a118585c/go.mod h1:7V1rqC+NQF3Eq0UEj3dBykPeIxZxZRqfehrQNTz61A0=
 lukechampine.com/uint128 v1.1.1/go.mod h1:c4eWIwlEGaxC/+H1VguhU4PHXNWDCDMUlWdIWl2j1gk=
 lukechampine.com/uint128 v1.2.0 h1:mBi/5l91vocEN8otkC5bDLhi2KdCticRiwbdB0O+rjI=
 lukechampine.com/uint128 v1.2.0/go.mod h1:c4eWIwlEGaxC/+H1VguhU4PHXNWDCDMUlWdIWl2j1gk=
