@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	secret := map[string]string{"test.": "pRZgBrBvI4NAHZYhxmhs/Q=="}
+	secret := map[string]string{"example.com.": "pRZgBrBvI4NAHZYhxmhs/Q=="}
 
 	// F:\share\我的坚果云\Go\dns\research\tdns\tdns\childsync_utils.go
 	m := new(dns.Msg)
@@ -21,7 +21,7 @@ func main() {
 		return
 	}
 	m.Insert([]dns.RR{insertRR})
-	m.SetTsig("test.", dns.HmacSHA256, 300, time.Now().Unix())
+	m.SetTsig("example.com.", dns.HmacSHA256, 300, time.Now().Unix())
 	//	var adds, removes []dns.RR
 	//	m.Remove(removes)
 	//	m.Insert(adds)
