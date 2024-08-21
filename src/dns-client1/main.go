@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	secret := map[string]string{"test.": "so6ZGir4GPAqINNh9U5c3A=="}
+	secret := map[string]string{"test.": "pRZgBrBvI4NAHZYhxmhs/Q=="}
 
 	// F:\share\我的坚果云\Go\dns\research\tdns\tdns\childsync_utils.go
 	m := new(dns.Msg)
