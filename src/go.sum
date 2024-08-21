@@ -959,6 +959,8 @@ labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240817141732-f2033f41d4cb h1:eXw6odh
 labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240817141732-f2033f41d4cb/go.mod h1:7V1rqC+NQF3Eq0UEj3dBykPeIxZxZRqfehrQNTz61A0=
 labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240821021602-4869a118585c h1:pyJnofDQGQRmR3VB4U2auLGVSD1aoEwv4I5nFQrZPzw=
 labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240821021602-4869a118585c/go.mod h1:7V1rqC+NQF3Eq0UEj3dBykPeIxZxZRqfehrQNTz61A0=
+labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240821025147-9c3493356a17 h1:Z0sJGVwLea/6FH3wBsW+RviAP4rkppx3tZkO62+PYj0=
+labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240821025147-9c3493356a17/go.mod h1:7V1rqC+NQF3Eq0UEj3dBykPeIxZxZRqfehrQNTz61A0=
 lukechampine.com/uint128 v1.1.1/go.mod h1:c4eWIwlEGaxC/+H1VguhU4PHXNWDCDMUlWdIWl2j1gk=
 lukechampine.com/uint128 v1.2.0 h1:mBi/5l91vocEN8otkC5bDLhi2KdCticRiwbdB0O+rjI=
 lukechampine.com/uint128 v1.2.0/go.mod h1:c4eWIwlEGaxC/+H1VguhU4PHXNWDCDMUlWdIWl2j1gk=

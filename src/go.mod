@@ -43,7 +43,7 @@ require (
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/tylerb/graceful.v1 v1.2.15
-	labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240821021602-4869a118585c
+	labscm.zdns.cn/dns-mod/dns-library v0.0.0-20240821025147-9c3493356a17
 	xorm.io/xorm v1.3.9
 )
 
