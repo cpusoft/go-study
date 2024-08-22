@@ -15,13 +15,20 @@ func main() {
 	// F:\share\我的坚果云\Go\dns\research\tdns\tdns\childsync_utils.go
 	m := new(dns.Msg)
 	m.SetUpdate(dns.Fqdn("example.com"))
-	insertRR, err := dns.NewRR("test3.example.com. 300 A 192.0.2.3")
+	insertRR, err := dns.NewRR("test4.example.com. 300 A 192.0.2.4")
+	if err != nil {
+		belogs.Error("NewRR(): fail:", err)
+		return
+	}
+	removeRR, err := dns.NewRR("test1.example.com. 300 A 192.0.2.1")
 	if err != nil {
 		belogs.Error("NewRR(): fail:", err)
 		return
 	}
 	m.Insert([]dns.RR{insertRR})
+	m.Remove([]dns.RR{removeRR})
 	m.SetTsig("example.com.", dns.HmacSHA256, 300, time.Now().Unix())
+
 	//	var adds, removes []dns.RR
 	//	m.Remove(removes)
 	//	m.Insert(adds)
