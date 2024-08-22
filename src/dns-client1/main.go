@@ -15,7 +15,7 @@ func main() {
 	// F:\share\我的坚果云\Go\dns\research\tdns\tdns\childsync_utils.go
 	m := new(dns.Msg)
 	m.SetUpdate(dns.Fqdn("example.com"))
-	insertRR, err := dns.NewRR("test1.example.com. 300 A 192.0.2.1")
+	insertRR, err := dns.NewRR("test3.example.com. 300 A 192.0.2.3")
 	if err != nil {
 		belogs.Error("NewRR(): fail:", err)
 		return
