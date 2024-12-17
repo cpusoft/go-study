@@ -1,18 +1,10 @@
 package main
 
-import (
-	"fmt"
-	"time"
-
-	"github.com/cpusoft/goutil/belogs"
-	"github.com/cpusoft/goutil/jsonutil"
-	dns "labscm.zdns.cn/dns-mod/dns-library"
-)
-
+/*
 func main() {
 	secret := map[string]string{"example.com.": "pRZgBrBvI4NAHZYhxmhs/Q=="}
 
-	// F:\share\我的坚果云\Go\dns\research\tdns\tdns\childsync_utils.go
+	// research\tdns\tdns\childsync_utils.go
 	m := new(dns.Msg)
 	m.SetUpdate(dns.Fqdn("example.com"))
 	insertRR, err := dns.NewRR("test4.example.com. 300 A 192.0.2.4")
@@ -43,3 +35,4 @@ func main() {
 	}
 	time.Sleep(5 * time.Minute)
 }
+*/
