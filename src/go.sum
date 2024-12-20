@@ -119,8 +119,8 @@ github.com/cpusoft/gin-contrib-sessions v0.0.0-20240909025410-814616650739/go.mo
 github.com/cpusoft/go-json-rest v4.0.0+incompatible h1:ea3mUSNUzSHbk20eaGIjqta3jS1444KTESjxXtRaCzc=
 github.com/cpusoft/go-json-rest v4.0.0+incompatible/go.mod h1:KbhqyR5gXpDzS28O0H5eEI9qkuzHmH3o3kS2bHFmoEE=
 github.com/cpusoft/goutil v1.0.32-0.20211213035654-41c26eec10c0/go.mod h1:tEOhk5ffMSI22hcme6NIwgqjUB21jtfkTfZk0bAlho4=
-github.com/cpusoft/goutil v1.0.33-0.20241216125511-2352d987d64b h1:siTzCKUC7/cXu0pkA/mpHwOi5/DAhX38d1aTERg0o88=
-github.com/cpusoft/goutil v1.0.33-0.20241216125511-2352d987d64b/go.mod h1:G2tX/z2321qxiYDBApNRstn8Ml+WFXuBNsGT/5vM5Fo=
+github.com/cpusoft/goutil v1.0.33-0.20241220055348-acb3ee5878a2 h1:y1TQiSE9INfO8FcvOwWy/iOJDf0KxJcsZiFKDhHeKH8=
+github.com/cpusoft/goutil v1.0.33-0.20241220055348-acb3ee5878a2/go.mod h1:HJ4JZ75bjstmceLFJYsn997jieciPpPw/IXNQPZWkY4=
 github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7DoTY=
 github.com/creack/pty v1.1.17/go.mod h1:MOBLtS5ELjhRRrroQr9kyvTxUAFNvYEK993ew/Vr4O4=
 github.com/creack/pty v1.1.24 h1:bJrF4RRfyJnbTJqzRLHzcGaZK1NeM5kTC9jGgovnR1s=
@@ -157,8 +157,8 @@ github.com/edsrzf/mmap-go v1.0.0/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaB
 github.com/elastic/go-elasticsearch/v6 v6.8.10/go.mod h1:UwaDJsD3rWLM5rKNFzv9hgox93HoX8utj1kxD9aFUcI=
 github.com/elazarl/go-bindata-assetfs v1.0.1/go.mod h1:v+YaWX3bdea5J/mo8dSETolEo7R71Vk1u8bnjau5yw4=
 github.com/elazarl/goproxy v0.0.0-20210110162100-a92cc753f88e/go.mod h1:Ro8st/ElPeALwNFlcTpWmkr6IoMFfkjXAvTHpevnDsM=
-github.com/elazarl/goproxy v0.0.0-20241216102027-e85c60b37433 h1:LDKCs67Va5jpZAiNgV3PaBeV7+AB0lLOUVY9DzXzu4g=
-github.com/elazarl/goproxy v0.0.0-20241216102027-e85c60b37433/go.mod h1:thX175TtLTzLj3p7N/Q9IiKZ7NF+p72cvL91emV0hzo=
+github.com/elazarl/goproxy v0.0.0-20241219141958-0cbc93263399 h1:WBf0ImRm78m/cgOOob9PUyQdYYod2luQA6fs+OqAjbw=
+github.com/elazarl/goproxy v0.0.0-20241219141958-0cbc93263399/go.mod h1:3tPvP6c6GrQS4u4TJEbOoqGC2wDNMLra3t6AXWwtL0M=
 github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2/go.mod h1:gNh8nYJoAm43RfaxurUnxr+N1PwuFV3ZMl/efxlIlY8=
 github.com/envoyproxy/go-control-plane v0.6.9/go.mod h1:SBwIajubJHhxtWwsL9s8ss4safvEdbitLhGGK48rN6g=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
