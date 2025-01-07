@@ -1,4 +1,4 @@
-package test19
+package main
 
 import "fmt"
 
