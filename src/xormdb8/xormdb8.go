@@ -18,7 +18,7 @@ func main() {
 
 	user := "root"
 	password := "Rpstir-123"
-	server := "10.1.135.22:13306"
+	server := "10.1.135.22:13308"
 	//database := "rpstir2"
 	//maxidleconns := 50
 	//maxopenconns := 50
@@ -66,8 +66,9 @@ func main() {
 			fmt.Println("tables show fail:", err)
 			return
 		}
-		fmt.Println(database, " tables:", jsonutil.MarshalJson(tables))
-
+		// fmt.Println(database, " tables:", jsonutil.MarshalJson(tables))
+		var userTable string
+		var userCols []TableDescribe
 		for _, table := range tables {
 			fmt.Println(table)
 			cols := make([]TableDescribe, 0)
@@ -76,7 +77,42 @@ func main() {
 				fmt.Println("table:", err)
 				continue
 			}
-			fmt.Println(table, "cols:", jsonutil.MarshalJson(cols))
+			// fmt.Println(table, "cols:", jsonutil.MarshalJson(cols), "\r\n")
+			for _, col := range cols {
+
+				if col.Field == "password" {
+					fmt.Println(jsonutil.MarshalJson(col))
+					userTable = table
+					userCols = cols
+					break
+				}
+			}
+			if userTable != "" {
+				break
+			}
+		}
+		fmt.Println("found userTable:", userTable, "  userCols:", jsonutil.MarshalJson(userCols))
+		sql := "select * from " + userTable
+		results, err := engine.QueryString(sql)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		var user, password string
+		for _, result := range results {
+			for k, v := range result {
+				fmt.Println(k, v)
+				if k == "user" || k == "userName" {
+					user = v
+				}
+				if k == "password" {
+					password = v
+				}
+
+			}
+		}
+		if user != "" && password != "" {
+			fmt.Println(user, password)
 		}
 	}
 }
