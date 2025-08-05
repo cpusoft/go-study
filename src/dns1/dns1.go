@@ -394,8 +394,8 @@ func main() {
 		fmt.Println("------------")
 	}
 	fmt.Println("总数:", len(m))
-	fmt.Println("onlyIpv4:", onlyIpv4)
-	fmt.Println("onlyIpv6:", onlyIpv6)
-	fmt.Println("both:", both)
-	fmt.Println("none:", none)
+	fmt.Println("onlyIpv4:", onlyIpv4, onlyIpv4/len(m))
+	fmt.Println("onlyIpv6:", onlyIpv6, onlyIpv6/len(m))
+	fmt.Println("both:", both, both/len(m))
+	fmt.Println("none:", none, none/len(m))
 }
