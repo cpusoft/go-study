@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"net"
 	"net/url"
 )
@@ -355,10 +356,10 @@ func main() {
 		}
 	}
 	fmt.Println("总数:", len(m))
-	var onlyIpv4 float32
-	var onlyIpv6 float32
-	var both float32
-	var none float32
+	var onlyIpv4 float64
+	var onlyIpv6 float64
+	var both float64
+	var none float64
 	for _, dns := range m {
 		// 解析ip地址
 		fmt.Println(dns)
@@ -394,9 +395,12 @@ func main() {
 		fmt.Println("------------")
 	}
 	fmt.Println("总数:", len(m))
-	count := float32(len(m))
-	fmt.Println("onlyIpv4:", onlyIpv4, onlyIpv4/count)
-	fmt.Println("onlyIpv6:", onlyIpv6, onlyIpv6/count)
-	fmt.Println("both:", both, both/count)
-	fmt.Println("none:", none, none/count)
+	count := float64(len(m))
+	fmt.Println("onlyIpv4:", onlyIpv4, roundPercent(onlyIpv4/count))
+	fmt.Println("onlyIpv6:", onlyIpv6, roundPercent(onlyIpv6/count))
+	fmt.Println("both:", both, roundPercent(both/count))
+	fmt.Println("none:", none, roundPercent(none/count))
+}
+func roundPercent(v float64) string {
+	return fmt.Sprintf("%.0f%%", math.Round(v*100))
 }
