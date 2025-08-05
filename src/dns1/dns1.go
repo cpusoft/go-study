@@ -366,6 +366,7 @@ func main() {
 		if err != nil {
 			fmt.Println("lookupIp fail", dns, err)
 			none++
+			fmt.Println("------------")
 			continue
 		}
 		haveIpv4 := false
