@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"os"
 )
 
 func main() {
@@ -16,7 +15,7 @@ func main() {
 		"https://rrdp.arin.net/notification.xml",
 		"https://rrdp.afrinic.net/notification.xml",
 		"https://rrdp-as0.apnic.net/notification.xml",
-		"https://rpki.fzca.com/rrdp/notification.xml",
+		//	"https://rpki.fzca.com/rrdp/notification.xml",
 		"https://rpki-rrdp.us-east-2.amazonaws.com/rrdp/e7518af5-a343-428d-bf78-f982b6e60505/notification.xml",
 		"https://rrdp.paas.rpki.ripe.net/notification.xml",
 		"https://rpki-rrdp.us-east-2.amazonaws.com/rrdp/dfd7f6d3-e6e9-4987-9ae7-d052c5353898/notification.xml",
@@ -207,18 +206,46 @@ func main() {
 			m[domain] = domain
 		}
 	}
-	fmt.Println(len(m))
+	fmt.Println("总数:", len(m))
+	onlyIpv4 := 0
+	onlyIpv6 := 0
+	both := 0
+	none := 0
 	for _, dns := range m {
 		// 解析ip地址
 		fmt.Println(dns)
 		ns, err := net.LookupIP(dns)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Err: %s", err.Error())
+			fmt.Println("lookupIp fail", dns, err)
 			continue
 		}
-
+		haveIpv4 := false
+		haveIpv6 := false
 		for _, n := range ns {
-			fmt.Fprintf(os.Stdout, "%s\n", n)
+			ip := net.ParseIP(n.String())
+			if ip.To4() != nil {
+				fmt.Println("IPv4:", n.String())
+				haveIpv4 = true
+			} else if ip.To16() != nil {
+				fmt.Println("IPv6:", n.String())
+				haveIpv6 = true
+			}
+
 		}
+		if haveIpv4 && haveIpv6 {
+			both++
+		} else if haveIpv4 {
+			onlyIpv4++
+		} else if haveIpv6 {
+			onlyIpv6++
+		} else {
+			none++
+		}
+		fmt.Println("------------")
 	}
+	fmt.Println("总数:", len(m))
+	fmt.Println("onlyIpv4:", onlyIpv4)
+	fmt.Println("onlyIpv6:", onlyIpv6)
+	fmt.Println("both:", both)
+	fmt.Println("none:", none)
 }
