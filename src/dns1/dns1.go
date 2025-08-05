@@ -355,10 +355,10 @@ func main() {
 		}
 	}
 	fmt.Println("总数:", len(m))
-	onlyIpv4 := 0
-	onlyIpv6 := 0
-	both := 0
-	none := 0
+	var onlyIpv4 float32
+	var onlyIpv6 float32
+	var both float32
+	var none float32
 	for _, dns := range m {
 		// 解析ip地址
 		fmt.Println(dns)
@@ -394,8 +394,9 @@ func main() {
 		fmt.Println("------------")
 	}
 	fmt.Println("总数:", len(m))
-	fmt.Println("onlyIpv4:", onlyIpv4, onlyIpv4/len(m))
-	fmt.Println("onlyIpv6:", onlyIpv6, onlyIpv6/len(m))
-	fmt.Println("both:", both, both/len(m))
-	fmt.Println("none:", none, none/len(m))
+	count := float32(len(m))
+	fmt.Println("onlyIpv4:", onlyIpv4, onlyIpv4/count)
+	fmt.Println("onlyIpv6:", onlyIpv6, onlyIpv6/count)
+	fmt.Println("both:", both, both/count)
+	fmt.Println("none:", none, none/count)
 }
