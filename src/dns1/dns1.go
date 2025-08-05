@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"net"
 	"net/url"
 )
+
+type NetIps []net.IP
 
 func main() {
 	urls := []string{
@@ -357,6 +358,8 @@ func main() {
 	}
 	fmt.Println("总数:", len(m))
 	var onlyIpv4 float64
+
+	onlyIpv4Map := make(map[string][]net.IP)
 	var onlyIpv6 float64
 	var both float64
 	var none float64
@@ -387,6 +390,7 @@ func main() {
 			both++
 		} else if haveIpv4 {
 			onlyIpv4++
+			onlyIpv4Map[dns] = ns
 		} else if haveIpv6 {
 			onlyIpv6++
 		} else {
@@ -396,11 +400,13 @@ func main() {
 	}
 	fmt.Println("总数:", len(m))
 	count := float64(len(m))
-	fmt.Println("onlyIpv4:", onlyIpv4, roundPercent(onlyIpv4/count))
-	fmt.Println("onlyIpv6:", onlyIpv6, roundPercent(onlyIpv6/count))
-	fmt.Println("both:", both, roundPercent(both/count))
-	fmt.Println("none:", none, roundPercent(none/count))
-}
-func roundPercent(v float64) string {
-	return fmt.Sprintf("%.0f%%", math.Round(v*100))
+	fmt.Println("onlyIpv4:", onlyIpv4, (onlyIpv4 / count))
+	fmt.Println("onlyIpv6:", onlyIpv6, (onlyIpv6 / count))
+	fmt.Println("both:", both, (both / count))
+	fmt.Println("none:", none, (none / count))
+	fmt.Println("")
+	fmt.Println("onlyIpv4 url:")
+	for k, v := range onlyIpv4Map {
+		fmt.Println(k, ":", v)
+	}
 }
