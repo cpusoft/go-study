@@ -217,6 +217,7 @@ func main() {
 		ns, err := net.LookupIP(dns)
 		if err != nil {
 			fmt.Println("lookupIp fail", dns, err)
+			none++
 			continue
 		}
 		haveIpv4 := false
