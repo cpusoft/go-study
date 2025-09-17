@@ -1,4 +1,4 @@
-package log3
+package main
 
 import (
 	"encoding/json"
@@ -7,32 +7,32 @@ import (
 	"path/filepath"
 	"strings"
 
-	logs "github.com/cpusoft/beego/v2/core/logs"
-	"github.com/cpusoft/goutil/conf"
+	logs "github.com/beego/beego/v2/core/logs"
 	"github.com/cpusoft/goutil/osutil"
 )
 
 /*
-	LevelEmergency = iota
-	LevelAlert
-	LevelCritical
-	LevelError
-	LevelWarning
-	LevelNotice
-	LevelInformational
-	LevelDebug
+LevelEmergency = iota
+LevelAlert
+LevelCritical
+LevelError
+LevelWarning
+LevelNotice
+LevelInformational
+LevelDebug
 */
-func init() {
+func Init() {
 
-	logLevel := conf.String("logs::level")
+	logLevel := "LevelDebug" // conf.String("logs::level")
 	// get process file name as log name
 	logName := filepath.Base(os.Args[0])
 	if logName != "" {
 		logName = strings.Split(logName, ".")[0] + ".log"
 	} else {
-		logName = conf.String("logs::name")
+		logName = `D:\share\我的坚果云\Code\common\go-study\src\log3\test.log` //conf.String("logs::name")
 	}
-	async := conf.DefaultBool("logs::async", false)
+	fmt.Println("logName", logName)
+	async := false // conf.DefaultBool("logs::async", false)
 	//fmt.Println("log", logLevel, logName)
 
 	var logLevelInt int = logs.LevelInformational
@@ -54,9 +54,9 @@ func init() {
 	case "LevelDebug":
 		logLevelInt = logs.LevelDebug
 	}
+	fmt.Println("logLevelInt", logLevelInt)
 	//ts := time.Now().Format("2006-01-02")
 
-	//
 	path, err := osutil.GetCurrentOrParentAbsolutePath("log")
 	if err != nil {
 		fmt.Println("found " + path + " failed, " + err.Error())
@@ -73,6 +73,7 @@ func init() {
 	logConfig["maxsize"] = 0
 	logConfig["maxdays"] = 30
 	logConfig["maxhours"] = 0
+	logConfig["formatter"] = "json"
 	logConfig["level"] = logLevelInt
 
 	logConfigStr, _ := json.Marshal(logConfig)
@@ -85,19 +86,5 @@ func init() {
 	if async {
 		logs.Async()
 	}
-
-}
-
-func LogDebugBytes(title string, buf []byte) {
-
-	logs.Debug(title)
-
-	dataLines := make([]string, (len(buf)/30)+1)
-	for i, b := range buf {
-		dataLines[i/30] += fmt.Sprintf("%02x ", b)
-	}
-
-	for i := 0; i < len(dataLines); i++ {
-		logs.Debug(dataLines[i])
-	}
+	fmt.Println("log init ok, log file is ", filePath)
 }

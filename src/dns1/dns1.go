@@ -410,3 +410,31 @@ func main() {
 		fmt.Println(k, ":", v)
 	}
 }
+
+/*
+onlyIpv4 url:
+rpki.telecentras.lt : [86.38.8.173]   ripencc
+rpki.cernet.edu.cn : [1.51.6.3]       apnic
+rrdp.rpki.tianhai.link : [43.128.240.33]  ripencc
+rpkica.mckay.com : [51.75.161.87]  arin
+rpki-rsync.e15f.net : [170.39.226.189]  ripencc
+rpki-rsync.mnihyc.com : [45.142.157.17]  apnic
+rpkica.twnic.tw : [203.119.3.12]  apnic
+rpki.multacom.com : [64.69.32.130]  arin
+repo.kagl.me : [104.37.40.237]      arin
+rpki.ssmidge.xyz : [155.248.239.44] arin
+rpki.athene-center.net : [45.155.128.16] ripencc
+rpki.sailx.co : [208.82.103.214]   arin
+repodepot.wildtky.com : [23.180.200.225]  arin
+krill.uta.ng : [103.151.111.105]  ripencc
+rpki.cc : [45.79.147.88]  arin
+pub.krill.ausra.cloud : [69.197.130.134]  ripencc
+subrepo.wildtky.com : [23.180.200.177]  arin
+rpki.admin.freerangecloud.com : [23.154.81.122]  arin/ripencc
+krill.ca-bc-01.ssmidge.xyz : [170.39.49.51]  arin
+rpki.luys.cloud : [8.210.250.129 150.129.41.52 47.242.218.87 8.210.32.31]  arin
+rpki.nellicus.net : [23.131.172.35]  ripencc
+rpki.cnnic.cn : [42.83.145.17 218.241.105.61]  apnic
+rpki-pp.com : [155.138.227.159] arin
+rpki.uz : [103.118.174.6]  ripencc
+*/
