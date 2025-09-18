@@ -1,13 +1,14 @@
 package main
 
 import (
-	"context"
 	"time"
 
 	"github.com/cpusoft/goutil/belogs"
+	_ "github.com/cpusoft/goutil/conf"
 	"github.com/cpusoft/goutil/ginserver"
 	"github.com/cpusoft/goutil/ginsession"
 	"github.com/cpusoft/goutil/jwtutil"
+	_ "github.com/cpusoft/goutil/logs"
 	"github.com/cpusoft/goutil/zaplogs"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -17,7 +18,7 @@ import (
 const secrect = "mysecret"
 
 // start server
-func startRpServer() {
+func main() {
 	start := time.Now()
 	var g errgroup.Group
 
@@ -35,7 +36,7 @@ func startRpServer() {
 	}
 	auth := engine.Group("/auth")
 	{
-		auth.Use(ginsession.JWTAuthMiddleWare(secrect))
+		ginsession.RouterGroupRegisterJwt(auth)
 		auth.POST("/work", Work)
 	}
 	g.Go(func() error {
@@ -76,8 +77,13 @@ func Login(c *gin.Context) {
 	ginserver.String(c, token)
 }
 func Work(c *gin.Context) {
-	cc, _ := c.Get(ginsession.JWT_CTX_CustomClaims)
-	cxt := context.WithValue(context.Background(), zaplogs.JWT_CTX_CustomClaims, cc)
-	zaplogs.InfoJw(cxt, "Work()", "start")
+	cxt, err := ginsession.SetToContextWithValue(c)
+	if err != nil {
+		zaplogs.ErrorJw(nil, "work(): SetToContextWithValue fail", "err", err.Error())
+		ginserver.ResponseFail(c, err, nil)
+		c.Abort()
+		return
+	}
+	zaplogs.InfoJw(cxt, "Work(): ", "start")
 	ginserver.String(c, "work ok")
 }
