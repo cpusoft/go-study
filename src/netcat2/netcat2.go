@@ -155,6 +155,7 @@ func main() {
 	} else {
 		log.Println("Protocol:", "tcp")
 	}
+	isUdp = false
 	if sourcePort != "" {
 		if _, err := strconv.Atoi(sourcePort); err != nil {
 			log.Println("Source port shall be not empty and have integer value")
