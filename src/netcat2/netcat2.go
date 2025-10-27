@@ -148,14 +148,17 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	log.Println("Source port:", sourcePort)
-	if flag.Lookup("u") != nil {
-		log.Println("Protocol:", "udp")
-		isUdp = true
-	} else {
-		log.Println("Protocol:", "tcp")
-	}
-	isUdp = false
+	log.Println("Source port:", sourcePort, "  isUdp:", isUdp)
+	/*
+		if flag.Lookup("u") != nil {
+			log.Println("Protocol:", "udp")
+			isUdp = true
+		} else {
+			log.Println("Protocol:", "tcp")
+			isUdp = false
+		}
+	*/
+
 	if sourcePort != "" {
 		if _, err := strconv.Atoi(sourcePort); err != nil {
 			log.Println("Source port shall be not empty and have integer value")
