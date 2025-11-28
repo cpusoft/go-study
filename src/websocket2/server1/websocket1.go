@@ -15,26 +15,26 @@ func main() {
 	r.Run("localhost:8080")
 }
 func WsConnect(c *gin.Context) {
-	clientIpPort, _ := ginserver.GetClientIpPort(c)
-	fmt.Println(clientIpPort)
+	clientIp, clientPort, _ := ginserver.GetClientIpPort(c)
+	fmt.Println(clientIp, clientPort)
 	// 升级为websocket长链接
-	WsHandler(c, clientIpPort)
+	WsHandler(c, clientIp+":"+clientPort)
 }
 func DeleteClient(c *gin.Context) {
-	clientIpPort, _ := ginserver.GetClientIpPort(c)
-	fmt.Println(clientIpPort)
+	clientIp, clientPort, _ := ginserver.GetClientIpPort(c)
+	fmt.Println(clientIp, clientPort)
 	// 关闭websocket链接
-	conn, exist := webSocketServer.getClient(clientIpPort)
+	conn, exist := webSocketServer.getClient(clientIp + ":" + clientPort)
 	if exist {
 		conn.Close()
-		webSocketServer.deleteClient(clientIpPort)
+		webSocketServer.deleteClient(clientIp + ":" + clientPort)
 	} else {
 		//ginserver.
 	}
 	// 关闭其消息通道
-	_, exist = webSocketServer.getChannel(clientIpPort)
+	_, exist = webSocketServer.getChannel(clientIp + ":" + clientPort)
 	if exist {
-		webSocketServer.deleteChannel(clientIpPort)
+		webSocketServer.deleteChannel(clientIp + ":" + clientPort)
 	}
 }
 
