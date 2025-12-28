@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/cpusoft/goutil/executil"
 )
 
 func ExecCommandStdoutPipe(commandName string, params []string, fmtShow bool) (contentArray []string, err error) {
@@ -49,11 +51,19 @@ func ExecCommandStdoutPipe(commandName string, params []string, fmtShow bool) (c
 }
 
 func main() {
-	//p := `10.1.135.22 -p 1-50000`
-	p := `-sV --script mysql-brute -p13308 10.1.135.22 --script-args userdb=./users.txt,passdb=./passwords.txt`
-	params := strings.Split(p, " ")
-	out, err := ExecCommandStdoutPipe("nmap", params, true)
+	/*
+	   //p := `10.1.135.22 -p 1-50000`
+	   p := `-sV --script mysql-brute -p13308 10.1.135.22 --script-args userdb=./users.txt,passdb=./passwords.txt`
+	   params := strings.Split(p, " ")
+	   out, err := ExecCommandStdoutPipe("nmap", params, true)
+	   fmt.Println("out", out)
+	   fmt.Println(err)
+	*/
+	// 1. 拼接完整的 grep 命令（包含通配符，由 Shell 解析）
+	grepCmd := `grep "RP program" /root/rpki/rpstir2-rp/log/rpstir2-rp.*`
+	// 2. 调用 bash -c 执行完整命令（-c 表示从字符串读取命令）
+	// params 格式：[]string{"-c", 完整命令字符串}
+	out, err := executil.ExecCommandCombinedOutput("bash", []string{"-c", grepCmd})
 	fmt.Println("out", out)
 	fmt.Println(err)
-
 }
