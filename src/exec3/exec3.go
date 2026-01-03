@@ -21,7 +21,7 @@ func main() {
 	logs := `/root/rpki/rpstir2-rp/log/rpstir2-rp.*`
 	var cmds strings.Builder
 	cmds.WriteString("grep \"" + keywords[0] + "\" " + logs)
-	for i := 2; i < len(keywords); i++ {
+	for i := 1; i < len(keywords); i++ {
 		cmds.WriteString(" | grep \"" + keywords[i] + "\"")
 	}
 	fmt.Println("cmds:", cmds.String())
