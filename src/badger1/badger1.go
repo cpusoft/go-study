@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
+	"github.com/dgraph-io/badger/v4/options"
 	"github.com/panjf2000/ants/v2"
 )
 
@@ -22,14 +23,14 @@ var (
 func initDB() error {
 	opts := badger.DefaultOptions("./badger_high_concurrency")
 	// 高并发核心配置
-	opts.TableLoadingMode = badger.LoadToRAM // Key表加载到内存
-	opts.MemTableSize = 64 * 1024 * 1024     // 内存表64MB
-	opts.NumMemtables = 5                    // 5个内存表缓冲写操作
-	opts.ValueLogFileSize = 1 << 30          // Value日志1GB
-	opts.NumCompactors = runtime.NumCPU()    // 压缩器数=CPU核心数
-	opts.MaxConcurrentTxns = 10000           // 最大并发事务数
-	opts.SyncWrites = false                  // 关闭同步写，提升写性能
-	opts.Compression = badger.None           // 关闭压缩，减少CPU开销
+	opts.MemTableSize = 256 * 1024 * 1024 // 内存表256MB
+	opts.NumMemtables = runtime.NumCPU()  // 内存表缓冲写操作
+	opts.ValueLogFileSize = 1 << 30       // Value日志1GB
+	opts.NumCompactors = runtime.NumCPU() // 压缩器数=CPU核心数
+	opts.SyncWrites = false               // 关闭同步写，提升写性能
+	opts.Compression = options.None       // 关闭压缩，减少CPU开销
+	opts.NumLevelZeroTables = 10          // 增大L0表阈值，减少压缩触发
+	opts.NumLevelZeroTablesStall = 20     // 增大stall阈值，避免写阻塞
 
 	var err error
 	db, err = badger.Open(opts)

@@ -60,13 +60,13 @@ func main() {
 		fmt.Println("new config failed, err:", err)
 		return
 	}
-	log_level := conf.String("logs::log_level")
+	log_level, _ := conf.String("logs::log_level")
 	fmt.Println("log_level:", log_level)
 
 	if len(log_level) == 0 {
 		log_level = "debug"
 	}
-	log_path := conf.String("logs::log_path")
+	log_path, _ := conf.String("logs::log_path")
 	fmt.Println("log_path:", log_path)
 	fmt.Println("log_path:", pwd+log_path)
 

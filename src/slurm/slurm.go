@@ -11,7 +11,7 @@ import (
 	config "github.com/beego/beego/v2/core/config"
 )
 
-//slurm head , 这里特殊处理，相当于每组只会有一个
+// slurm head , 这里特殊处理，相当于每组只会有一个
 type SlurmTarget struct {
 	Asn      int64  `json:"asn,omitempty"`
 	Hostname string `json:"hostname,omitempty"`
@@ -71,9 +71,10 @@ func main() {
 		fmt.Println("load config failed, err:", err)
 		return
 	}
-
-	asnInConfs := strings.Split(conf.Strings("target::asn")[0], ",")
-	hostnameInConfs := strings.Split(conf.Strings("target::hostname")[0], ",")
+	t, _ := conf.Strings("target::asn")
+	asnInConfs := strings.Split(t[0], ",")
+	t, _ = conf.Strings("target::hostname")
+	hostnameInConfs := strings.Split(t[0], ",")
 	fmt.Println("asnInConfs:", asnInConfs)
 	fmt.Println("hostnameInConfs:", hostnameInConfs)
 
