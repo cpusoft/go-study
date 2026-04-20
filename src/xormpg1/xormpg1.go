@@ -80,7 +80,8 @@ func InitPostgreSQL() (err error) {
 	database := conf.String("postgresql::database")
 	maxidleconns := conf.Int("postgresql::maxidleconns")
 	maxopenconns := conf.Int("postgresql::maxopenconns")
-	XormEnginePg, err = xormdb.InitPostgreSQLParameter(user, password, server, database, maxidleconns, maxopenconns)
+	XormEnginePg, err = xormdb.InitPostgreSQLParameter(user, password,
+		server, database, maxidleconns, maxopenconns, 10, 10)
 	if err != nil {
 		belogs.Error("InitPostgreSQL(): fail: ", err)
 		return err
