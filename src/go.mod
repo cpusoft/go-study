@@ -5,7 +5,7 @@ go 1.25.5
 require (
 	github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2
 	github.com/PromonLogicalis/asn1 v0.0.0-20190312173541-d60463189a56
-	github.com/PuerkitoBio/goquery v1.11.0
+	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/ant0ine/go-json-rest v3.3.2+incompatible
 	github.com/beego/beego/v2 v2.3.8
 	github.com/bwesterb/go-zonefile v1.0.1
@@ -16,6 +16,7 @@ require (
 	github.com/cpusoft/goutil v1.0.33-0.20260420024307-1c3f8a4eb0cc
 	github.com/derekparker/trie v0.0.0-20230829180723-39f4de51ef7d
 	github.com/dgraph-io/badger/v4 v4.9.1
+	github.com/domainr/whois v0.1.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v4 v4.5.2
@@ -27,7 +28,7 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/guregu/null v4.0.0+incompatible
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20260419022313-1d9ffabfebf5
+	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20260422073445-d36edc6e1562
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/miekg/dns v1.1.72
 	github.com/onsi/gomega v1.39.1
@@ -36,7 +37,7 @@ require (
 	github.com/panjf2000/ants/v2 v2.12.0
 	github.com/parnurzeal/gorequest v0.3.0
 	github.com/seriousben/go-asn1 v0.0.0-20180415115313-ed46d10b7393
-	github.com/square/certigo v1.17.1
+	github.com/square/certigo v1.18.0
 	github.com/stretchr/testify v1.11.1
 	github.com/tidwall/btree v1.8.1
 	github.com/wenzhenxi/gorsa v0.0.0-20230530123828-0320cce15d81
@@ -46,7 +47,7 @@ require (
 	go.uber.org/zap v1.27.1
 	golang.org/x/net v0.53.0
 	golang.org/x/sync v0.20.0
-	google.golang.org/grpc v1.78.0
+	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/tylerb/graceful.v1 v1.2.15
@@ -106,6 +107,7 @@ require (
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.59.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d // indirect
 	github.com/shiena/ansicolor v0.0.0-20230509054315-a9deabde6e02 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/toelsiba/date v0.0.0-20161003175125-b370c9dd06cb // indirect
@@ -113,6 +115,7 @@ require (
 	github.com/ugorji/go/codec v1.3.1 // indirect
 	github.com/urfave/cli v1.22.17 // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
+	github.com/zonedb/zonedb v1.0.5643 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.5.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.43.0 // indirect
@@ -122,11 +125,11 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.26.0 // indirect
 	golang.org/x/crypto v0.50.0 // indirect
-	golang.org/x/mod v0.34.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
-	golang.org/x/tools v0.43.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
+	golang.org/x/tools v0.44.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260420184626-e10c466a9529 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
