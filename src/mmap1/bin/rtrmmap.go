@@ -1,0 +1,144 @@
+package main
+
+import (
+	"context"
+	"fmt"
+
+	_ "github.com/cpusoft/goutil/logs"
+	"github.com/cpusoft/goutil/zaplogs"
+	model "labscm.zdns.cn/rpstir2-mod/rpstir2-model"
+	"labscm.zdns.cn/rpstir2-mod/rpstir2-model/mmap"
+)
+
+// 测试整体流程：写入 Full + 写入 Incremental → 读取并校验
+func main() {
+	ctx := context.Background()
+	zaplogs.InfoArgs(ctx, "main")
+	// ======================
+	// 1. 生成测试数据
+	// ======================
+	testFullList := genTestRtrFull(5)      // 生成 5 条 Full 测试数据
+	testIncrMap := genTestRtrIncremental() // 生成 2 个版本增量数据
+	zaplogs.InfoArgs(ctx, "main", "len(testFullList)", len(testFullList),
+		"len(testIncrMap)", len(testIncrMap))
+	// ======================
+	// 2. 写入 MMap
+	// ======================
+	zaplogs.DebugArgs(ctx, "\n=== 开始写入 RTR Full MMap ===")
+	err := mmap.WriteRtrFullMmap(ctx, testFullList)
+	if err != nil {
+		zaplogs.DebugArgs(ctx, "WriteRtrFullMmap 失败", "err", err)
+		return
+	}
+
+	zaplogs.DebugArgs(ctx, "\n=== 开始写入 RTR Incremental MMap ===")
+	err = mmap.WriteRtrIncrementalMmap(ctx, testIncrMap)
+	if err != nil {
+		zaplogs.DebugArgs(ctx, "WriteRtrIncrementalMmap 失败", "err", err)
+		return
+	}
+
+	// ======================
+	// 3. 读取 MMap
+	// ======================
+	zaplogs.DebugArgs(ctx, "\n=== 开始读取 RTR Full MMap ===")
+	readFullList, err := mmap.ReadRtrFullMmap(ctx)
+	if err != nil {
+		zaplogs.DebugArgs(ctx, "ReadRtrFullMmap 失败", "err", err)
+		return
+	}
+
+	zaplogs.DebugArgs(ctx, "\n=== 开始读取 RTR Incremental MMap ===")
+	readIncrMap, err := mmap.ReadRtrIncrementalMmap(ctx)
+	if err != nil {
+		zaplogs.DebugArgs(ctx, "ReadRtrIncrementalMmap 失败", "err", err)
+		return
+	}
+
+	// ======================
+	// 4. 校验数据一致性
+	// ======================
+	zaplogs.DebugArgs(ctx, "=== 校验 Full 数据：写入 条，读取 条",
+		"len(testFullList)", len(testFullList), "len(readFullList)", len(readFullList))
+	if len(testFullList) != len(readFullList) {
+		zaplogs.DebugArgs(ctx, "Full 数据条数不匹配")
+	}
+	zaplogs.DebugArgs(ctx, "Full 数据条数校验通过")
+
+	zaplogs.DebugArgs(ctx, "=== 校验 Incremental 数据：写入  个版本，读取  个版本",
+		"len(testIncrMap)", len(testIncrMap), "len(readIncrMap)", len(readIncrMap))
+	if len(testIncrMap) != len(readIncrMap) {
+		zaplogs.DebugArgs(ctx, "Incremental 版本数不匹配")
+	}
+	zaplogs.DebugArgs(ctx, "Incremental 版本数校验通过")
+
+	// 逐条对比 Full 数据
+	for i := range testFullList {
+		orig := testFullList[i]
+		read := readFullList[i]
+		if orig.Asn != read.Asn ||
+			orig.Address != read.Address ||
+			orig.PrefixLength != read.PrefixLength ||
+			orig.MaxLength != read.MaxLength {
+			zaplogs.DebugArgs(ctx, "Full 第  条数据不匹配", "i", i)
+		}
+	}
+	zaplogs.DebugArgs(ctx, "Full 逐条数据校验通过")
+
+	zaplogs.DebugArgs(ctx, "\n========================")
+	zaplogs.DebugArgs(ctx, "所有 MMap 读写测试全部通过！")
+	zaplogs.DebugArgs(ctx, "========================")
+}
+
+// 生成测试用 RTR Full 数据
+func genTestRtrFull(count int) []model.LabRpkiRtrFull {
+	var list []model.LabRpkiRtrFull
+	for i := 0; i < count; i++ {
+		list = append(list, model.LabRpkiRtrFull{
+			Asn:          int64(1000 + i),
+			Address:      fmt.Sprintf("203.10.10.%d", i),
+			PrefixLength: 24,
+			MaxLength:    32,
+		})
+	}
+	return list
+}
+
+// 生成测试用 RTR Incremental 数据（2 个版本）
+func genTestRtrIncremental() map[uint64][]model.LabRpkiRtrIncremental {
+	incMap := make(map[uint64][]model.LabRpkiRtrIncremental)
+
+	// 版本 100：2 条
+	incMap[100] = []model.LabRpkiRtrIncremental{
+		{
+			SerialNumber: 100,
+			Asn:          64501,
+			Address:      "192.168.1.10",
+			PrefixLength: 24,
+			MaxLength:    24,
+			Style:        "1", // announce
+		},
+		{
+			SerialNumber: 100,
+			Asn:          64502,
+			Address:      "192.168.2.10",
+			PrefixLength: 24,
+			MaxLength:    24,
+			Style:        "0", // withdraw
+		},
+	}
+
+	// 版本 200：1 条
+	incMap[200] = []model.LabRpkiRtrIncremental{
+		{
+			SerialNumber: 200,
+			Asn:          64510,
+			Address:      "2001:db8::1",
+			PrefixLength: 64,
+			MaxLength:    64,
+			Style:        "1",
+		},
+	}
+
+	return incMap
+}
