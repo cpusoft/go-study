@@ -57,7 +57,7 @@ func Init() {
 	fmt.Println("logLevelInt", logLevelInt)
 	//ts := time.Now().Format("2006-01-02")
 
-	path, err := osutil.GetCurrentOrParentAbsolutePath("log")
+	path, _, err := osutil.GetConfOrLogPath("log")
 	if err != nil {
 		fmt.Println("found " + path + " failed, " + err.Error())
 	}

@@ -1,15 +1,10 @@
 package main
 
 import (
-	"context"
-	"fmt"
-
 	_ "github.com/cpusoft/goutil/logs"
-	"github.com/cpusoft/goutil/zaplogs"
-	model "labscm.zdns.cn/rpstir2-mod/rpstir2-model"
-	"labscm.zdns.cn/rpstir2-mod/rpstir2-model/mmap"
 )
 
+/*
 // 测试整体流程：写入 Full + 写入 Incremental → 读取并校验
 func main() {
 	ctx := context.Background()
@@ -91,10 +86,10 @@ func main() {
 }
 
 // 生成测试用 RTR Full 数据
-func genTestRtrFull(count int) []model.LabRpkiRtrFull {
-	var list []model.LabRpkiRtrFull
+func genTestRtrFull(count int) []LabRpkiRtrFull {
+	var list []LabRpkiRtrFull
 	for i := 0; i < count; i++ {
-		list = append(list, model.LabRpkiRtrFull{
+		list = append(list, LabRpkiRtrFull{
 			Asn:          int64(1000 + i),
 			Address:      fmt.Sprintf("203.10.10.%d", i),
 			PrefixLength: 24,
@@ -105,11 +100,11 @@ func genTestRtrFull(count int) []model.LabRpkiRtrFull {
 }
 
 // 生成测试用 RTR Incremental 数据（2 个版本）
-func genTestRtrIncremental() map[uint64][]model.LabRpkiRtrIncremental {
-	incMap := make(map[uint64][]model.LabRpkiRtrIncremental)
+func genTestRtrIncremental() map[uint64][]LabRpkiRtrIncremental {
+	incMap := make(map[uint64][]LabRpkiRtrIncremental)
 
 	// 版本 100：2 条
-	incMap[100] = []model.LabRpkiRtrIncremental{
+	incMap[100] = []LabRpkiRtrIncremental{
 		{
 			SerialNumber: 100,
 			Asn:          64501,
@@ -129,7 +124,7 @@ func genTestRtrIncremental() map[uint64][]model.LabRpkiRtrIncremental {
 	}
 
 	// 版本 200：1 条
-	incMap[200] = []model.LabRpkiRtrIncremental{
+	incMap[200] = []LabRpkiRtrIncremental{
 		{
 			SerialNumber: 200,
 			Asn:          64510,
@@ -142,3 +137,30 @@ func genTestRtrIncremental() map[uint64][]model.LabRpkiRtrIncremental {
 
 	return incMap
 }
+
+// lab_rpki_rtr_full
+type LabRpkiRtrFull struct {
+	Id           uint64 `json:"id" xorm:"id bigint"`
+	SerialNumber uint64 `json:"serialNumber" xorm:"serialNumber bigint"`
+	Asn          int64  `json:"asn" xorm:"asn bigint"`
+	//address: 63.60.00.00
+	Address      string `json:"address" xorm:"address varchar(512)"`
+	PrefixLength uint64 `json:"prefixLength" xorm:"prefixLength int"`
+	MaxLength    uint64 `json:"maxLength" xorm:"maxLength int"`
+	//'come from : {souce:sync/slurm/transfer,syncLogId/syncLogFileId/slurmId/slurmFileId/transferLogId}',
+	SourceFrom string `json:"sourceFrom" xorm:"sourceFrom json"`
+}
+type LabRpkiRtrIncremental struct {
+	Id           uint64 `json:"id" xorm:"id bigint"`
+	SerialNumber uint64 `json:"serialNumber" xorm:"serialNumber bigint"`
+	//announce/withdraw, is 1/0 in protocol
+	Style string `json:"style" xorm:"style varchar(16)"`
+	Asn   int64  `json:"asn" xorm:"asn bigint"`
+	//address: 63.60.00.00
+	Address      string `json:"address" xorm:"address varchar(512)"`
+	PrefixLength uint64 `json:"prefixLength" xorm:"prefixLength int"`
+	MaxLength    uint64 `json:"maxLength" xorm:"maxLength int"`
+	//'come from : {souce:sync/slurm/transfer,syncLogId/syncLogFileId/slurmId/slurmFileId/transferLogId}',
+	SourceFrom string `json:"sourceFrom" xorm:"sourceFrom json"`
+}
+*/

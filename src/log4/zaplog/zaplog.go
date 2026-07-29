@@ -55,7 +55,7 @@ func init() {
 	} else {
 		logName = conf.String("logs::name")
 	}
-	path, err := osutil.GetCurrentOrParentAbsolutePath("log")
+	path, _, err := osutil.GetConfOrLogPath("log")
 	if err != nil {
 		fmt.Println("found " + path + " failed, " + err.Error())
 		return
