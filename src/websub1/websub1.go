@@ -1,6 +1,3 @@
-package websub1
-
-
 package main
 
 import (
@@ -8,13 +5,9 @@ import (
 	"log"
 	"net/http"
 	"time"
-
-	"meow.tf/websub"
-	"meow.tf/websub/store"
-	"meow.tf/websub/worker"
 )
 
-// JSONFeed v1.1 标准结构
+// JSONFeed v1.1
 type JSONFeed struct {
 	Version string `json:"version"`
 	Title   string `json:"title"`
@@ -29,64 +22,56 @@ type Item struct {
 }
 
 func main() {
-	// 1. 初始化存储
-	// 持久化磁盘存储（生产推荐）
-	st, err := store.NewBoltStore("subscriptions.db")
+	// 持久化bolt存储
+	st, err := websub.NewBoltStore("subscriptions.db")
 	if err != nil {
-		log.Fatalf("初始化存储失败: %v", err)
+		log.Fatalf("bolt store init err: %v", err)
 	}
-	// 测试临时内存存储（进程重启丢失订阅）
-	// st := store.NewMemoryStore()
+	// 测试用内存存储
+	// st := websub.NewMemoryStore()
 
-	// 2. 创建任务worker（异步推送回调）
-	w := worker.NewLocalWorker()
-
-	// 3. 构建Hub核心实例
+	w := websub.NewLocalWorker()
 	hub := websub.NewHub(st, w)
 
-	// 4. 启动标准WebSub接口（只用于订阅/取消订阅，没有发布接口）
 	http.Handle("/hub", hub)
 
-	// 后台goroutine：模拟业务内部定时产生消息，直接推送
+	// 内部业务goroutine，直接推送JSONFeed
 	go func() {
-		topicURL := "https://my-feed.example/feed.json" // WebSub规范topic为URL形式
-		ticker := time.NewTicker(30 * time.Second)
+		topic := "https://my-feed.example/feed.json"
+		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 
-		seq := 0
+		i := 0
 		for range ticker.C {
-			seq++
-			// 构造JSONFeed数据
+			i++
 			feed := JSONFeed{
 				Version: "https://jsonfeed.org/version/1.1",
-				Title:   "内部消息推送Feed",
+				Title:   "内部 JSONFeed 推送测试",
 				Items: []Item{
 					{
-						ID:            time.Now().Format("msg-20060102-150405"),
-						Title:         "实时消息 #" + string(rune(seq)),
-						ContentText:   "由程序内部逻辑直接推送，不经过HTTP publish接口",
+						ID:            time.Now().Format("msg-20060102T150405"),
+						Title:         "消息 #" + string(rune(i)),
+						ContentText:   "内部直接调用 hub.Publish 发送JSONFeed",
 						DatePublished: time.Now().Format(time.RFC3339),
 					},
 				},
 			}
 
-			feedBytes, err := json.MarshalIndent(feed, "", "  ")
+			data, err := json.Marshal(feed)
 			if err != nil {
-				log.Printf("序列化feed失败: %v", err)
+				log.Println("marshal feed err:", err)
 				continue
 			}
 
-			// ========== 核心：内部直接推送 ==========
-			err = hub.Publish(topicURL, "application/json", feedBytes)
+			err = hub.Publish(topic, "application/json", data)
 			if err != nil {
-				log.Printf("publish调用失败: %v", err)
+				log.Println("publish err:", err)
 			} else {
-				log.Printf("✅ 成功推送feed，seq=%d", seq)
+				log.Printf("publish success, seq=%d", i)
 			}
 		}
 	}()
 
-	log.Println("WebSub Hub 启动监听 :8080")
-	log.Println("订阅地址：POST http://127.0.0.1:8080/hub")
+	log.Println("listen :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
